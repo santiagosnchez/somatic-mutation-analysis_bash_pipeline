@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=12:00:00
-#PBS -e ${tumor}__${normal}.FilterMutectCalls.log
+#PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=5:00:00
+#PBS -e ${tumor}__${normal}.analyses.log
 #PBS -j eo
 # scheduler settings
 
@@ -35,9 +35,9 @@ expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { p
 # use prev coverage estimate
 
 # total snvs
-total_snvs=$(bcftools view --types snps ${tumor}__${normal}.mutect2.snpeff.${mode}.vcf | grep -v "^#" | wc -l)
+total_snvs=$(bcftools view --types snps vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
 # total indels
-total_indels=$(bcftools view --types indels ${tumor}__${normal}.mutect2.snpeff.${mode}.vcf | grep -v "^#" | wc -l)
+total_indels=$(bcftools view --types indels vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
 # calc TMB
 TMB_snvs=$( echo "scale=4; ${total_snvs}/(${coverage}/1000000)" | bc )
 TMB_indels=$( echo "scale=4; ${total_indels}/(${coverage}/1000000)" | bc )

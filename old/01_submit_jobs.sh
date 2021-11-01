@@ -1,7 +1,4 @@
 #!/bin/bash
-
-module load parallel/20210322
-
 # check/find out mode
 # first argument should be either wes or wgs
 if [[ $# == 0 ]]; then
@@ -41,7 +38,7 @@ source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_fil
 
 echo "submitting command:"
 # submit jobs in parallel
-cat file_list.csv | parallel --dry-run --colsep="," 'wt=$(get_walltime {4} {5}); qsub -l walltime=${wt}:00:00 -v sample={1},lane={2},lib={3},forward={4},reverse={5},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh'
-cat file_list.csv | parallel --colsep="," 'wt=$(get_walltime {4} {5}); qsub -l walltime=${wt}:00:00 -v sample={1},lane={2},lib={3},forward={4},reverse={5},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh'
+parallel --dry-run --colsep="," qsub -v sample={},mode=${mode} ${pipeline_dir}/02_fastq_to_ubam.picard.Fastq2Sam.samtools.merge.sh ::: ${samples} 
+parallel --colsep="," qsub -v sample={},mode=${mode} ${pipeline_dir}/02_fastq_to_ubam.picard.Fastq2Sam.samtools.merge.sh ::: ${samples} 
 
 

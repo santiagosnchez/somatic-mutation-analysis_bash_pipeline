@@ -13,4 +13,19 @@ export knownsites=/hpf/largeprojects/tabori/reference/gatk_bundle/hg38/Mills_and
 export bed30intervals=/hpf/largeprojects/tabori/reference/dap/AgilentSureSelectV5-exome-interval-files-gatk-split-30/
 # path to gnomad resource
 export gnomad_resource=/hpf/largeprojects/tabori/gnomad_resources/gnomad.biallelic.AF0.0001.PASS.vcf
+# path to snpEff jar file
+export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
+# path to snpEff data dir
+export snpeff_datadir=/hpf/largeprojects/tabori/software/snpEff_data/4.11/data
+
+# functions
+
+# estimate walltime length
+get_walltime(){
+    size=$(du -sc $* | tail -1 | cut -f1)
+    walltime=$(echo "scale=0; (${size} * 4)/10000000" | bc) 
+    echo $walltime
+}
+export -f get_walltime
+
 

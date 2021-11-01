@@ -1,23 +1,22 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=12:00:00
-#PBS -e ${tumor}__${normal}.FilterMutectCalls.log
+#PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=5:00:00
+#PBS -e ${tumor}__${normal}.snpEff.log
 #PBS -j eo
 # scheduler settings
 
 # load modules
 module load java/1.8
-module load samtools/1.10
 module load snpEff/4.11
 module load bcftools/1.11
+module load tabix
 
 # set working dir
 cd $PBS_O_WORKDIR
 
 # create output dirs
-if [[ ! -e vcf ]]; then
-    mkdir -p vcf
+if [[ ! -e vcf/snpEff ]]; then
+    mkdir -p vcf/snpEff
 fi
-
 
 # load reference path and other reference files
 # for details check script
@@ -27,15 +26,30 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
-# normalize variants, reduce complex alleles
-bcftools annotate -- mutect2/${tumor}__${normal}.mutect2.normalized.${mode}.vcf.gz 
+# make temporary header file with pedigree
+echo "##PEDIGREE=<Derived=${tumor},Original=${normal}>" > ${tumor}__${normal}.tmp.vcf.header.txt
+
+# normalize variants, reduce complex alleles and add header line
+bcftools annotate \
+ -h ${tumor}__${normal}.tmp.vcf.header.txt \
+ -Oz -o mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz \
+ mutect2/${tumor}__${normal}.mutect2.normalized.${mode}.vcf.gz
+
+# delete tmp header file
+if [[ "$?" == 0 ]]; then
+    rm ${tumor}__${normal}.tmp.vcf.header.txt
+fi
 
 # run gatk's mutect2
-gatk FilterMutectCalls \
- -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
- --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
- --ob-priors orientation/read-orientation-model.tar.gz \
- -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf 
+java -jar $snpeff_jar \
+ -dataDir $snpeff_datadir \
+ hg38 \
+ -v \
+ -cancer \
+ -stats vcf/snpEff/${tumor}__${normal}.snpEff_summary.html \
+ -csvStats vcf/snpEff/${tumor}__${normal}.snpEff_summary.csv \
+ mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz > \
+ vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf 
 
 # check if finished
 check_finish=$?
@@ -47,10 +61,31 @@ fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
-    mv ${tumor}__${normal}.FilterMutectCalls.log all_logfiles
-    # next round of jobs are submitted manually or not
-    # annotate VCF file
-    # 
+    # bgzip and tabix vcf
+    bgzip vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf
+    tabix vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz
+    # run analyses
+    qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh 
+     # prepare for cleanup
+    echo "${tumor},${normal}" >> finished.csv
+    finished=$( cat finished.csv | wc -l )
+    started=$( cat tumors_and_normals.csv | wc -l )
+#    if [[ "$finished" -eq "$started" ]]; then
+#        # rename dirs
+#        mv BQSR bam
+#        # move stats to all_logfiles
+#        mutect2/${tumor}__${normal}.mutect2.filtered.wes.vcf.filteringStats.tsv all_logfiles
+#        mutect2/${tumor}__${normal}.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
+#        # delete all other vcf files
+#        rm -rf mutect2/${tumor}__${normal}*.vcf*
+#        # delete directories with bam data
+#        rm -rf preprocessed_bam aligned_bam
+#        if [[ -e unmapped_bam ]]; then
+#            rm -rf unmapped_bam
+#        fi
+#    fi
+    # move logfile
+    mv ${tumor}__${normal}.snpEff.log all_logfiles
 fi
 
 

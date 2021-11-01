@@ -6,7 +6,7 @@
 
 # load modules
 module load java/1.8
-#module load gatk/4.0.1.2
+module load gatk/4.2.2.0
 module load samtools/1.10
 
 # set working dir
@@ -19,6 +19,12 @@ echo $PBS_JOBID
 if [[ ! -e mutect2 ]]; then
     mkdir -p mutect2/f1r2
 fi
+# set bam dir
+if [[ ! -e bam ]]; then
+    dir=BQSR
+else
+    dir=bam
+fi
 
 # load reference path and other reference files
 # for details check script
@@ -30,9 +36,9 @@ fi
 
 if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
 # run gatk's mutect2
-gatk-4.2.2.0 Mutect2 \
- -I BQSR/${tumor}.bqsr.bam \
- -I BQSR/${normal}.bqsr.bam \
+gatk --java-options "-Xmx20G" Mutect2 \
+ -I ${dir}/${tumor}.bqsr.bam \
+ -I ${dir}/${normal}.bqsr.bam \
  -tumor ${tumor} \
  -normal ${normal} \
  -R ${reference} \
@@ -65,10 +71,10 @@ if [[ "$check_finish" == 0 ]]; then
         # gather vcffiles
         # generate list of files with their own -I flag
         vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
-        gatk-4.2.2.0 GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
+        gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
         # gather stats files, needed for Filtering
         statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
-        gatk-4.2.2.0 MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+        gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
         if [[ "$?" == 0 ]]; then
             rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
         fi

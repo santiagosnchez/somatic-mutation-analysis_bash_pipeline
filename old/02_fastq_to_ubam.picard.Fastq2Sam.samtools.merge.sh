@@ -4,9 +4,30 @@
 #PBS -j eo
 # scheduler settings
 
+############### INFO #################
+#                                    
+# Integrated Bash Pipeline for       
+# Somatic Mutation Discovery         
+#                                    
+# Author: Santiago Sanchez-Ramirez 
+# Year: 2021  
+# Email: santiago.snchez@gmail.com   
+#                                    
+# More info on README.md             
+#                                    
+# Notes:                             
+# (1) It now uses gatk's picard version
+#
+#####################################
+
+#############
+# script 2  #
+#############
+
 # load modules
 module load java/1.8
-module load picard-tools/2.18.0
+module load gatk/4.2.2.0
+#module load picard-tools/2.18.0
 #module load samtools/1.10
 module load parallel/20210322
 
@@ -18,7 +39,7 @@ echo $PBS_JOBID
 
 # picard
 # don't change! or uncomment
-export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
+#export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
 
 # load all paths
 source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
@@ -29,7 +50,7 @@ if [[ ! -e unmapped_bam ]]; then
 fi
 
 # run picard in parallel
-cat file_list.csv | grep "^${sample}," | parallel --colsep="," java -jar $picard_jar_file FastqToSam F1={4} F2={5} O=unmapped_bam/{1}_{2}.unaligned.bam SM={1} RG={2} LB={3} PL=Illumina MAX_RECORDS_IN_RAM=100000
+cat file_list.csv | grep "^${sample}," | parallel --colsep="," gatk FastqToSam -F1 {4} -F2 {5} -O unmapped_bam/{1}_{2}.unaligned.bam -SM {1} -RG {2} -LB {3} -PL Illumina -MAX_RECORDS_IN_RAM 100000
 
 # check that command finished
 check_finish1=$?
@@ -39,7 +60,7 @@ if [[ "$check_finish1" == 0 ]]; then
     # make input files into single string-var
     input=$(for i in unmapped_bam/${sample}_*unaligned.bam; do echo -n "I=$i "; done)
     # run picard to merge bam files
-    eval "java -jar $picard_jar_file MergeSamFiles SO=unsorted $input O=unmapped_bam/${sample}.unaligned.merged.bam  MAX_RECORDS_IN_RAM=100000"
+    eval "gatk MergeSamFiles -SO unsorted $input -O unmapped_bam/${sample}.unaligned.merged.bam -MAX_RECORDS_IN_RAM 100000"
     check_finish2=$?
     if [[ "$check_finish2" == 0 ]]; then
         rm unmapped_bam/${sample}_*.unaligned.bam

@@ -6,7 +6,8 @@
 
 # load modules
 module load java/1.8
-module load picard-tools/2.18.0
+module load gatk/4.2.2.0
+#module load picard-tools/2.18.0
 module load samtools/1.10
 module load parallel/20210322
 
@@ -17,7 +18,7 @@ cd $PBS_O_WORKDIR
 echo $PBS_JOBID
 
 # picard
-export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
+#export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
 
 # load all paths
 source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
@@ -30,17 +31,39 @@ fi
 # run picards FixMateInformation and MarkDuplicates
 if [[ -e aligned_bam/${sample}.bam && $(samtools quickcheck aligned_bam/${sample}.bam && echo 1) == 1 ]]; then
     if [[ ! -e preprocessed_bam/${sample}.picard.sorted.mfixed.bam ]]; then
-java -jar $picard_jar_file FixMateInformation I=aligned_bam/${sample}.bam O=preprocessed_bam/${sample}.picard.sorted.mfixed.bam SO=coordinate COMPRESSION_LEVEL=6 MAX_RECORDS_IN_RAM=100000 CREATE_INDEX=true    
+gatk FixMateInformation \
+ -I aligned_bam/${sample}.bam \
+ -O preprocessed_bam/${sample}.picard.sorted.mfixed.bam \
+ -SO coordinate \
+ -COMPRESSION_LEVEL 6 -MAX_RECORDS_IN_RAM 100000 -CREATE_INDEX true    
     else 
         if [[ $(samtools quickcheck preprocessed_bam/${sample}.picard.sorted.mfixed.bam && echo 1) != 1 ]]; then
-java -jar $picard_jar_file FixMateInformation I=aligned_bam/${sample}.bam O=preprocessed_bam/${sample}.picard.sorted.mfixed.bam SO=coordinate COMPRESSION_LEVEL=6 MAX_RECORDS_IN_RAM=100000 CREATE_INDEX=true
+gatk FixMateInformation \
+ -I aligned_bam/${sample}.bam \
+ -O preprocessed_bam/${sample}.picard.sorted.mfixed.bam \
+ -SO coordinate \
+ -COMPRESSION_LEVEL 6 -MAX_RECORDS_IN_RAM 100000 -CREATE_INDEX true
         fi
     fi
     if [[ ! -e preprocessed_bam/${sample}.picard.sorted.markdup.bam ]]; then
-java -jar $picard_jar_file MarkDuplicates I=preprocessed_bam/${sample}.picard.sorted.mfixed.bam O=preprocessed_bam/${sample}.picard.sorted.markdup.bam ASO=coordinate TAGGING_POLICY=All OPTICAL_DUPLICATE_PIXEL_DISTANCE=2500 METRICS_FILE=preprocessed_bam/${sample}.picard.MarkDuplicates.txt COMPRESSION_LEVEL=6 MAX_RECORDS_IN_RAM=100000 CREATE_INDEX=true
+gatk MarkDuplicates \
+ -I preprocessed_bam/${sample}.picard.sorted.mfixed.bam \
+ -O preprocessed_bam/${sample}..markdup.bam \
+ -ASO coordinate \
+ -TAGGING_POLICY All \
+ -OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 \
+ -METRICS_FILE all_logfiles/${sample}.picard.MarkDuplicates.txt \
+ -COMPRESSION_LEVEL 6 -MAX_RECORDS_IN_RAM 100000 -CREATE_INDEX true
     else
         if [[ $(samtools quickcheck preprocessed_bam/${sample}.picard.sorted.markdup.bam && echo 1) != 1 ]]; then
-java -jar $picard_jar_file MarkDuplicates I=preprocessed_bam/${sample}.picard.sorted.mfixed.bam O=preprocessed_bam/${sample}.picard.sorted.markdup.bam ASO=coordinate TAGGING_POLICY=All OPTICAL_DUPLICATE_PIXEL_DISTANCE=2500 METRICS_FILE=preprocessed_bam/${sample}.picard.MarkDuplicates.txt COMPRESSION_LEVEL=6 MAX_RECORDS_IN_RAM=100000 CREATE_INDEX=true
+gatk MarkDuplicates \
+ -I preprocessed_bam/${sample}.picard.sorted.mfixed.bam \
+ -O preprocessed_bam/${sample}.markdup.bam \
+ -ASO coordinate \
+ -TAGGING_POLICY All \
+ -OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 \
+ -METRICS_FILE all_logfiles/${sample}.picard.MarkDuplicates.txt \
+ -COMPRESSION_LEVEL 6 -MAX_RECORDS_IN_RAM 100000 -CREATE_INDEX true
         fi
     fi
 else

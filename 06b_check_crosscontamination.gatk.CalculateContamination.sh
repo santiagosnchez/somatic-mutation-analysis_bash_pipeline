@@ -1,20 +1,29 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=10:00:00
+#PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=10:00:00
 #PBS -e ${tumor}__${normal}.CalculateContamination.log
 #PBS -j eo
 # scheduler settings
 
 # load modules
 module load java/1.8
-#module load gatk/4.0.1.2
+module load gatk/4.2.2.0
 module load samtools/1.10
 
 # set working dir
 cd $PBS_O_WORKDIR
 
+# print jobid to 1st line
+echo $PBS_JOBID
+
 # create dir for contamination
 if [[ ! -e contamination ]]; then
     mkdir contamination
+fi
+# set bam dir
+if [[ ! -e bam ]]; then
+    dir=BQSR
+else
+    dir=bam
 fi
 
 # load reference path and other reference files
@@ -26,7 +35,7 @@ if [[ "${mode}" != "wes" ]]; then
 fi
 
 # run gatk's CalculateContamination
-gatk-4.2.2.0 CalculateContamination \
+gatk --java-options "-Xmx20G" CalculateContamination \
  -I contamination/${tumor}.getpileupsummaries.table \
  -matched contamination/${normal}.getpileupsummaries.table \
  -O contamination/${tumor}__${normal}.calculatecontamination.table \

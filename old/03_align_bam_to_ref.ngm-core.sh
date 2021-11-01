@@ -3,6 +3,26 @@
 #PBS -j eo
 # scheduler settings
 
+############### INFO #################
+#                                    
+# Integrated Bash Pipeline for       
+# Somatic Mutation Discovery         
+#                                    
+# Author: Santiago Sanchez-Ramirez 
+# Year: 2021  
+# Email: santiago.snchez@gmail.com   
+#                                    
+# More info on README.md             
+#                                    
+# Notes:                             
+# (1) Uses nextgenmap and samtools
+#
+#####################################
+
+#############
+# script 3  #
+#############
+
 # load modules
 module load opencl/18.1.0.015
 module load nextgenmap/0.5.0

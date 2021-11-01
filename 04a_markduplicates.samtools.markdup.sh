@@ -4,6 +4,28 @@
 #PBS -j eo
 # scheduler settings
 
+############### INFO #################
+#                                    
+# Integrated Bash Pipeline for       
+# Somatic Mutation Discovery         
+#                                    
+# Author: Santiago Sanchez-Ramirez 
+# Year: 2021  
+# Email: santiago.snchez@gmail.com   
+#                                    
+# More info on README.md             
+#                                    
+# Notes:                             
+# (1) Uses samtools markdup approach rather than
+#     Picards MarkDuplicates
+#
+#####################################
+
+#############
+# script 4a #
+#############
+
+
 # load modules
 module load samtools/1.10
 
@@ -48,12 +70,12 @@ if [[ -e aligned_bam/${sample}.bam && $(samtools quickcheck aligned_bam/${sample
         fi
     fi
     if [[ ! -e preprocessed_bam/${sample}.samtools.markdup.bam ]]; then 
-        samtools markdup -@ 12 -d 2500 --reference ${reference} -s -f all_logfiles/${sample}.markdup.stats.log preprocessed_bam/${sample}.samtools.sorted.bam preprocessed_bam/${sample}.samtools.sorted.markdup.bam
-        samtools index preprocessed_bam/${sample}.samtools.sorted.markdup.bam
+        samtools markdup -@ 12 -d 2500 --reference ${reference} -s -f all_logfiles/${sample}.markdup.stats.log preprocessed_bam/${sample}.samtools.sorted.bam preprocessed_bam/${sample}.markdup.bam
+        samtools index preprocessed_bam/${sample}.markdup.bam
     else
         if [[ $(samtools quickcheck preprocessed_bam/${sample}.samtools.markdup.bam && echo 1) != 1 ]]; then
-            samtools markdup -@ 12 -d 2500 --reference ${reference} -s -f all_logfiles/${sample}.markdup.stats.log preprocessed_bam/${sample}.samtools.sorted.bam preprocessed_bam/${sample}.samtools.sorted.markdup.bam
-            samtools index preprocessed_bam/${sample}.samtools.sorted.markdup.bam
+            samtools markdup -@ 12 -d 2500 --reference ${reference} -s -f all_logfiles/${sample}.markdup.stats.log preprocessed_bam/${sample}.samtools.sorted.bam preprocessed_bam/${sample}.markdup.bam
+            samtools index preprocessed_bam/${sample}.markdup.bam
         fi
     fi
 else
