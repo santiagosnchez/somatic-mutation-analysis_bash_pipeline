@@ -67,9 +67,9 @@ if [[ "$check_finish" == 0 ]]; then
     # run analyses
     qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh 
      # prepare for cleanup
-    echo "${tumor},${normal}" >> finished.csv
-    finished=$( cat finished.csv | wc -l )
-    started=$( cat tumors_and_normals.csv | wc -l )
+#    echo "${tumor},${normal}" >> finished.csv
+#    finished=$( cat finished.csv | wc -l )
+#    started=$( cat tumors_and_normals.csv | wc -l )
 #    if [[ "$finished" -eq "$started" ]]; then
 #        # rename dirs
 #        mv BQSR bam

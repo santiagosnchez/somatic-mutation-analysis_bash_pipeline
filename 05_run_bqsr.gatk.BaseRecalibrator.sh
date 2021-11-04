@@ -121,6 +121,8 @@ if [[ "$check_finish" == 0 ]]; then
                     ls $bed30intervals | grep ".bed" | parallel --dry-run "qsub -v normal=${normal},tumor=${tumor},bed={},mode=${mode},index={#} ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
                     # submit mutect2 jobs on 30 intervals
                     ls $bed30intervals | grep ".bed" | parallel "qsub -v normal=${normal},tumor=${tumor},bed={},mode=${mode},index={#} ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh"
+                    # move logfiles
+                    mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
                 elif [[ "${check_normal}" != 1 && "${check_tumor}" == 1 ]]; then
                     # resubmit with dependency
                     # wait until BQSR finishes
@@ -138,7 +140,7 @@ if [[ "$check_finish" == 0 ]]; then
             done
         else
             echo "sample $sample not in tumor column (1st)"
-            mv ${sample}.BQSR.log all_logfiles
+            mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
             exit 0
         fi
     else

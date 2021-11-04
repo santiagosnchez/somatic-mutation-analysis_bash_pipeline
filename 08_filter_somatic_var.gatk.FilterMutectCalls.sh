@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=5:00:00
+#PBS -l mem=10g,walltime=5:00:00
 #PBS -e ${tumor}__${normal}.FilterMutectCalls.log
 #PBS -j eo
 # scheduler settings
@@ -27,7 +27,7 @@ fi
 
 if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table && -e contamination/${tumor}__${normal}.tumorsegmentation.table ]]; then
 # run gatk's FilterMutectCalls
-gatk --java-options "-Xmx8G" FilterMutectCalls \
+gatk FilterMutectCalls \
  -R $reference \
  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
@@ -36,13 +36,13 @@ gatk --java-options "-Xmx8G" FilterMutectCalls \
  -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf 
 
 # select passed variants
-gatk --java-options "-Xmx8G" SelectVariants \
+gatk SelectVariants \
  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
  --exclude-filtered \
  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf 
 
 # compress and tabix selected file
-bgzip mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+bgzip -f mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
 tabix mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz
 
 # normalize vcf file, compress, and tabix
