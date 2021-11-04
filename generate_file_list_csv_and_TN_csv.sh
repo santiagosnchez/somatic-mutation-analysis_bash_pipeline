@@ -61,7 +61,7 @@ if [[ ${input1} == "y" ]]; then
         exit 1
     elif [[ "$#" -gt 1 ]]; then
         # sort csv naturally
-        parallel --keep 'generate_csv_from_filepath {}' ::: $* | sort -V | paste -d, - - | cut -d, -f1,2,5 > file_list.csv
+        parallel --keep 'generate_csv_from_filepath {}' ::: $* | sort -V | paste -d, - - | cut -d, -f1,3,6 > file_list.csv
     else
         if [[ -e $1 ]]; then
             file $1 | grep "gzip compressed data"
@@ -70,7 +70,7 @@ if [[ ${input1} == "y" ]]; then
             fi
             file $1 | grep "ASCII text"
             if [[ "$?" == 0 ]]; then
-               cat $1 | parallel --keep 'generate_csv_from_filepath {}' | sort -V | paste -d, - - | cut -d, -f1,2,5 > file_list.csv
+               cat $1 | parallel --keep 'generate_csv_from_filepath {}' | sort -V | paste -d, - - | cut -d, -f1,3,6 > file_list.csv
             fi
         fi
     fi
