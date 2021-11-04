@@ -24,6 +24,9 @@ export snpeff_datadir=/hpf/largeprojects/tabori/software/snpEff_data/4.11/data
 get_walltime(){
     size=$(du -sc $* | tail -1 | cut -f1)
     walltime=$(echo "scale=0; (${size} * 4)/10000000" | bc) 
+    if [[ "${walltime}" == 0 ]]; then
+        walltime=2
+    fi
     echo $walltime
 }
 export -f get_walltime

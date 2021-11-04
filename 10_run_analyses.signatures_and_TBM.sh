@@ -118,8 +118,8 @@ if [[ "$check_finish" == 0 ]]; then
         # log final
         date > all_logfiles/end.log
         # get date pipeline started
-        start_date=$(head -1 all_logfiles/start.log)
-        end_date=$(head -1 all_logfiles/end.log)
+        start_date=$(tail -1 all_logfiles/start.log)
+        end_date=$(tail -1 all_logfiles/end.log)
         # calculate total running time
         sds=$(date -d "$start_date" +%s)
         eds=$(date -d "$end_date" +%s)

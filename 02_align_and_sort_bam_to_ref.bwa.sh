@@ -36,6 +36,9 @@ echo $PBS_JOBID
 # get walltime
 wt=$(qstat -f $PBS_JOBID | sed -rn 's/.*Resource_List.walltime = (.*)/\1/p' | sed 's/:.*//')
 
+# write job details to log
+qstat -f $PBS_JOBID > ${sample}.${lane}.bwa.log
+
 # if forward and reverse not defined
 # search in file
 # if [[ -z "${forward}" ]]; then
