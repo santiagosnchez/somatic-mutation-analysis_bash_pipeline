@@ -47,7 +47,7 @@ produce_bar_plots <- function(df, file_name, legend_names=c(NULL,NULL)){
     n_samples = 4
   }
   # start plotting device
-  dev.new(file=paste0("analyses/",file_name,".pdf"), height=n_samples, width=14)
+  dev.new(file="tmp_Rplot.pdf", height=n_samples, width=14)
   # get number of legend elements
   # guides(fill=guide_legend(ncol=2))
 
@@ -108,8 +108,11 @@ produce_bar_plots <- function(df, file_name, legend_names=c(NULL,NULL)){
             )
   # save PNG
   ggsave(paste0("analyses/",file_name,".png"), bg="white", type="cairo", height=n_samples, width=14)
+  ggsave(paste0("analyses/",file_name,".pdf"), type="cairo", height=n_samples, width=14)
   # close device
   dev.off()
+  # remove tmp plot file
+  file.remove("tmp_Rplot.pdf")
   #
   print("Done")
 }
@@ -120,7 +123,7 @@ produce_lolipop_plots <- function(df, file_name){
   # set minimal size of the plot
   if (n_samples < 4){
     n_samples = 4
-  }  
+  }
   # start plotting device
   dev.new(file=paste0("analyses/",file_name,".pdf"), height=8, width=n_samples)
   # SNVs
@@ -231,9 +234,9 @@ for (i in 1:dim(linear_decomp_mt_sig_sbs_96_norm)[2]){
   linear_decomp_mt_sig_sbs_96_norm[,i] = linear_decomp_mt_sig_sbs_96_raw[,i] / sum(linear_decomp_mt_sig_sbs_96_raw[,i])
 }
 # remove non-matches
-non_matches = which(apply(linear_decomp_mt_sig_sbs_96_norm, 1, sum) == 0)
-linear_decomp_mt_sig_sbs_96_norm = linear_decomp_mt_sig_sbs_96_norm[-non_matches,]
-linear_decomp_mt_sig_sbs_96_raw = linear_decomp_mt_sig_sbs_96_raw[-non_matches,]
+keep = apply(linear_decomp_mt_sig_sbs_96_norm, 1, sum) > 0
+linear_decomp_mt_sig_sbs_96_norm = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_norm), keep)
+linear_decomp_mt_sig_sbs_96_raw = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_raw), keep)
 
 # store in list
 linear_decomp_mt_sig_sbs_96$Exposure = linear_decomp_mt_sig_sbs_96_raw
@@ -253,9 +256,9 @@ for (i in 1:dim(linear_decomp_mt_sig_legacy_30_norm)[2]){
   linear_decomp_mt_sig_legacy_30_norm[,i] = linear_decomp_mt_sig_legacy_30_raw[,i] / sum(linear_decomp_mt_sig_legacy_30_raw[,i])
 }
 # remove non-matches
-non_matches = which(apply(linear_decomp_mt_sig_legacy_30_norm, 1, sum) == 0)
-linear_decomp_mt_sig_legacy_30_norm = linear_decomp_mt_sig_legacy_30_norm[-non_matches,]
-linear_decomp_mt_sig_legacy_30_raw = linear_decomp_mt_sig_legacy_30_raw[-non_matches,]
+keep = apply(linear_decomp_mt_sig_legacy_30_norm, 1, sum) > 0
+linear_decomp_mt_sig_legacy_30_norm = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_norm), keep)
+linear_decomp_mt_sig_legacy_30_raw = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_raw), keep)
 # store in list
 linear_decomp_mt_sig_legacy_30$Exposure = linear_decomp_mt_sig_legacy_30_raw
 linear_decomp_mt_sig_legacy_30$Exposure.norm = linear_decomp_mt_sig_legacy_30_norm
@@ -298,4 +301,3 @@ produce_lolipop_plots(tmb_data, "snv_and_indel_tmb")
 
 # save R objects to disk
 save.image(file="analyses/mutational_signatures_as_R_object.Rdata")
-
