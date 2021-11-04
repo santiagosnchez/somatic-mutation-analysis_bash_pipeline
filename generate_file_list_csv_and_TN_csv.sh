@@ -7,16 +7,16 @@ generate_csv_from_filepath(){
      echo $1 | perl -ne '
              @a = split "/", $_;
              if ($a[scalar(@a)-1] =~ m/^(.+?)_([S|ATGC].*?)_(L.*)_(R[12])_[0-9]*\.fastq\.gz/){
-                 print $1 . "," . $4 . "," . $3 . "," . $2 .  "," . $_;
-             } 
-             elsif ($a[scalar(@a)-1] =~ m/^(.+?)_([S|ATGC].*?)_(R[12])_([0-9]*)\.fastq\.gz/){
-                 print $1 . "," . $3 . "," . $4 .  "," . $2 . "," . $_;
+                 print $1 . "," . $3 . "," . $_;
              }
-             elsif ($a[scalar(@a)-1] =~ m/^(.+?)_(R[12])\.fastq\.gz/){ 
-                 print $1 . "," . $2 . "," . "L001" . "," . "S1" . "," . $_;
-             } 
-             else { 
-                 print ",,,," . $_ 
+             elsif ($a[scalar(@a)-1] =~ m/^(.+?)_([S|ATGC].*?)_(R[12])_([0-9]*)\.fastq\.gz/){
+                 print $1 . "," . $4 . "," . $_;
+             }
+             elsif ($a[scalar(@a)-1] =~ m/^(.+?)_(R[12])\.fastq\.gz/){
+                 print $1 . "," . "L001" . "," . $_;
+             }
+             else {
+                 print ",," . $_
              }'
 }
 export -f generate_csv_from_filepath
@@ -61,7 +61,7 @@ if [[ ${input1} == "y" ]]; then
         exit 1
     elif [[ "$#" -gt 1 ]]; then
         # sort csv naturally
-        parallel --keep 'generate_csv_from_filepath {}' ::: $* | sort -V | paste -d, - - | cut -d, -f1,3-5,10 > file_list.csv 
+        parallel --keep 'generate_csv_from_filepath {}' ::: $* | sort -V | paste -d, - - | cut -d, -f1,2,5 > file_list.csv
     else
         if [[ -e $1 ]]; then
             file $1 | grep "gzip compressed data"
@@ -70,7 +70,7 @@ if [[ ${input1} == "y" ]]; then
             fi
             file $1 | grep "ASCII text"
             if [[ "$?" == 0 ]]; then
-               cat $1 | parallel --keep 'generate_csv_from_filepath {}' | sort -V | paste -d, - - | cut -d, -f1,3-5,10 > file_list.csv
+               cat $1 | parallel --keep 'generate_csv_from_filepath {}' | sort -V | paste -d, - - | cut -d, -f1,2,5 > file_list.csv
             fi
         fi
     fi
@@ -80,7 +80,7 @@ fi
 echo "file_list.csv is ready"
 
 # check file
-grep "^,,," file_list.csv &> /dev/null
+grep "^,," file_list.csv &> /dev/null
 if [[ "$?" == 0 ]]; then
     echo "check file_list.csv; file not properly constructed"
     exit 1

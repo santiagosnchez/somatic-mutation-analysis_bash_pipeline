@@ -23,7 +23,7 @@ export snpeff_datadir=/hpf/largeprojects/tabori/software/snpEff_data/4.11/data
 # estimate walltime length
 get_walltime(){
     size=$(du -sc $* | tail -1 | cut -f1)
-    walltime=$(echo "scale=0; (${size} * 4)/10000000" | bc) 
+    walltime=$(echo "scale=0; (${size} * 4)/10000000" | bc)
     if [[ "${walltime}" == 0 ]]; then
         walltime=2
     fi
@@ -31,4 +31,31 @@ get_walltime(){
 }
 export -f get_walltime
 
-
+# get read groups from illumina header
+get_read_group_info(){
+  # get the first line
+  file $1 | grep "gzip" &> /dev/null
+  if [[ "$?" == 0 ]]; then # gzipped
+  # get the first line
+    head=$(zcat $1 2> /dev/null | head -1 | sed 's/^@//')
+  else
+    head=$(cat $1 2> /dev/null | head -1 | sed 's/^@//')
+  fi
+  head_split=(`echo $head | tr ':' '\n'`)
+  # default assume illumina
+  PL=ILLUMINA
+  # sample second arg
+  SM=$2
+  if [[ "${#head_split[@]}" == 11 ]]; then
+    PM=${head_split[0]} # instrument id
+    ID=${head_split[1]} # run id
+    PU=${head_split[2]} # flowcell id
+    BC=${head_split[10]} # barcode ID
+    # build read group string
+    RG="@RG\tID:${ID}\tSM:${SM}\tLB:${BC}\tPL:${PL}\tBC:${BC}\tPU:${PU}\tPM:${PM}"
+  else
+    ID=1 # run id
+    RG="@RG\tID:${ID}\tSM:${SM}\tPL:${PL}"
+  fi
+  echo -e $RG
+}

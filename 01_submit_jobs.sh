@@ -32,8 +32,7 @@ else
     fi
 fi
 
-# extract samples from csv file
-samples=$(cat file_list.csv | cut -d, -f1 | sort -u)
+# export mode
 export mode
 
 # load all paths
@@ -42,20 +41,23 @@ source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_fil
 # create log dir
 if [[ ! -e all_logfiles ]]; then
     mkdir all_logfiles
-fi 
+fi
 
 echo "submitting command:"
 # submit jobs in parallel
+# first dry run
 cat file_list.csv | parallel --dry-run --colsep="," '
-wt=$(get_walltime {4} {5}); 
-qsub -l walltime=${wt}:00:00 -v index={#},sample={1},lane={2},lib={3},forward={4},reverse={5},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee start.log
+wt=$(get_walltime {2} {3});
+rg=`get_read_group_info {2} {1}`;
+qsub -l walltime=${wt}:00:00 -v index={#},sample={1},rg=${rg},forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee start.log
+# then submit
+echo "submitting ..."
 cat file_list.csv | parallel --colsep="," '
-wt=$(get_walltime {4} {5}); 
-qsub -l walltime=${wt}:00:00 -v index={#},sample={1},lane={2},lib={3},forward={4},reverse={5},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh'
+wt=$(get_walltime {4} {5});
+rg=`get_read_group_info {2} {1}`;
+qsub -l walltime=${wt}:00:00 -v index={#},sample={1},rg=${rg},forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh'
 
 # print date
 date >> start.log
 
 mv start.log all_logfiles
-
-
