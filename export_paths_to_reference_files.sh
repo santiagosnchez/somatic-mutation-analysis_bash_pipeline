@@ -57,6 +57,6 @@ get_read_group_info(){
     ID=1 # run id
     RG="@RG\tID:${ID}\tSM:${SM}\tPL:${PL}"
   fi
-  echo -e $RG
+  echo "$RG"
 }
 export -f get_read_group_info
