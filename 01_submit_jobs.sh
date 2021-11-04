@@ -49,13 +49,13 @@ echo "submitting command:"
 cat file_list.csv | parallel --dry-run --colsep="," '
 wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
-qsub -l walltime=${wt}:00:00 -v index={#},sample={1},rg=${rg},forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee start.log
+qsub -l walltime="${wt}":00:00 -v index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee start.log
 # then submit
 echo "submitting ..."
 cat file_list.csv | parallel --colsep="," '
 wt=$(get_walltime {4} {5});
 rg=`get_read_group_info {2} {1}`;
-qsub -l walltime=${wt}:00:00 -v index={#},sample={1},rg=${rg},forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh'
+qsub -l walltime="${wt}":00:00 -v index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh'
 
 # print date
 date >> start.log
