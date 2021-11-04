@@ -59,3 +59,4 @@ get_read_group_info(){
   fi
   echo -e $RG
 }
+export -f get_read_group_info
