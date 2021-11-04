@@ -108,16 +108,16 @@ produce_bar_plots <- function(df, file_name, legend_names=c(NULL,NULL)){
             )
   # save PNG
   ggsave(paste0("analyses/",file_name,".png"), bg="white", type="cairo", height=n_samples, width=14)
-  ggsave(paste0("analyses/",file_name,".pdf"), type="cairo", height=n_samples, width=14)
+  ggsave(paste0("analyses/",file_name,".pdf"), device="pdf", height=n_samples, width=14)
   # close device
   dev.off()
   # remove tmp plot file
-  file.remove("tmp_Rplot.pdf")
+  #file.remove("tmp_Rplot.pdf")
   #
   print("Done")
 }
 
-produce_lolipop_plots <- function(df, file_name){
+produce_lolipop_plots <- function(df){
   # calculate height from samples
   n_samples = length(unique(df$tumor))
   # set minimal size of the plot
@@ -125,7 +125,7 @@ produce_lolipop_plots <- function(df, file_name){
     n_samples = 4
   }
   # start plotting device
-  dev.new(file=paste0("analyses/",file_name,".pdf"), height=8, width=n_samples)
+  dev.new(file="tmp_Rplot.pdf", height=n_samples, width=14)
   # SNVs
   tmb_snvs = ggplot(tmb_data, aes(x=tumor, y=tmb_snvs, color=tmb_snvs)) +
     geom_point(size=3) +
@@ -153,6 +153,7 @@ produce_lolipop_plots <- function(df, file_name){
   # plot grid
   plot_grid(tmb_snvs, tmb_indels, ncol=1)
   ggsave("analyses/snv_and_indel_tmb.png", bg="white", type="cairo", height=8, width=n_samples)
+  ggsave("analyses/snv_and_indel_tmb.pdf", height=8, width=n_samples)
   # close device
   dev.off()
 }
@@ -296,7 +297,7 @@ produce_bar_plots(matched_exposures_lrDecomp_cosmic2, "barplot_matched_signature
 # read data
 tmb_data = read.csv("analyses/coverage_and_tmb.csv")
 # as lolipop plots
-produce_lolipop_plots(tmb_data, "snv_and_indel_tmb")
+produce_lolipop_plots(tmb_data)
 
 
 # save R objects to disk
