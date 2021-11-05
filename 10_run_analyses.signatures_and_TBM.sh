@@ -104,7 +104,12 @@ load("analyses/mutational_signatures_as_R_object.Rdata")
         Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode}
         # tidy and rename
         # rename dirs
-        mv BQSR bam
+        if [[ ! -e bam ]]; then
+            mv BQSR bam
+        else
+            mv BQSR/* bam
+            rm -rf BQSR
+        fi
         # move stats to all_logfiles
         mv mutect2/*.mutect2.filtered.wes.vcf.filteringStats.tsv all_logfiles
         mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
