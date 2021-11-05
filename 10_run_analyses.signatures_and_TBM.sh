@@ -54,14 +54,24 @@ TMB_indels=$( echo "scale=4; ${total_indels}/(${coverage}/1000000)" | bc )
 echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
 echo "tumor mutation burden done"
 
-# extract COSMIC signatures
-Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode}
-
 # check if finished
 check_finish=$?
 
-# add example of how to load signature data to R
-echo "
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
+# check if command finished
+if [[ "$check_finish" == 0 ]]; then
+    # final logs and tidy up dir, ie. gargabe collection
+    # run final COSMIC signature analysis
+    echo "${tumor},${normal}" >> finished.csv
+    finished=$( cat finished.csv | wc -l )
+    started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
+    if [[ "$finished" -eq "$started" ]]; then
+      # add example of how to load signature data to R
+      echo "
 # library path to standard and required additional libraries
 .libPaths('/hpf/largeprojects/tabori/software/R_libs/4.1.0/')
 
@@ -88,21 +98,11 @@ load("analyses/mutational_signatures_as_R_object.Rdata")
 # (8) tmb_data (tumor mutational burden data from VCFs)
 
 " > analyses/revisit_signature_data.R
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
-
-# check if command finished
-if [[ "$check_finish" == 0 ]]; then
-    # final logs and tidy up dir, ie. gargabe collection
-    echo "${tumor},${normal}" >> finished.csv
-    finished=$( cat finished.csv | wc -l )
-    started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
-    if [[ "$finished" -eq "$started" ]]; then
         # add header to TMB csv
         sed -i '1 s/^/tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels\n/' analyses/coverage_and_tmb.csv
+        # run mutational signature analysis
+        Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode}
+        # tidy and rename
         # rename dirs
         mv BQSR bam
         # move stats to all_logfiles
