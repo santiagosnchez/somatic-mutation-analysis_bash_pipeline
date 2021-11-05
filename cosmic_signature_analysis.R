@@ -37,7 +37,7 @@ extract_matched_sigs <- function(mt_sig, sim){
 
 produce_bar_plots <- function(df, file_name, legend_names=c(NULL,NULL)){
   # load colors
-  cols = polychrome(n=31)
+  cols = c(stepped(20), stepped2(20), stepped(20))
   cols = cols[-2]
   names(cols) = NULL
   # calculate height from samples
@@ -160,7 +160,6 @@ produce_lolipop_plots <- function(df){
 
 # get args and set db_type
 args = base::commandArgs(trailingOnly = TRUE)
-print(args)
 if (args[1] == "wes"){
   db_type="human-exome"
 } else {
@@ -198,8 +197,8 @@ mt_tally <- sig_tally(
 ## add more info here
 mt_sig_bayes_sbs_96 <- sig_unify_extract(
   mt_tally$SBS_96,
-  range = 20,
-  nrun = 50,
+  range = 10,
+  nrun = 10,
   cores = 8,
   approach = "bayes_nmf"
 )
