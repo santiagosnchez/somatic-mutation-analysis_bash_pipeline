@@ -76,16 +76,16 @@ library(cowplot)
 # load results from analysis
 load("analyses/mutational_signatures_as_R_object.Rdata")
 
-# do stuff with data:
-# you should find
-# (1) maf (VCF files)
-# (2) mt_tally (Signature object with mutation tallies)
-# (3) mt_sig_bayes_sbs_96 (Signature extraction for SBS-96)
-# (4) tmb_data (tumor mutation burden)
-# (5) matched_mt_sig_sbs_96 (matched signatures against COSMIC database)
-
-
-
+# do stuff with data...
+# you should find:
+# (1) linear_decomp_mt_sig_legacy_30 (matrix with matched signatures, COSMIC v2)
+# (2) linear_decomp_mt_sig_sbs_96 (matrix with matched signatures, COSMIC v3)
+# (3) maf (vcf files inmaf format)
+# (4) matched_mt_sig_legacy_30 (data frame with matched mutational signatures, COSMIC v2)
+# (5) matched_mt_sig_sbs_96 (data frame with matched mutational signatures, COSMIC v3)
+# (6) mt_sig_bayes_sbs_96 (Bayesian NMF fitted signatures)
+# (7) mt_tally (tally of SBS, DBS, and indel mutational patterns)
+# (8) tmb_data (tumor mutational burden data from VCFs)
 
 " > analyses/revisit_signature_data.R
 
