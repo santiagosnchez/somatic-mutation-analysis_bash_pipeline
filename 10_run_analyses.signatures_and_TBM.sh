@@ -124,8 +124,12 @@ load("analyses/mutational_signatures_as_R_object.Rdata")
         sds=$(date -d "$start_date" +%s)
         eds=$(date -d "$end_date" +%s)
         total_time_in_days=$( echo "scale=5; ($eds - $sds) / 86400" | bc)
+        # add 0 if less than 1
+        if [[ $(echo "${total_time_in_days} > 1" | bc) == 0 ]]; then
+          total_time_in_days="0${total_time_in_days}"
+        fi
         # final log
-        echo "\npipeline took ${total_time_in_days} days to complete" >> all_logfiles/end.log
+        echo -e "\npipeline took ${total_time_in_days} days to complete" >> all_logfiles/end.log
         # change/adjust permisions
         # this configuration allows the main user and the users in the tabori group to
         # read/write/excecute
