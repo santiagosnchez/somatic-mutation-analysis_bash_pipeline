@@ -55,7 +55,7 @@ echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},$
 echo "tumor mutation burden done"
 
 # extract COSMIC signatures
-RScript ${pipeline_dir}/cosmic_signature_analysis.R ${mode}
+Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode}
 
 # check if finished
 check_finish=$?
@@ -79,7 +79,7 @@ load("analyses/mutational_signatures_as_R_object.Rdata")
 # do stuff with data:
 # you should find
 # (1) maf (VCF files)
-# (2) mt_tally (Signature object with mutation tallies) 
+# (2) mt_tally (Signature object with mutation tallies)
 # (3) mt_sig_bayes_sbs_96 (Signature extraction for SBS-96)
 # (4) tmb_data (tumor mutation burden)
 # (5) matched_mt_sig_sbs_96 (matched signatures against COSMIC database)
@@ -102,7 +102,7 @@ if [[ "$check_finish" == 0 ]]; then
     started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
         # add header to TMB csv
-        sed -i '1 s/^/tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels\n/' analyses/coverage_and_tmb.csv 
+        sed -i '1 s/^/tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels\n/' analyses/coverage_and_tmb.csv
         # rename dirs
         mv BQSR bam
         # move stats to all_logfiles
@@ -132,11 +132,9 @@ if [[ "$check_finish" == 0 ]]; then
         # dirs first
         chmod 774 all_logfiles analyses bam contamination mutect2/f1r2 vcf/snpEff
         # files second
-        chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/*vcf* mutect2/f1r2/* vcf/*vcf* vcf/snpEff/* ${tumor}__${normal}.analyses.log  
+        chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/*vcf* mutect2/f1r2/* vcf/*vcf* vcf/snpEff/* ${tumor}__${normal}.analyses.log
     fi
     # last log and move logfile to dir
     echo "Done for ${tumor}__${normal}"
     mv ${tumor}__${normal}.analyses.log all_logfiles
 fi
-
-
