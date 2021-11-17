@@ -35,25 +35,31 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
-# estimate coverage
-coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
-# expected coverage
-expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { print count }')
+# check if all TMB and cov has already been calculated
+head -1 analyses/coverage_and_tmb.csv | grep "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels"
+if [[ "$?" != 0 ]]; then
+    # estimate coverage
+    coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
+    # expected coverage
+    expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { print count }')
 
-# estimate tumor mutation burden (TMB)
-# use prev coverage estimate
+    # estimate tumor mutation burden (TMB)
+    # use prev coverage estimate
 
-# total snvs
-total_snvs=$(bcftools view --types snps vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
-# total indels
-total_indels=$(bcftools view --types indels vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
-# calc TMB
-TMB_snvs=$( echo "scale=4; ${total_snvs}/(${coverage}/1000000)" | bc )
-TMB_indels=$( echo "scale=4; ${total_indels}/(${coverage}/1000000)" | bc )
+    # total snvs
+    total_snvs=$(bcftools view --types snps vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
+    # total indels
+    total_indels=$(bcftools view --types indels vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
+    # calc TMB
+    TMB_snvs=$( echo "scale=4; ${total_snvs}/(${coverage}/1000000)" | bc )
+    TMB_indels=$( echo "scale=4; ${total_indels}/(${coverage}/1000000)" | bc )
 
-# output
-echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
-echo "tumor mutation burden done"
+    # output
+    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
+    echo "tumor mutation burden done"
+else
+    ls &> /dev/null
+fi
 
 # check if finished
 check_finish=$?
@@ -71,8 +77,8 @@ if [[ "$check_finish" == 0 ]]; then
     finished=$( cat finished.csv | wc -l )
     started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
-      # add example of how to load signature data to R
-      echo -e "
+        # add example of how to load signature data to R
+        echo -e "
 # library path to standard and required additional libraries
 .libPaths('/hpf/largeprojects/tabori/software/R_libs/4.1.0/')
 
@@ -99,56 +105,67 @@ load(\"analyses/mutational_signatures_as_R_object.Rdata\")
 # (8) tmb_data (tumor mutational burden data from VCFs)
 
 " > analyses/revisit_signature_data.R
-        # add header to TMB csv
-        sed -i '1 s/^/tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels\n/' analyses/coverage_and_tmb.csv
+        # look for header in csv
+        head -1 analyses/coverage_and_tmb.csv | grep "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels"
+        if [[ "$?" != 0 ]]; then
+            # add header to TMB csv
+            sed -i '1 s/^/tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels\n/' analyses/coverage_and_tmb.csv
+            # tidy and rename
+            # rename dirs
+            if [[ ! -e bam ]]; then
+                mv BQSR bam
+            else
+                mv BQSR/* bam
+                rm -rf BQSR
+            fi
+            # move stats to all_logfiles
+            mv mutect2/*.mutect2.filtered.wes.vcf.filteringStats.tsv all_logfiles
+            mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
+            # delete all other vcf files except unfiltered VCFs
+            rm $(ls mutect2/*vcf* | grep -v "unfiltered")
+            # bgzip and tabix all vcf files
+            ls mutect2/*.vcf | parallel --tmpdir ./tmp "bgzip {} && tabix {}.gz"
+            # delete directories with bam data
+            rm -rf preprocessed_bam aligned_bam tmp
+            if [[ -e unmapped_bam ]]; then
+                rm -rf unmapped_bam
+            fi
+        fi
+
         # run mutational signature analysis
         Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode}
-        # tidy and rename
-        # rename dirs
-        if [[ ! -e bam ]]; then
-            mv BQSR bam
-        else
-            mv BQSR/* bam
-            rm -rf BQSR
+
+        grep "pipeline took" main.log
+        if [[ "$?" != 0 ]]; then
+            # final log
+            echo "pipeline finished." | tee -a main.log
+            # log final
+            date | tee -a main.log
+            # get date pipeline started
+            start_date=$(head -1 main.log)
+            end_date=$(tail -1 main.log)
+            # calculate total running time
+            sds=$(date -d "$start_date" +%s)
+            eds=$(date -d "$end_date" +%s)
+            total_time_in_days=$( echo "scale=5; ($eds - $sds) / 86400" | bc)
+            # add 0 if less than 1
+            if [[ $(echo "${total_time_in_days} > 1" | bc) == 0 ]]; then
+              total_time_in_days="0${total_time_in_days}"
+            fi
+            # final log
+            echo -e "\npipeline took ${total_time_in_days} days to complete" | tee -a main.log
+            # change/adjust permisions
+            # this configuration allows the main user and the users in the tabori group to
+            # read/write/excecute
+            # dirs first
+            chmod 774 all_logfiles analyses bam contamination mutect2/f1r2 vcf/snpEff
+            # files second
+            chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/*vcf* mutect2/f1r2/* vcf/*vcf* vcf/snpEff/* ${tumor}__${normal}.analyses.log
         fi
-        # move stats to all_logfiles
-        mv mutect2/*.mutect2.filtered.wes.vcf.filteringStats.tsv all_logfiles
-        mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
-        # delete all other vcf files except unfiltered VCFs
-        rm $(ls mutect2/*vcf* | grep -v "unfiltered")
-        # bgzip and tabix all vcf files
-        ls mutect2/*.vcf | parallel --tmpdir ./tmp "bgzip {} && tabix {}.gz"
-        # delete directories with bam data
-        rm -rf preprocessed_bam aligned_bam tmp
-        if [[ -e unmapped_bam ]]; then
-            rm -rf unmapped_bam
-        fi
-        # final log
-        echo "pipeline finished." | tee -a main.log
-        # log final
-        date | tee -a main.log
-        # get date pipeline started
-        start_date=$(head -1 main.log)
-        end_date=$(tail -1 main.log)
-        # calculate total running time
-        sds=$(date -d "$start_date" +%s)
-        eds=$(date -d "$end_date" +%s)
-        total_time_in_days=$( echo "scale=5; ($eds - $sds) / 86400" | bc)
-        # add 0 if less than 1
-        if [[ $(echo "${total_time_in_days} > 1" | bc) == 0 ]]; then
-          total_time_in_days="0${total_time_in_days}"
-        fi
-        # final log
-        echo -e "\npipeline took ${total_time_in_days} days to complete" | tee -a main.log
-        # change/adjust permisions
-        # this configuration allows the main user and the users in the tabori group to
-        # read/write/excecute
-        # dirs first
-        chmod 774 all_logfiles analyses bam contamination mutect2/f1r2 vcf/snpEff
-        # files second
-        chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/*vcf* mutect2/f1r2/* vcf/*vcf* vcf/snpEff/* ${tumor}__${normal}.analyses.log
     fi
     # last log and move logfile to dir
-    echo "Done for ${tumor}__${normal}"
-    mv ${tumor}__${normal}.analyses.log all_logfiles
+    if [[ -e ${tumor}__${normal}.analyses.log ]]; then
+        echo "Done for ${tumor}__${normal}"
+        mv ${tumor}__${normal}.analyses.log all_logfiles
+    fi
 fi
