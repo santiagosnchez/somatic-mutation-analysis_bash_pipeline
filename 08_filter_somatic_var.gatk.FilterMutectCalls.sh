@@ -27,7 +27,7 @@ fi
 
 if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table && -e contamination/${tumor}__${normal}.tumorsegmentation.table ]]; then
 # run gatk's FilterMutectCalls
-gatk FilterMutectCalls \
+gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  -R $reference \
  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
@@ -36,7 +36,7 @@ gatk FilterMutectCalls \
  -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
 
 # select passed variants
-gatk SelectVariants \
+gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
  --exclude-filtered \
  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf

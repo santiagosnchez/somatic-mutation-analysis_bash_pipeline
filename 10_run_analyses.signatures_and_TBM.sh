@@ -119,7 +119,7 @@ load(\"analyses/mutational_signatures_as_R_object.Rdata\")
         # bgzip and tabix all vcf files
         ls mutect2/*.vcf | parallel --tmpdir ./tmp "bgzip {} && tabix {}.gz"
         # delete directories with bam data
-        rm -rf preprocessed_bam aligned_bam
+        rm -rf preprocessed_bam aligned_bam tmp
         if [[ -e unmapped_bam ]]; then
             rm -rf unmapped_bam
         fi

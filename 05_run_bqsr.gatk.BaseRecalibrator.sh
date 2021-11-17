@@ -63,7 +63,7 @@ if [[ -e ${dir}/${sample}.bqsr.bam ]]; then
 else
 
 # run gatl's BaseRecalibrator
-gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12" BaseRecalibrator \
+gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Djava.io.tmpdir=./tmp" BaseRecalibrator \
  -R $reference \
  -L $intervals \
  --known-sites $knownsites \
@@ -71,7 +71,7 @@ gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12" BaseRe
  -O ${sample}.baserecalibrator.txt
 
 # use samtools to increase the compression level in the read-corrected output bam
-gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Dsamjdk.compression_level=6" ApplyBQSR \
+gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Dsamjdk.compression_level=6 -Djava.io.tmpdir=./tmp" ApplyBQSR \
  --bqsr ${sample}.baserecalibrator.txt \
  -I preprocessed_bam/${sample}.markdup.bam \
  -O ${dir}/${sample}.bqsr.bam \

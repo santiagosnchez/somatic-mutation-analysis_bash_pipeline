@@ -23,7 +23,7 @@ if [[ ! -e mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz ]]; th
 all_f1_r2_input=$(ls mutect2/f1r2/${tumor}__${normal}.[1-9]*.f1r2.tar.gz | sed 's/^/-I /')
 
 # run gatk's read orientation model
-gatk --java-options "-Xmx20G" LearnReadOrientationModel $all_f1_r2_input -O mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz
+gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" LearnReadOrientationModel $all_f1_r2_input -O mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz
 
 else
 # so that $? is 0

@@ -36,7 +36,7 @@ fi
 
 if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
 # run gatk's mutect2
-gatk --java-options "-Xmx20G" Mutect2 \
+gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
  -I ${dir}/${normal}.bqsr.bam \
  -tumor ${tumor} \

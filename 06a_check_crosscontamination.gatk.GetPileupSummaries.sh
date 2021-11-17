@@ -36,13 +36,13 @@ if [[ "${mode}" != "wes" ]]; then
 fi
 
 # run gatk's GetPileupSummaries
-gatk --java-options "-Xmx20G" GetPileupSummaries \
+gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
 -I ${dir}/${tumor}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${intervals} \
 -O contamination/${tumor}.getpileupsummaries.table
 
-gatk --java-options "-Xmx20G" GetPileupSummaries \
+gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
 -I ${dir}/${normal}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${intervals} \

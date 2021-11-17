@@ -35,7 +35,7 @@ if [[ "${mode}" != "wes" ]]; then
 fi
 
 # run gatk's CalculateContamination
-gatk --java-options "-Xmx20G" CalculateContamination \
+gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" CalculateContamination \
  -I contamination/${tumor}.getpileupsummaries.table \
  -matched contamination/${normal}.getpileupsummaries.table \
  -O contamination/${tumor}__${normal}.calculatecontamination.table \
@@ -55,5 +55,5 @@ if [[ "$check_finish" == 0 ]]; then
     mv ${tumor}__${normal}.CalculateContamination.log all_logfiles
     # log to main
     echo "${tumor}__${normal} Calculate Contamination completed." | tee -a main.log
-    # next round of jobs are submitted manually or not 
+    # next round of jobs are submitted manually or not
 fi
