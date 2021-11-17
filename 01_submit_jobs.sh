@@ -38,11 +38,6 @@ export mode
 # load all paths
 source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
 
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
-
 # create tmp dir
 if [[ ! -e tmp ]]; then
     mkdir tmp
