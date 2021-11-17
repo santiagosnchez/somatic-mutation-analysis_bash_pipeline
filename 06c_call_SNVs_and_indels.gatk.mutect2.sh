@@ -60,6 +60,7 @@ fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
+    # move logfile
     mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
     # next round of jobs are submitted manually or not
     # check if all mutect2 operations finished
@@ -78,9 +79,9 @@ if [[ "$check_finish" == 0 ]]; then
         if [[ "$?" == 0 ]]; then
             rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
         fi
-        # submit read orientation analysis 
-        qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh 
+        # submit read orientation analysis
+        qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
+        # log to main
+        echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
     fi
 fi
-
-

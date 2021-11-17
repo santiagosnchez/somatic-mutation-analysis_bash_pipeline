@@ -39,13 +39,14 @@ if [[ ! -e all_logfiles ]]; then
 fi
 
 # check if command finished
-if [[ "$check_finish" == 0 ]]; then    
+if [[ "$check_finish" == 0 ]]; then
+    # log to main
+    echo "${tumor}__${normal} read-orientation analysis completed." | tee -a main.log
     # submit next step
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh  
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
     # move logfiles if found
     if [[ -e ${tumor}__${normal}.read-orientation.log ]]; then
         mv ${tumor}__${normal}.read-orientation.log all_logfiles
         rm mutect2/f1r2/${tumor}__${normal}.[1-9]*.f1r2.tar.gz
     fi
 fi
-

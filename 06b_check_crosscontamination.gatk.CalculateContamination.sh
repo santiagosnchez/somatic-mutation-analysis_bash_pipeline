@@ -51,8 +51,9 @@ fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
+    # move logfile
     mv ${tumor}__${normal}.CalculateContamination.log all_logfiles
+    # log to main
+    echo "${tumor}__${normal} Calculate Contamination completed." | tee -a main.log
     # next round of jobs are submitted manually or not 
 fi
-
-

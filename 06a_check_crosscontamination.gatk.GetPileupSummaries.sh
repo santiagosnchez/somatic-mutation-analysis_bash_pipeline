@@ -59,10 +59,11 @@ fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
+    # move logfile
     mv ${tumor}__${normal}.GetPileupSummaries.log all_logfiles
+    # log to main
+    echo "${tumor}__${normal} Pileup summaries completed." | tee -a main.log
     # next round of jobs are submitted manually or not
     # submitted as dependency job
     #qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
 fi
-
-

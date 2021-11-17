@@ -10,6 +10,7 @@ module load gatk/4.0.1.2
 module load samtools/1.10
 module load bcftools/1.11
 module load R/4.1.0
+module load parallel/20210322
 
 # set working dir
 cd $PBS_O_WORKDIR
@@ -71,7 +72,7 @@ if [[ "$check_finish" == 0 ]]; then
     started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
       # add example of how to load signature data to R
-      echo "
+      echo -e "
 # library path to standard and required additional libraries
 .libPaths('/hpf/largeprojects/tabori/software/R_libs/4.1.0/')
 
@@ -84,7 +85,7 @@ library(RColorBrewer)
 library(cowplot)
 
 # load results from analysis
-load("analyses/mutational_signatures_as_R_object.Rdata")
+load(\"analyses/mutational_signatures_as_R_object.Rdata\")
 
 # do stuff with data...
 # you should find:
@@ -115,16 +116,20 @@ load("analyses/mutational_signatures_as_R_object.Rdata")
         mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
         # delete all other vcf files except unfiltered VCFs
         rm $(ls mutect2/*vcf* | grep -v "unfiltered")
+        # bgzip and tabix all vcf files
+        ls mutect2/*.vcf | parallel --tmpdir ./tmp "bgzip {} && tabix {}.gz"
         # delete directories with bam data
         rm -rf preprocessed_bam aligned_bam
         if [[ -e unmapped_bam ]]; then
             rm -rf unmapped_bam
         fi
+        # final log
+        echo "pipeline finished." | tee -a main.log
         # log final
-        date > all_logfiles/end.log
+        date | tee -a main.log
         # get date pipeline started
-        start_date=$(tail -1 all_logfiles/start.log)
-        end_date=$(tail -1 all_logfiles/end.log)
+        start_date=$(head -1 main.log)
+        end_date=$(tail -1 main.log)
         # calculate total running time
         sds=$(date -d "$start_date" +%s)
         eds=$(date -d "$end_date" +%s)
@@ -134,7 +139,7 @@ load("analyses/mutational_signatures_as_R_object.Rdata")
           total_time_in_days="0${total_time_in_days}"
         fi
         # final log
-        echo -e "\npipeline took ${total_time_in_days} days to complete" >> all_logfiles/end.log
+        echo -e "\npipeline took ${total_time_in_days} days to complete" | tee -a main.log
         # change/adjust permisions
         # this configuration allows the main user and the users in the tabori group to
         # read/write/excecute

@@ -49,7 +49,7 @@ java -jar $snpeff_jar \
  -stats vcf/snpEff/${tumor}__${normal}.snpEff_summary.html \
  -csvStats vcf/snpEff/${tumor}__${normal}.snpEff_summary.csv \
  mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz > \
- vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf 
+ vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf
 
 # check if finished
 check_finish=$?
@@ -64,8 +64,10 @@ if [[ "$check_finish" == 0 ]]; then
     # bgzip and tabix vcf
     bgzip vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf
     tabix vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz
+    # log to main
+    echo "Annotation with SnpEff completed for ${tumor}__${normal}." | tee -a main.log
     # run analyses
-    qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh 
+    qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
      # prepare for cleanup
 #    echo "${tumor},${normal}" >> finished.csv
 #    finished=$( cat finished.csv | wc -l )
@@ -87,5 +89,3 @@ if [[ "$check_finish" == 0 ]]; then
     # move logfile
     mv ${tumor}__${normal}.snpEff.log all_logfiles
 fi
-
-

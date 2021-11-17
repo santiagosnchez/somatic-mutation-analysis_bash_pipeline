@@ -33,13 +33,13 @@ gatk FilterMutectCalls \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
  --tumor-segmentation contamination/${tumor}__${normal}.tumorsegmentation.table \
- -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf 
+ -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
 
 # select passed variants
 gatk SelectVariants \
  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
  --exclude-filtered \
- -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf 
+ -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
 
 # compress and tabix selected file
 bgzip -f mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
@@ -60,7 +60,7 @@ else
     # then search for the second job id for CalculateContamination
     running_jobid=$(qstat -f -u `whoami` ${getpileupsum_job} | grep "beforeok" | sed 's/.*://')
     #running_jobid=$( head -1 ${tumor}__${normal}.CalculateContamination.log  )
-    echo "waiting for CalculateContamination to finish"
+    echo "waiting for Calculate Contamination to finish for ${tumor}__${normal}: ${running_jobid}" | tee -a main.log
     qsub -W depend=afterok:${running_jobid} -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
     exit 0
 fi
@@ -80,5 +80,3 @@ if [[ "$check_finish" == 0 ]]; then
     # annotate VCF file
     qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/09_variant_annotation.snpEff.sh
 fi
-
-

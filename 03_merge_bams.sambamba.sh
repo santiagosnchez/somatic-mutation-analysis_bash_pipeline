@@ -4,17 +4,17 @@
 # scheduler settings
 
 ############### INFO #################
-#                                    
-# Integrated Bash Pipeline for       
-# Somatic Mutation Discovery         
-#                                    
-# Author: Santiago Sanchez-Ramirez 
-# Year: 2021  
-# Email: santiago.snchez@gmail.com   
-#                                    
-# More info on README.md             
-#                                    
-# Notes:                             
+#
+# Integrated Bash Pipeline for
+# Somatic Mutation Discovery
+#
+# Author: Santiago Sanchez-Ramirez
+# Year: 2021
+# Email: santiago.snchez@gmail.com
+#
+# More info on README.md
+#
+# Notes:
 # (1) Uses nextgenmap and samtools
 #
 #####################################
@@ -46,7 +46,7 @@ for bam in aligned_bam/${sample}.*.sorted.bam; do
     if [[ $(samtools quickcheck $bam && echo 1) != 1 ]]; then
        echo "resubmitting previous step and increase time by 2hrs"
        wt=$(( wt + 2 ))
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},mode=${mode} ${pipeline_dir}/02_align_bam_to_ref.bwa.sh 
+       qsub -l walltime=${wt}:00:00 -v sample=${sample},mode=${mode} ${pipeline_dir}/02_align_bam_to_ref.bwa.sh
        all_check=1
     fi
 done
@@ -98,5 +98,6 @@ if [[ "$check_finish" == 0 ]]; then
     qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${walltime},mode=${mode} ${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh
     # mv logfile
     mv ${sample}.sambamba-merge.log all_logfiles
+    # log to main
+    echo "bam file(s) for sample ${sample} have been merged." | tee -a main.log
 fi
-

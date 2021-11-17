@@ -5,17 +5,17 @@
 # scheduler settings
 
 ############### INFO #################
-#                                    
-# Integrated Bash Pipeline for       
-# Somatic Mutation Discovery         
-#                                    
-# Author: Santiago Sanchez-Ramirez 
-# Year: 2021  
-# Email: santiago.snchez@gmail.com   
-#                                    
-# More info on README.md             
-#                                    
-# Notes:                             
+#
+# Integrated Bash Pipeline for
+# Somatic Mutation Discovery
+#
+# Author: Santiago Sanchez-Ramirez
+# Year: 2021
+# Email: santiago.snchez@gmail.com
+#
+# More info on README.md
+#
+# Notes:
 # (1) Uses sambamba markdup approach rather than
 #     Picards MarkDuplicates or samtools markdup
 #
@@ -56,7 +56,7 @@ if [[ -e aligned_bam/${sample}.merged.bam && $(samtools quickcheck aligned_bam/$
      preprocessed_bam/${sample}.markdup.bam
      # prev step already generates index
      # index bam
-     # gatk BuildBamIndex -I preprocessed_bam/${sample}.markdup.bam 
+     # gatk BuildBamIndex -I preprocessed_bam/${sample}.markdup.bam
 else
     echo "resubmitting previous step and increase time by 2hrs"
     # add two more hours of walltime
@@ -79,5 +79,6 @@ if [[ "$check_finish" == 0 ]]; then
      qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
      # move log files to dir
      mv ${sample}.sambamba.markdup.log all_logfiles
+     # log to main
+     echo "duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
 fi
-
