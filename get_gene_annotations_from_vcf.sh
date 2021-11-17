@@ -33,9 +33,9 @@ for i in `seq 2 ${#args[@]}`; do
             for (i=1; i <= length(z); ++i){
                 split(z[i], a, "|");
                 if (a[2] ~ /missense_variant/ && a[4] == g){
-                    print s,$1,$2,$4,$5,a[2],a[3],a[4],a[6],a[7],a[9],a[10]; 
+                    print s,$1,$2,$4,$5,a[2],a[3],a[4],a[6],a[7],a[9],a[10];
                 }
             }
         }'
-
+    fi
 done
