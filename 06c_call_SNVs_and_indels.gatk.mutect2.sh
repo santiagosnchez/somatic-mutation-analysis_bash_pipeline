@@ -60,28 +60,70 @@ fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
-    # move logfile
-    mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
     # next round of jobs are submitted manually or not
     # check if all mutect2 operations finished
-    mutect_logfiles=$(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | wc -l)
-    if [[ "$mutect_logfiles" == 31 ]]; then
-        # gather logfiles and delete old ones
-        cat $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | sort -V) > all_logfiles/${tumor}__${normal}.mutect2.log
-        rm $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log )
-        # gather vcffiles
-        # generate list of files with their own -I flag
-        vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
-        gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
-        # gather stats files, needed for Filtering
-        statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
-        gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
-        if [[ "$?" == 0 ]]; then
-            rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
+    # first check for files
+    ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log &> /dev/null
+    # if mutect2 still running
+    if [[ "$?" == 0 ]]; then
+        mutect_logfiles=$(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | wc -l)
+        # try to wrap up in one go
+        if [[ ! -e all_logfiles/${tumor}__${normal}.mutect2.log && "${mutect_logfiles}" == 30 ]]; then
+            cat $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | sort -V) > all_logfiles/${tumor}__${normal}.mutect2.log
+            rm $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log )
+            # gather vcffiles
+            # generate list of files with their own -I flag
+            vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
+            gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
+            # gather stats files, needed for Filtering
+            statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
+            gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+            if [[ "$?" == 0 ]]; then
+                rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
+            fi
+            # log to main
+            echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
+            # submit read orientation analysis
+            qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
+            # move logfile
+            mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
         fi
-        # log to main
-        echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
-        # submit read orientation analysis
-        qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
+    # no scattered logfiles found
+    else
+        # check if mutect2 is running
+        ls ${tumor}__${normal}.mutect2.[0-9]*.log &> /dev/null
+        if [[ "$?" == 0 ]]; then
+            # log to main
+            echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
+            # move logfile
+            mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
+        else
+            # check what's missing
+            if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
+                # gather vcffiles
+                # generate list of files with their own -I flag
+                vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
+                gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
+                # gather stats files, needed for Filtering
+                statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
+                gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+                if [[ "$?" == 0 ]]; then
+                    rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
+                fi
+            elif [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats ]]; then
+                # gather stats files, needed for Filtering
+                statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
+                gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+                if [[ "$?" == 0 ]]; then
+                    rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
+                fi
+            fi
+            # log to main
+            echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
+            # submit read orientation analysis
+            qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
+            # move logfile
+            mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
+        fi
     fi
 fi
