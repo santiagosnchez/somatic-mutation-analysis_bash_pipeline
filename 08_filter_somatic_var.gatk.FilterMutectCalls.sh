@@ -60,6 +60,7 @@ else
     # then search for the second job id for CalculateContamination
     running_jobid=$(qstat -f -u `whoami` ${getpileupsum_job} | grep "beforeok" | sed 's/.*://')
     #running_jobid=$( head -1 ${tumor}__${normal}.CalculateContamination.log  )
+    # log
     echo "waiting for Calculate Contamination to finish for ${tumor}__${normal}: ${running_jobid}" | tee -a main.log
     qsub -W depend=afterok:${running_jobid} -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
     exit 0
@@ -76,6 +77,8 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     mv ${tumor}__${normal}.FilterMutectCalls.log all_logfiles
+    # log to main
+    echo "FilterMutectCalls completed for ${tumor}__${normal}." | tee -a main.log
     # next round of jobs are submitted manually or not
     # annotate VCF file
     qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/09_variant_annotation.snpEff.sh
