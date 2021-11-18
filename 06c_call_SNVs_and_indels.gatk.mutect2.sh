@@ -63,7 +63,7 @@ if [[ "$check_finish" == 0 ]]; then
     # next round of jobs are submitted manually or not
     # check if all mutect2 operations finished
     # first check for files
-    ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log &> /dev/null
+    ls all_logfiles/${tumor}__${normal}.mutect2.[1-9]*.log &> /dev/null
     # if mutect2 still running
     if [[ "$?" == 0 ]]; then
         mutect_logfiles=$(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | wc -l)
@@ -91,7 +91,7 @@ if [[ "$check_finish" == 0 ]]; then
     # no scattered logfiles found
     else
         # check if mutect2 is running
-        ls ${tumor}__${normal}.mutect2.[0-9]*.log &> /dev/null
+        ls ${tumor}__${normal}.mutect2.[1-9]*.log &> /dev/null
         if [[ "$?" == 0 ]]; then
             # log to main
             echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
