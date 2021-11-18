@@ -16,7 +16,7 @@ declare -a samples=()
 
 # check files and get tumor samples
 
-for idx in `seq 1 ${#vcf_files[@]}``; do
+for idx in `seq 1 ${#vcf_files[@]}`; do
     idx=$(( idx - 1 ))
     if [[ "${vcf_files[idx]}" != *".vcf.gz" ]]; then
         # get sample from name
