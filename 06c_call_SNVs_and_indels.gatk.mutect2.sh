@@ -66,9 +66,9 @@ if [[ "$check_finish" == 0 ]]; then
     ls all_logfiles/${tumor}__${normal}.mutect2.[1-9]*.log &> /dev/null
     # if mutect2 still running
     if [[ "$?" == 0 ]]; then
-        mutect_logfiles=$(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | wc -l)
+        mutect_logfiles=$(ls all_logfiles/${tumor}__${normal}.mutect2.[1-9]*.log | wc -l)
         # try to wrap up in one go
-        if [[ ! -e all_logfiles/${tumor}__${normal}.mutect2.log && "${mutect_logfiles}" == 30 ]]; then
+        if [[ ! -e all_logfiles/${tumor}__${normal}.mutect2.log && "${mutect_logfiles}" == 29 ]]; then
             cat $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | sort -V) > all_logfiles/${tumor}__${normal}.mutect2.log
             rm $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log )
             # gather vcffiles
