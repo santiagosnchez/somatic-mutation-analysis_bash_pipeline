@@ -20,7 +20,7 @@ for idx in `seq 1 ${#vcf_files[@]}`; do
     idx=$(( idx - 1 ))
     if [[ "${vcf_files[idx]}" != *".vcf.gz" ]]; then
         # get sample from name
-        sample=$(echo ${vcf_files[idx]} | sed 's/__.*/')
+        sample=$(echo ${vcf_files[idx]} | sed 's/__.*//')
         # compress and index
         bgzip "${vcf_files[idx]}"
         tabix "${vcf_files[idx]}".gz
@@ -29,7 +29,7 @@ for idx in `seq 1 ${#vcf_files[@]}`; do
         samples[idx]=${sample}
     else
         # get sample from name
-        sample=$(echo ${vcf_files[idx]} | sed 's/__.*/')
+        sample=$(echo ${vcf_files[idx]} | sed 's/__.*//')
         samples[idx]=${sample}
         if [[ ! -e "${vcf_files[idx]}.tbi" ]]; then
             tabix "${vcf_files[idx]}"
