@@ -122,7 +122,7 @@ load(\"analyses/mutational_signatures_as_R_object.Rdata\")
             mv mutect2/*.mutect2.filtered.wes.vcf.filteringStats.tsv all_logfiles
             mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
             # delete all other vcf files except unfiltered VCFs
-            rm $(ls mutect2/*vcf* | grep -v "unfiltered")
+            rm $(ls mutect2/*vcf* | grep -v ".filtered.")
             # bgzip and tabix all vcf files
             ls mutect2/*.vcf | parallel --tmpdir ./tmp "bgzip {} && tabix {}.gz"
             # delete directories with bam data
