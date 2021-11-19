@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#####################
+# example:
+# bash ~/pipline/01_submit_jobs.sh wes
+# or
+# bash ~/pipline/01_submit_jobs.sh wes added_file_list.csv
+# where "added_file_list.csv" is a list with additional samples
+# to add
+#####################
+
 module load parallel/20210322
 
 # check/find out mode
@@ -72,13 +81,13 @@ date > main.log
 echo "submitting command:" | tee -a main.log
 # submit jobs in parallel
 # first dry run
-cat file_list.csv | parallel --tmpdir ./tmp --dry-run --colsep="," '
+cat ${file_list} | parallel --tmpdir ./tmp --dry-run --colsep="," '
 wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
 qsub -l walltime="${wt}":00:00 -v index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log
 # then submit
 echo "submitting ..." | tee -a main.log
-cat file_list.csv | parallel --tmpdir ./tmp --colsep="," '
+cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
 wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
 qsub -l walltime="${wt}":00:00 -v index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log
