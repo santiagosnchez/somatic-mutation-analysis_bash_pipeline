@@ -35,6 +35,29 @@ fi
 # export mode
 export mode
 
+# submit default default file list or specific list
+if [[ ! -z $2 ]]; then
+    file_list=$2
+else
+    file_list="file_list.csv"
+    # as if user wants to overwrite results
+    if [[ -e main.log ]]; then
+        echo "It looks like the pipeline has already started..."
+        echo "Do you want to rerun? (this will overwrite results) [y|n]:"
+        read -r response
+        if [[ "${response}" == "y"* ]]; then
+            # quit running jobs
+            jobids=$(head -1 $(ls *.log | grep -v "main") | grep -o "^[1-9].*$")
+            qdel ${jobids}
+            # delete logfiles
+            rm -rf all_logfiles *.log
+        else
+            echo "Exiting..."
+            exit 0
+        fi
+    fi
+fi
+
 # load all paths
 source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
 
@@ -56,6 +79,6 @@ qsub -l walltime="${wt}":00:00 -v index={#},sample={1},rg="${rg}",forward={2},re
 # then submit
 echo "submitting ..." | tee -a main.log
 cat file_list.csv | parallel --tmpdir ./tmp --colsep="," '
-wt=$(get_walltime {4} {5});
+wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
 qsub -l walltime="${wt}":00:00 -v index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log
