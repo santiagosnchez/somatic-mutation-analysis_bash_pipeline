@@ -4,17 +4,17 @@
 # scheduler settings
 
 ############### INFO #################
-#                                    
-# Integrated Bash Pipeline for       
-# Somatic Mutation Discovery         
-#                                    
-# Author: Santiago Sanchez-Ramirez 
-# Year: 2021  
-# Email: santiago.snchez@gmail.com   
-#                                    
-# More info on README.md             
-#                                    
-# Notes:                             
+#
+# Integrated Bash Pipeline for
+# Somatic Mutation Discovery
+#
+# Author: Santiago Sanchez-Ramirez
+# Year: 2021
+# Email: santiago.snchez@gmail.com
+#
+# More info on README.md
+#
+# Notes:
 # (1) Uses nextgenmap and samtools
 #
 #####################################
@@ -37,8 +37,10 @@ file_lookup(){
     until [[ -e $1 ]]; do
         # checks for the file every minute
         sleep 60
-    done && echo 0
+    done
+    return 0
 }
+export -f file_lookup
 
 # set a timeout for the the file lookup function
 # timeout is set for 23 hours (in seconds)
