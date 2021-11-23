@@ -132,17 +132,20 @@ if [[ "$check_finish" == 0 ]]; then
                     fi
                 elif [[ "${check_normal}" != 1 && "${check_tumor}" == 1 ]]; then
                     # resubmit with dependency
-                    # wait until BQSR finishes
-                    echo "${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
                     if [[ -e ${normal}.BQSR.log ]]; then
+                        # wait until BQSR finishes
+                        echo "${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
                         # get jobid from first line of log
                         running_jobid=$( head -1 ${normal}.BQSR.log )
                         qsub -W depend=afterok:${running_jobid} -v sample=${tumor},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
                         exit 0
+                    elif [[ -e all_logfiles/${normal}.BQSR.log ]]; then
+                        qsub -v sample=${tumor},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
                     else
                         # wait for the BQSR script to start
                         echo "${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
                         qsub -v file="${normal}.BQSR.log",sample=${sample},mode=${mode},script=05_run_bqsr.gatk.BaseRecalibrator.sh ${pipeline_dir}/wait_for_file.sh
+                        exit 0
                     fi
                 fi
             done
