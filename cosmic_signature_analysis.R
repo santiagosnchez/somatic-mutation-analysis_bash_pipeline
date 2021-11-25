@@ -1,6 +1,6 @@
 #!/bin/Rscript
 
-.libPaths('/hpf/largeprojects/tabori/software/R_libs/4.1.0/')
+.libPaths('/home/ssanchez/tabori/shared/software/R_libs/4.1.0/')
 
 library(sigminer)
 library(ggplot2)

@@ -21,7 +21,7 @@ echo $PBS_JOBID
 #export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
 
 # load all paths
-source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
+source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # create dir for preprocessed bam
 if [[ ! -e preprocessed_bam ]]; then
@@ -35,8 +35,8 @@ gatk FixMateInformation \
  -I aligned_bam/${sample}.bam \
  -O preprocessed_bam/${sample}.picard.sorted.mfixed.bam \
  -SO coordinate \
- -COMPRESSION_LEVEL 6 -MAX_RECORDS_IN_RAM 100000 -CREATE_INDEX true    
-    else 
+ -COMPRESSION_LEVEL 6 -MAX_RECORDS_IN_RAM 100000 -CREATE_INDEX true
+    else
         if [[ $(samtools quickcheck preprocessed_bam/${sample}.picard.sorted.mfixed.bam && echo 1) != 1 ]]; then
 gatk FixMateInformation \
  -I aligned_bam/${sample}.bam \
@@ -90,4 +90,3 @@ if [[ "$check_finish" == 0 ]]; then
      # submit next job
      qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
 fi
-

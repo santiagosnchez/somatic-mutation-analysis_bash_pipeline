@@ -30,7 +30,7 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
+source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 # change intervals to null if not WES
 if [[ "${mode}" != "wes" ]]; then
     intervals=null
@@ -66,7 +66,8 @@ else
 gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Djava.io.tmpdir=./tmp" BaseRecalibrator \
  -R $reference \
  -L $intervals \
- --known-sites $knownsites \
+ --known-sites $knownsites_snps \
+ --known-sites $knownsites_indels \
  -I preprocessed_bam/${sample}.markdup.bam \
  -O ${sample}.baserecalibrator.txt
 

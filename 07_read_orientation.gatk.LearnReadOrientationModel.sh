@@ -15,7 +15,7 @@ cd $PBS_O_WORKDIR
 echo $PBS_JOBID
 
 # load all paths
-source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
+source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # check if file exists
 if [[ ! -e mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz ]]; then

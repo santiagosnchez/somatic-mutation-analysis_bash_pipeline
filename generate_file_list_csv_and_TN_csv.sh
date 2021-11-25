@@ -80,7 +80,7 @@ fi
 echo "file_list.csv is ready"
 
 # check file
-grep "^,," file_list.csv &> /dev/null
+grep "^,NA$" file_list.csv &> /dev/null
 if [[ "$?" == 0 ]]; then
     echo "check file_list.csv; file not properly constructed"
     exit 1

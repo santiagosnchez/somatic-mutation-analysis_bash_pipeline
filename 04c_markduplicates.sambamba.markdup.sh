@@ -41,7 +41,7 @@ echo $PBS_JOBID
 # after main if block
 
 # load all paths
-source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
+source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # create dir for preprocessed bam files
 if [[ ! -e preprocessed_bam ]]; then

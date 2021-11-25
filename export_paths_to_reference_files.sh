@@ -1,22 +1,24 @@
 #!/bin/bash
 # pipeline folder
-export pipeline_dir=/hpf/largeprojects/tabori/santiago/pipeline
+export pipeline_dir=/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery
 # path to human reference genome assembly v38
-export reference=/hpf/largeprojects/tabori/reference/gatk_bundle/hg38/Homo_sapiens_assembly38.fasta
+export reference=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/Homo_sapiens_assembly38.fasta
 # path to WES target intervals
-export intervals=/hpf/largeprojects/tabori/reference/dap/AgilentSureSelectV5_LiftOver-hg19TOhg38_CoveredRegions.interval_list
+export intervals=/hpf/largeprojects/tabori/shared/resources/hg38/AgilentSureSelectV5/AgilentSureSelectV5_LiftOver-hg19TOhg38_CoveredRegions.interval_list
 # path to WES tergets in bed format
-export intervals_bed=/hpf/largeprojects/tabori/reference/dap/AgilentSureSelectV5_LiftOver-hg19TOhg38_CoveredRegions.bed
+export intervals_bed=/hpf/largeprojects/tabori/shared/resources/hg38/AgilentSureSelectV5/AgilentSureSelectV5_LiftOver-hg19TOhg38_CoveredRegions.bed
 # path to vcf file with known SNPs from the 1000 genomes project
-export knownsites=/hpf/largeprojects/tabori/reference/gatk_bundle/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf
+export knownsites_snps=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
+# path to vcf file with known indels from the 1000 genomes project
+export knownsites_indels=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
 # path to WES intervals for running MuTect2
-export bed30intervals=/hpf/largeprojects/tabori/reference/dap/AgilentSureSelectV5-exome-interval-files-gatk-split-30/
+export bed30intervals=/hpf/largeprojects/tabori/shared/resources/hg38/AgilentSureSelectV5/AgilentSureSelectV5-exome-interval-files-gatk-split-30/
 # path to gnomad resource
-export gnomad_resource=/hpf/largeprojects/tabori/gnomad_resources/gnomad.biallelic.AF0.0001.PASS.vcf
+export gnomad_resource=/hpf/largeprojects/tabori/shared/resources/hg38/gnomad/gnomad.biallelic.AF0.0001.PASS.vcf
 # path to snpEff jar file
 export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
 # path to snpEff data dir
-export snpeff_datadir=/hpf/largeprojects/tabori/software/snpEff_data/4.11/data
+export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
 
 # functions
 
