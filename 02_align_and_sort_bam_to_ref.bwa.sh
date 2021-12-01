@@ -102,7 +102,7 @@ fi
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
     # calculate the number of bam files to merge
-    expected_bams=$(cat file_list.csv | grep -c "^${sample},")
+    expected_bams=$(cat ${file_list} | grep -c "^${sample},")
     found_sorted_bams=$(ls aligned_bam/${sample}.*.sorted.bam | wc -l)
     # check integrity of all files
     samtools quickcheck aligned_bam/${sample}.*.sorted.bam
@@ -110,7 +110,7 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "$?" == 0 && "${expected_bams}" == "${found_sorted_bams}" ]]; then
         # submit next job
         # can switch this to picards MarkDuplicate method
-        qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        qsub -l walltime=${wt}:00:00 -v file_list=${file_list},sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
     # move logfile
     mv ${sample}.${index}.bwa.log all_logfiles
