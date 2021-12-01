@@ -50,7 +50,7 @@ get_read_group_info(){
   SM=$2
   if [[ "${#head_split[@]}" == 11 ]]; then
     PM=${head_split[0]} # instrument id
-    ID=${head_split[1]} # run id
+    ID="${head_split[1]}-${head_split[3]}" # merge run id with lane id
     PU=${head_split[2]} # flowcell id
     BC=${head_split[10]} # barcode ID
     # build read group string
