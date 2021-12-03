@@ -27,9 +27,10 @@ gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  -R $reference \
  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
- --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
  --tumor-segmentation contamination/${tumor}__${normal}.tumorsegmentation.table \
  -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
+ # skipping read orientation filtering due to high numbers of false negatives
+ #  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
 
 # select passed variants
 gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
@@ -37,9 +38,9 @@ gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
  --exclude-filtered \
  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
 
-# compress and tabix selected file
-bgzip -f mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
-tabix mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz
+# compress and index
+index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+index-vcf mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
 
 # normalize vcf file, compress, and tabix
 bcftools norm -m- -f ${reference} -Oz mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.normalized.${mode}.vcf.gz

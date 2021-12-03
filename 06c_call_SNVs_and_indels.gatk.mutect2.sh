@@ -46,6 +46,8 @@ gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" Mutect2 \
  -germline-resource $gnomad_resource \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
  -L ${bed30intervals}/${bed}
+ #  -bamout mutect2/${tumor}__${normal}.${index}.bam \
+ #  --create-output-bam-index \
 else
  ls &> /dev/null
 fi

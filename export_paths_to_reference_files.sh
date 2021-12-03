@@ -19,6 +19,8 @@ export gnomad_resource=/hpf/largeprojects/tabori/shared/resources/hg38/gnomad/gn
 export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
 # path to snpEff data dir
 export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+# path to varscan jar file
+export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
 
 # functions
 
@@ -62,3 +64,9 @@ get_read_group_info(){
   echo "$RG"
 }
 export -f get_read_group_info
+
+# compresses and generates a tabix index
+index-vcf(){
+    bgzip $1 && tabix $1.gz
+}
+export -f index-vcf
