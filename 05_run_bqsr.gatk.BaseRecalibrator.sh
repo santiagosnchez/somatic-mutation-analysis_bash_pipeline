@@ -125,6 +125,8 @@ if [[ "$check_finish" == 0 ]]; then
                     ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp --dry-run "qsub -v normal=${normal},tumor=${tumor},bed={},mode=${mode},index={#} ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
                     # submit mutect2 jobs on 30 intervals
                     ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp "qsub -v normal=${normal},tumor=${tumor},bed={},mode=${mode},index={#} ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
+                    # submit varscan
+                    qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
                     # move logfiles
                     if [[ "$?" == 0 ]]; then
                         mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
