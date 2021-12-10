@@ -37,7 +37,7 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
-if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mpde}.vcf.gz ]]; then
+if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]]; then
 # first run mpileup in parallel
 if [[ -e varscan/pileups/${normal}.pileups ]]; then
     sambamba mpileup -L $intervals_bed -t 10 ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.pileup
@@ -80,7 +80,7 @@ if [[ "$?" == 0 ]]; then
         # rename
         mv varscan/${tumor}__${normal}.varscan.all.Somatic.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
         # index
-        tabix varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mpde}.vcf.gz
+        tabix varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
     fi
 fi
 
