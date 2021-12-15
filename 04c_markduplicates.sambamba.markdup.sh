@@ -51,6 +51,7 @@ fi
 # run sambamba to mark duplicates
 if [[ -e aligned_bam/${sample}.merged.bam && $(samtools quickcheck aligned_bam/${sample}.merged.bam && echo 1) == 1 ]]; then
     sambamba markdup \
+     --tmpdir=./tmp \
      -t 10 \
      aligned_bam/${sample}.merged.bam \
      preprocessed_bam/${sample}.markdup.bam
