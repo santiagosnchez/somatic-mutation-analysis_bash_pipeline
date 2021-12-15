@@ -59,6 +59,7 @@ if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
        # check if bam is sorted
        if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.sorted.bam && echo 1) != 1 ]]; then
            sambamba sort \
+            --tmpdir=./tmp \
             -m 5GB \
             -t 10 \
             -o aligned_bam/${sample}.${index}.sorted.bam \
@@ -80,6 +81,7 @@ else
    # sort file
    if [[ "$?" == 0 ]]; then
        sambamba sort \
+         --tmpdir=./tmp \
          -m 5GB \
          -t 10 \
          -o aligned_bam/${sample}.${index}.sorted.bam \
