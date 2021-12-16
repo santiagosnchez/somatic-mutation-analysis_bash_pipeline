@@ -10,6 +10,7 @@ module load java/1.8
 module load varscan/2.3.8
 module load bcftools/1.11
 module load sambamba/0.7.0
+module load samtools/1.10
 module load tabix
 
 # set working dir
