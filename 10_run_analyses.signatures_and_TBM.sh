@@ -80,7 +80,7 @@ if [[ "$check_finish" == 0 ]]; then
         # add example of how to load signature data to R
         echo -e "
 # library path to standard and required additional libraries
-.libPaths('/hpf/largeprojects/tabori/software/R_libs/4.1.0/')
+.libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.0/')
 
 # load libraries
 library(sigminer)
