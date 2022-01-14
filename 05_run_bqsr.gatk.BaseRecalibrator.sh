@@ -30,7 +30,7 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 # change intervals to null if not WES
 if [[ "${mode}" != "wes" ]]; then
     intervals=null

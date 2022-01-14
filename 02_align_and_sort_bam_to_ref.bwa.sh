@@ -40,7 +40,7 @@ wt=$(qstat -f $PBS_JOBID | sed -rn 's/.*Resource_List.walltime = (.*)/\1/p' | se
 qstat -f $PBS_JOBID > ${sample}.${index}.bwa.log
 
 # load all paths
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # create dir for ubam
 if [[ ! -e aligned_bam ]]; then

@@ -19,7 +19,7 @@ echo $PBS_JOBID
 
 # load reference path and other reference files
 # for details check script
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table && -e contamination/${tumor}__${normal}.tumorsegmentation.table ]]; then
 # run gatk's FilterMutectCalls

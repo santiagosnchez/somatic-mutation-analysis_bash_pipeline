@@ -35,7 +35,7 @@ cd $PBS_O_WORKDIR
 echo $PBS_JOBID
 
 # load all paths
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # check all
 all_check=0

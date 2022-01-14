@@ -21,7 +21,7 @@ echo $PBS_JOBID
 #export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
 
 # load all paths
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # create dir for preprocessed bam
 if [[ ! -e preprocessed_bam ]]; then

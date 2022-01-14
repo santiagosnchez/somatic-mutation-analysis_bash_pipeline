@@ -30,7 +30,7 @@ cd $PBS_O_WORKDIR
 echo $PBS_JOBID
 
 # load pipeline path
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # function to look for file
 file_lookup(){

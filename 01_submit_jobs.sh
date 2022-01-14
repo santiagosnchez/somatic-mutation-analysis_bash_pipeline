@@ -68,7 +68,7 @@ else
 fi
 
 # load all paths
-source /home/ssanchez/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # create tmp dir
 if [[ ! -e tmp ]]; then
