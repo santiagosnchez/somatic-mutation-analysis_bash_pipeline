@@ -42,7 +42,7 @@ if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]];
 # first run mpileup in parallel
 if [[ -e varscan/pileups/${normal}.pileup ]]; then
     if [[ ! -s varscan/pileups/${tumor}.pileup ]]; then
-        samtools mpileup -l $intervals_bed ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.pileup
+        samtools mpileup --reference ${reference} -l $intervals_bed ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.pileup
         # not working
         #sambamba mpileup -L $intervals_bed -t 10 ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.pileup
     else
@@ -50,7 +50,7 @@ if [[ -e varscan/pileups/${normal}.pileup ]]; then
     fi
 else
     export dir
-    parallel "samtools mpileup -l $intervals_bed ${dir}/{}.bqsr.bam > varscan/pileups/{}.pileup" ::: ${tumor} ${normal}
+    parallel "samtools mpileup --reference ${reference} -l $intervals_bed ${dir}/{}.bqsr.bam > varscan/pileups/{}.pileup" ::: ${tumor} ${normal}
     #parallel "sambamba mpileup -L $intervals_bed -t 5 ${dir}/{}.bqsr.bam > varscan/pileups/{}.pileup" ::: ${tumor} ${normal}
     echo ${normal} >> varscan/pileups/done_normals.txt
 fi
