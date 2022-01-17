@@ -38,7 +38,7 @@ for idx in `seq 1 ${#vcf_files[@]}`; do
 done
 
 # load paths
-source /hpf/largeprojects/tabori/santiago/pipeline/export_paths_to_reference_files.sh
+source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # output file
 outfile=$( echo ${samples[@]} | sed 's/ /__/g' ).merged_vars.csv
