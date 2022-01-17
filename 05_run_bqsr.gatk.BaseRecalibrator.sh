@@ -57,7 +57,7 @@ if [[ -e ${dir}/${sample}.bqsr.bam ]]; then
         rm ${dir}/${sample}.bqsr.*
         echo "resubmitting... increasing time by 2 hrs"
         wt=$(( wt + 2 ))
-        qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} 05_run_bqsr.gatk.BaseRecalibrator.sh
+        qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
         exit 0
     fi
 else
