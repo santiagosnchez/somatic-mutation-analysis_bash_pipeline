@@ -57,7 +57,7 @@ if [[ "$?" == 0 ]]; then
     samples_joined=$( echo ${samples[@]} | sed 's/ /,/g' )
     sed -i "1 s/^/CHROM,POS,REF,ALT,$samples_joined\n/" $outfile
     # run R script
-    Rscript ${pipeline_dir} $outfile
+    Rscript ${pipeline_dir}/mutation_overlap_plot_venn.R $outfile
 else
     echo "bcftools failed. Check files"
 fi
