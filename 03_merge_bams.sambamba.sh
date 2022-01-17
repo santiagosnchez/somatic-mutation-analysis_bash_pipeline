@@ -93,6 +93,8 @@ fi
 if [[ "$check_finish" == 0 ]]; then
     # delete scattered bams
     rm aligned_bam/${sample}.*.sorted.bam*
+    # get new walltime
+    wt=$(get_walltime aligned_bam/${sample}.merged.bam)
     # submit next job
     # can switch this to picards MarkDuplicate method
     qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${walltime},mode=${mode} ${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh

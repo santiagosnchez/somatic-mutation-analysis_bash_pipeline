@@ -16,6 +16,9 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
+# write job details to log
+qstat -f $PBS_JOBID > ${sample}.BQSR.log
+
 # create dir for BQSR
 # and check if bam dir exists
 # main dir with be changed to dir variable
