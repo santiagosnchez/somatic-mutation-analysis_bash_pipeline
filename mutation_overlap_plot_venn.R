@@ -1,5 +1,8 @@
 #!/bin/Rscript
 
+# load lib path
+.libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.0/')
+
 library(eulerr)
 
 plot_venn = function(x, title){
