@@ -120,4 +120,9 @@ if [[ "$check_finish" == 0 ]]; then
     echo "${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
+    # delete pileups
+    rm varscan/pileups/${tumor}.pileup
+    if [[ -e varscan/pileups/${normal}.pileup ]]; then
+        rm varscan/pileups/${normal}.pileup
+    fi
 fi

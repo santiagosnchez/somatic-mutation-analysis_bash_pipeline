@@ -14,7 +14,7 @@ plot_venn = function(x, title){
   # plot
   plot(fit,
     fills = list(fill = c("red", "steelblue4"), alpha = 0.5),
-    labels = list(col = "white", font = 4),
+    labels = list(col = "black", font = 4),
     quantities=TRUE,
     main=title)
 }
@@ -28,7 +28,7 @@ snvs = apply(dat[c("REF","ALT")], 1, function(x) nchar(x[1]) == 1 & nchar(x[2]) 
 indels = !snvs
 
 # get sample names
-samples = colnames(dat)[4:dim(dat)[2]]
+samples = colnames(dat)[5:dim(dat)[2]]
 
 # all var overlaps
 overlaps_all = apply(dat[samples], 1, function(x)
@@ -40,6 +40,8 @@ overlaps_all = apply(dat[samples], 1, function(x)
     return(samples[2])
   }
 )
+
+overlaps_all = apply(dat[samples], 1, function(x) paste(names(x[grep("0/1|0\\|1|1\\|0", x)]), collapse="&") )
 
 # SNVs only
 overlaps_snvs = apply(dat[snvs,samples], 1, function(x)

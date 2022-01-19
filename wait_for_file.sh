@@ -32,16 +32,6 @@ echo $PBS_JOBID
 # load pipeline path
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
-# function to look for file
-file_lookup(){
-    until [[ -e $1 ]]; do
-        # checks for the file every minute
-        sleep 60
-    done
-    return 0
-}
-export -f file_lookup
-
 # set a timeout for the the file lookup function
 # timeout is set for 23 hours (in seconds)
 timeout 82800 file_lookup $file

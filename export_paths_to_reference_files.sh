@@ -70,3 +70,13 @@ index-vcf(){
     bgzip $1 && tabix $1.gz
 }
 export -f index-vcf
+
+# function to look for file
+file_lookup(){
+    until [[ -e $1 ]]; do
+        # checks for the file every minute
+        sleep 60
+    done
+    return 0
+}
+export -f file_lookup
