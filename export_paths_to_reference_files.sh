@@ -77,6 +77,7 @@ file_lookup(){
         # checks for the file every minute
         sleep 60
     done
+    echo "file $1 found."
     return 0
 }
 export -f file_lookup

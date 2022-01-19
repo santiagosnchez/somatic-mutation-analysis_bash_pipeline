@@ -1,4 +1,4 @@
-#PBS -l nodes=1:ppn=1,vmem=2g,mem=2g,walltime=24:00:00
+#PBS -l nodes=1:ppn=1,vmem=2g,mem=2g,walltime=6:00:00
 #PBS -e ${sample}.waitforfile.log
 #PBS -j eo
 # scheduler settings
@@ -33,8 +33,9 @@ echo $PBS_JOBID
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
 # set a timeout for the the file lookup function
-# timeout is set for 23 hours (in seconds)
-timeout 82800 file_lookup $file
+# timeout is set for 5.5 hours (in seconds)
+# file_lookup is a function in export_paths_to_reference_files
+timeout 19800 bash -c file_lookup $file
 
 # check if commands completes
 if [[ "$?" == 0 ]]; then
