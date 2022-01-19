@@ -35,7 +35,7 @@ source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/expo
 # set a timeout for the the file lookup function
 # timeout is set for 5.5 hours (in seconds)
 # file_lookup is a function in export_paths_to_reference_files
-timeout 19800 bash -c file_lookup $file
+timeout 19800 bash -c "file_lookup $file"
 
 # check if commands completes
 if [[ "$?" == 0 ]]; then
