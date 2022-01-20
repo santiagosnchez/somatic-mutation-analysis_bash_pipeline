@@ -76,10 +76,10 @@ if [[ "$check_finish" == 0 ]]; then
             # gather vcffiles
             # generate list of files with their own -I flag
             vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
-            gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
+            $gatk_path/gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
             # gather stats files, needed for Filtering
             statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
-            gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+            $gatk_path/gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
             if [[ "$?" == 0 ]]; then
                 rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
             fi
@@ -111,17 +111,17 @@ if [[ "$check_finish" == 0 ]]; then
                 # gather vcffiles
                 # generate list of files with their own -I flag
                 vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
-                gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
+                $gatk_path/gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
                 # gather stats files, needed for Filtering
                 statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
-                gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+                $gatk_path/gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
                 if [[ "$?" == 0 ]]; then
                     rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
                 fi
             elif [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats ]]; then
                 # gather stats files, needed for Filtering
                 statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
-                gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
+                $gatk_path/gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
                 if [[ "$?" == 0 ]]; then
                     rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
                 fi
