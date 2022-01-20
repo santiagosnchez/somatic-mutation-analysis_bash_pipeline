@@ -6,7 +6,8 @@
 
 # load modules
 module load java/1.8
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
+module load gatk/4.0.1.2
 module load samtools/1.10
 module load bcftools/1.11
 module load tabix

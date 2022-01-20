@@ -6,7 +6,8 @@
 
 # load modules
 module load java/1.8
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
+module load gatk/4.0.1.2
 
 # set working dir
 cd $PBS_O_WORKDIR
