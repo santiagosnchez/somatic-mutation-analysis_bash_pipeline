@@ -6,7 +6,7 @@
 
 # load modules
 module load java/1.8
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
 module load samtools/1.10
 
 # set working dir
@@ -36,13 +36,13 @@ if [[ "${mode}" != "wes" ]]; then
 fi
 
 # run gatk's GetPileupSummaries
-gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
 -I ${dir}/${tumor}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${intervals} \
 -O contamination/${tumor}.getpileupsummaries.table
 
-gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
 -I ${dir}/${normal}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${intervals} \

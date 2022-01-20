@@ -21,6 +21,8 @@ export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
 export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
 # path to varscan jar file
 export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
+# point to recent version of gatk
+export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
 
 # functions
 

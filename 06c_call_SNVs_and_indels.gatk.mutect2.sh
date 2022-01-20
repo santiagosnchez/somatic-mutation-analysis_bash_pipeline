@@ -6,7 +6,7 @@
 
 # load modules
 module load java/1.8
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
 module load samtools/1.10
 
 # set working dir
@@ -36,7 +36,7 @@ fi
 
 if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
 # run gatk's mutect2
-gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" Mutect2 \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
  -I ${dir}/${normal}.bqsr.bam \
  -tumor ${tumor} \

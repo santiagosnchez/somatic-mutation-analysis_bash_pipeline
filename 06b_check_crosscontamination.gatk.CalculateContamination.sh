@@ -6,7 +6,7 @@
 
 # load modules
 module load java/1.8
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
 module load samtools/1.10
 
 # set working dir
@@ -35,7 +35,7 @@ if [[ "${mode}" != "wes" ]]; then
 fi
 
 # run gatk's CalculateContamination
-gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" CalculateContamination \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" CalculateContamination \
  -I contamination/${tumor}.getpileupsummaries.table \
  -matched contamination/${normal}.getpileupsummaries.table \
  -O contamination/${tumor}__${normal}.calculatecontamination.table \

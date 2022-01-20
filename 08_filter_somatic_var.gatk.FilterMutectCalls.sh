@@ -6,7 +6,7 @@
 
 # load modules
 module load java/1.8
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
 module load samtools/1.10
 module load bcftools/1.11
 module load tabix
@@ -23,7 +23,7 @@ source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/expo
 
 if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table && -e contamination/${tumor}__${normal}.tumorsegmentation.table ]]; then
 # run gatk's FilterMutectCalls
-gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" LearnReadOrientationModel --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  -R $reference \
  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
@@ -34,7 +34,7 @@ gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  #  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
 
 # select passed variants
-gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" LearnReadOrientationModel --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
  --exclude-filtered \
  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
