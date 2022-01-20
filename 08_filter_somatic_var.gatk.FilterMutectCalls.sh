@@ -6,8 +6,7 @@
 
 # load modules
 module load java/1.8
-#module load gatk/4.2.2.0
-module load gatk/4.0.1.2
+module load gatk/4.2.2.0
 module load samtools/1.10
 module load bcftools/1.11
 module load tabix
@@ -29,7 +28,7 @@ gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
  --tumor-segmentation contamination/${tumor}__${normal}.tumorsegmentation.table \
- --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz
+ --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
  -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
  # skipping read orientation filtering due to high numbers of false negatives
  #  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
