@@ -79,5 +79,5 @@ if [[ "$check_finish" == 0 ]]; then
     echo "FilterMutectCalls completed for ${tumor}__${normal}." | tee -a main.log
     # next round of jobs are submitted manually or not
     # annotate VCF file
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/09_variant_annotation.snpEff.sh
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
 fi
