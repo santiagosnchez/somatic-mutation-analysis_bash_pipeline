@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=5:00:00
-#PBS -e ${tumor}__${normal}.snpEff.log
+#PBS -e ${tumor}__${normal}.annotation.log
 #PBS -j eo
 # scheduler settings
 
@@ -106,5 +106,5 @@ if [[ "$check_finish" == 0 ]]; then
 #        fi
 #    fi
     # move logfile
-    mv ${tumor}__${normal}.snpEff.log all_logfiles
+    mv ${tumor}__${normal}.annotation.log all_logfiles
 fi
