@@ -53,7 +53,7 @@ java -jar $snpeff_jar \
 
 # run gatk's funcotator
 $gatk_path/gatk Funcotator \
- --variant mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz \
+ --variant mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz \
  --reference $reference \
  --ref-version hg38 \
  --data-sources-path $funcotator_databases \
@@ -63,7 +63,7 @@ $gatk_path/gatk Funcotator \
 
 # same but output maf
  $gatk_path/gatk Funcotator \
-  --variant mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz \
+  --variant mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz \
   --reference $reference \
   --ref-version hg38 \
   --data-sources-path $funcotator_databases \
