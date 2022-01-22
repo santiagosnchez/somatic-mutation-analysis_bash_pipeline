@@ -23,6 +23,8 @@ export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.1
 export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
 # point to recent version of gatk
 export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+# funcotator data resources
+export funcotator_databases=/hpf/largeprojects/tabori/shared/resources/funcotator_dataSources.v1.7.20200521s
 
 # functions
 
