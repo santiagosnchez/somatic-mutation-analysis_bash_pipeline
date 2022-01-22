@@ -9,6 +9,7 @@ module load java/1.8
 module load snpEff/4.11
 module load bcftools/1.11
 module load tabix
+module load parallel/20210322
 
 # set working dir
 cd $PBS_O_WORKDIR
@@ -82,7 +83,7 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # bgzip and tabix vcf
-    ls vcf/${tumor}__${normal}.mutect2.annotated* | parallel index-vcf {}
+    ls vcf/${tumor}__${normal}.mutect2.annotated*.vcf | parallel index-vcf {}
     # log to main
     echo "Annotation with SnpEff completed for ${tumor}__${normal}." | tee -a main.log
     # run analyses
