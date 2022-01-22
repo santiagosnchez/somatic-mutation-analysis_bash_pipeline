@@ -35,6 +35,13 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
+# add header to analyses/coverage_and_tmb.csv
+if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
+    echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
+fi
+
+
+
 # check if all TMB and cov has already been calculated
 head -1 analyses/coverage_and_tmb.csv | grep "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels"
 if [[ "$?" != 0 ]]; then
