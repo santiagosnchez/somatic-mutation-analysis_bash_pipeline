@@ -40,33 +40,24 @@ if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
     echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
 fi
 
+coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
+# expected coverage
+expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { print count }')
 
+# estimate tumor mutation burden (TMB)
+# use prev coverage estimate
 
-# check if all TMB and cov has already been calculated
-head -1 analyses/coverage_and_tmb.csv | grep "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels"
-if [[ "$?" != 0 ]]; then
-    # estimate coverage
-    coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
-    # expected coverage
-    expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { print count }')
+# total snvs
+total_snvs=$(bcftools view --types snps vcf/${tumor}__${normal}.mutect2.annotated-funcotator.${mode}.vcf.gz | grep -v "^#" | wc -l)
+# total indels
+total_indels=$(bcftools view --types indels vcf/${tumor}__${normal}.mutect2.annotated-funcotator.${mode}.vcf.gz | grep -v "^#" | wc -l)
+# calc TMB
+TMB_snvs=$( echo "scale=2; ${total_snvs}/(${coverage}/1000000)" | bc | sed 's/^\./0\./')
+TMB_indels=$( echo "scale=2; ${total_indels}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
 
-    # estimate tumor mutation burden (TMB)
-    # use prev coverage estimate
-
-    # total snvs
-    total_snvs=$(bcftools view --types snps vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
-    # total indels
-    total_indels=$(bcftools view --types indels vcf/${tumor}__${normal}.mutect2.annotated.${mode}.vcf.gz | grep -v "^#" | wc -l)
-    # calc TMB
-    TMB_snvs=$( echo "scale=4; ${total_snvs}/(${coverage}/1000000)" | bc )
-    TMB_indels=$( echo "scale=4; ${total_indels}/(${coverage}/1000000)" | bc )
-
-    # output
-    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
-    echo "tumor mutation burden done"
-else
-    ls &> /dev/null
-fi
+# output
+echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
+echo "tumor mutation burden done"
 
 # check if finished
 check_finish=$?
