@@ -19,6 +19,10 @@ if [[ ! -e vcf/snpEff ]]; then
     mkdir -p vcf/snpEff
 fi
 
+if [[ ! -e varscan/snpEff ]]; then
+    mkdir -p varscan/snpEff
+fi
+
 # load reference path and other reference files
 # for details check script
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
@@ -62,7 +66,7 @@ java -jar $snpeff_jar \
  -stats varscan/snpEff/${tumor}__${normal}.snpEff_summary.html \
  -csvStats varscan/snpEff/${tumor}__${normal}.snpEff_summary.csv \
  varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf  > \
- varscan/${tumor}__${normal}.varscan.snp.Germline.annotated-snpeff.${mode}.vcf
+ vcf/${tumor}__${normal}.varscan.snp.Germline.annotated-snpeff.${mode}.vcf
 
 # run gatk's funcotator
 $gatk_path/gatk Funcotator \
