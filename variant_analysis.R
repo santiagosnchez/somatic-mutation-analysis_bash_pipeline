@@ -3,6 +3,8 @@
 .libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.0.2/')
 
 library(sigminer)
+library(maftools)
+library(BSgenome.Hsapiens.UCSC.hg38)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -166,14 +168,17 @@ if (args[1] == "wes"){
   db_type="human-genome"
 }
 
+# sample name
+sample_name = sub("\\..*","",args[2])
+
 # get working dir
 current_dir=getwd()
 
 # vector of filtered vcf files
-vcf <- list.files(paste0(current_dir, "/vcf"), paste0(args[2],".mutect2.annotated.wes.vcf.gz"), full.names = TRUE)[1]
+mafpath <- paste0(current_dir, "/vcf/", args[2])
 
 # make/read vcf as maf
-maf <- read_vcf(vcf)
+maf <- read.maf(mafpath)
 
 # make tally of maf objects
 # compares each VCF to the hg38 reference and extracts
@@ -216,6 +221,46 @@ matched_mt_sig_legacy_30 <- get_sig_similarity(
   sig_db="legacy",
   db_type=db_type
 )
+
+# consolidate bNMF analyses
+etio2 = matched_mt_sig_legacy_30$aetiology_db[[1]]
+names(etio2) = colnames(matched_mt_sig_legacy_30$similarity)[order(as.numeric(sub("COSMIC_","",colnames(matched_mt_sig_legacy_30$similarity))))]
+
+# cosmic 2
+bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
+  mutate(raw_signature=rownames(matched_mt_sig_legacy_30$similarity)) %>%
+  pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="similarity") %>%
+  mutate(sample=sub("\\..*","",args[2])) %>%
+  mutate(cosmic_db="v2") %>%
+  mutate(tumor=sub("__.*","",sample)) %>%
+  mutate(normal=sub(".*__","",sample)) %>%
+  mutate(method="bNMF") %>%
+  mutate(etiology=etio2[cosmic_signature]) %>%
+  select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
+  filter(similarity > 0.5)
+
+# cosmic 3
+# etiologies db
+etio3 = matched_mt_sig_sbs_96$aetiology_db[[1]]
+names(etio3) = colnames(matched_mt_sig_sbs_96$similarity)[order(as.numeric(gsub("[A-Za-z]","",colnames(matched_mt_sig_sbs_96$similarity))))]
+
+bnmf_cosmic3  = as.data.frame(matched_mt_sig_sbs_96$similarity) %>%
+  mutate(raw_signature=rownames(matched_mt_sig_sbs_96$similarity)) %>%
+  pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="similarity") %>%
+  mutate(sample=sub("\\..*","",args[2])) %>%
+  mutate(cosmic_db="v3") %>%
+  mutate(tumor=sub("__.*","",sample)) %>%
+  mutate(normal=sub(".*__","",sample)) %>%
+  mutate(method="bNMF") %>%
+  mutate(etiology=etio3[cosmic_signature]) %>%
+  select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
+  filter(similarity > 0.5)
+
+# merge
+bnmf_cosmic = bind_rows(bnmf_cosmic2, bnmf_cosmic3)
+
+# save to csv
+write.csv(bnmf_cosmic, file=paste0("analyses/", sample_name, ".bnmf_cosmic.csv"), row.names=F)
 
 # set threshold for matched signatures
 sig_threshold = 0.05
@@ -264,18 +309,22 @@ linear_decomp_mt_sig_legacy_30$Exposure = linear_decomp_mt_sig_legacy_30_raw
 linear_decomp_mt_sig_legacy_30$Exposure.norm = linear_decomp_mt_sig_legacy_30_norm
 
 # match extracted COSMIC signatures to database of known etiologies
-# Bayesian NMF
+# Bayesian NMF COSMIC v3
 matched_exposures_bNMF_cosmic3 = extract_matched_sigs(mt_sig_bayes_sbs_96, matched_mt_sig_sbs_96)
 # adjust names
-matched_exposures_bNMF_cosmic3$samples = sub("\\..*","", matched_exposures_bNMF_cosmic3$samples)
+matched_exposures_bNMF_cosmic3$samples = sub("\\..*","", args[2])
+# Bayesian NMF COSMIC v2
+matched_exposures_bNMF_cosmic2 = extract_matched_sigs(mt_sig_bayes_sbs_96, matched_mt_sig_legacy_30)
+# adjust names
+matched_exposures_bNMF_cosmic2$samples = sub("\\..*","", args[2])
 # linear regression decomposition on COSMIC v3
 matched_exposures_lrDecomp_cosmic3 = extract_matched_sigs(linear_decomp_mt_sig_sbs_96, matched_mt_sig_sbs_96)
 # adjust names
-matched_exposures_lrDecomp_cosmic3$samples = sub("\\..*","", matched_exposures_lrDecomp_cosmic3$samples)
+matched_exposures_lrDecomp_cosmic3$samples = sub("\\..*","", args[2])
 # linear regression decomposition on "legacy" COSMIC v2
 matched_exposures_lrDecomp_cosmic2 = extract_matched_sigs(linear_decomp_mt_sig_legacy_30, matched_mt_sig_legacy_30)
 # adjust names
-matched_exposures_lrDecomp_cosmic2$samples = sub("\\..*","", matched_exposures_lrDecomp_cosmic2$samples)
+matched_exposures_lrDecomp_cosmic2$samples = sub("\\..*","", args[2])
 
 # write files
 write.csv(matched_exposures_bNMF_cosmic3, file="analyses/matched_exposures_bNMF_cosmic3.csv")

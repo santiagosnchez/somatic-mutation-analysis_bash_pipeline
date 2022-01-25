@@ -10,6 +10,7 @@ module load java/1.8
 module load samtools/1.10
 module load bcftools/1.11
 module load R/4.1.0
+#module load R/4.0.2
 module load parallel/20210322
 
 # set working dir

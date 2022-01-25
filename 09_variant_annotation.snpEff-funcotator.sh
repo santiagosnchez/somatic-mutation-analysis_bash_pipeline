@@ -41,16 +41,28 @@ if [[ "$?" == 0 ]]; then
     rm ${tumor}__${normal}.tmp.vcf.header.txt
 fi
 
-# run snpEff
+# run snpEff on mutect2 vcf
 java -jar $snpeff_jar \
  -dataDir $snpeff_datadir \
  hg38 \
  -v \
+ -canon \
  -cancer \
  -stats vcf/snpEff/${tumor}__${normal}.snpEff_summary.html \
  -csvStats vcf/snpEff/${tumor}__${normal}.snpEff_summary.csv \
  mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz > \
  vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf
+
+# run snpEff on Varscan Germline calls
+java -jar $snpeff_jar \
+ -dataDir $snpeff_datadir \
+ hg38 \
+ -v \
+ -canon \
+ -stats varscan/snpEff/${tumor}__${normal}.snpEff_summary.html \
+ -csvStats varscan/snpEff/${tumor}__${normal}.snpEff_summary.csv \
+ varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf  > \
+ varscan/${tumor}__${normal}.varscan.snp.Germline.annotated-snpeff.${mode}.vcf
 
 # run gatk's funcotator
 $gatk_path/gatk Funcotator \
