@@ -3,6 +3,7 @@
 args=($@)
 vcf_file=${args[0]}
 sample=$( echo $vcf_file | sed 's/\..*//')
+sample=$( echo $sample | rev | cut -d'/' -f1 | rev)
 
 for i in `seq 2 ${#args[@]}`; do
     i=$(( i - 1 ))
@@ -11,7 +12,8 @@ for i in `seq 2 ${#args[@]}`; do
         zcat $vcf_file | \
         grep "missense_variant|MODERATE|${gene}|" | \
         awk -v OFS="," -v g=$gene -v s=$sample '{
-          gt = gsub(":.*","",$10);
+          gt = $10;
+          gsub(":.*","",gt);
           split($8, x, ";");
           split(x[length(x)], y, "=");
           split(y[2], z, ",");
@@ -27,7 +29,8 @@ for i in `seq 2 ${#args[@]}`; do
         cat $vcf_file | \
         grep "missense_variant|MODERATE|${gene}|" | \
         awk -v OFS="," -v g=$gene -v s=$sample '{
-            gt = gsub(":.*","",$10);
+            gt = $10;
+            gsub(":.*","",gt);
             split($8, x, ";");
             split(x[length(x)], y, "=");
             split(y[2], z, ",");
