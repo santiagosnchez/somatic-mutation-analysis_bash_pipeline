@@ -14,6 +14,7 @@ for i in `seq 2 ${#args[@]}`; do
         awk -v OFS="," -v g=$gene -v s=$sample '{
           gt = $10;
           gsub(":.*","",gt);
+          gsub("__",",",s);
           split($8, x, ";");
           split(x[length(x)], y, "=");
           split(y[2], z, ",");
@@ -31,6 +32,7 @@ for i in `seq 2 ${#args[@]}`; do
         awk -v OFS="," -v g=$gene -v s=$sample '{
             gt = $10;
             gsub(":.*","",gt);
+            gsub("__",",",s);
             split($8, x, ";");
             split(x[length(x)], y, "=");
             split(y[2], z, ",");
