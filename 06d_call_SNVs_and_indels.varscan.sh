@@ -83,7 +83,9 @@ if [[ "$?" == 0 ]]; then
             # compress and index
             index-vcf varscan/${tumor}__${normal}.varscan.snp.Somatic.hc.vcf
             index-vcf varscan/${tumor}__${normal}.varscan.indel.Somatic.hc.vcf
-            # concat
+            index-vcf varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf
+            index-vcf varscan/${tumor}__${normal}.varscan.indel.Germline.hc.vcf
+            # concat Somatic
             bcftools concat \
              -a \
              -Oz \
@@ -94,6 +96,17 @@ if [[ "$?" == 0 ]]; then
             mv varscan/${tumor}__${normal}.varscan.all.Somatic.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
             # index
             tabix varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
+            # concat Germline
+            bcftools concat \
+             -a \
+             -Oz \
+             varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf.gz \
+             varscan/${tumor}__${normal}.varscan.indel.Germline.hc.vcf.gz \
+             > varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz
+            # rename
+            mv varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
+            # index
+            tabix varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
         fi
     else
         # wait 30 min
