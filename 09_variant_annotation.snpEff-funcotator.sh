@@ -65,8 +65,8 @@ java -jar $snpeff_jar \
  -canon \
  -stats varscan/snpEff/${tumor}__${normal}.snpEff_summary.html \
  -csvStats varscan/snpEff/${tumor}__${normal}.snpEff_summary.csv \
- varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf  > \
- vcf/${tumor}__${normal}.varscan.snp.Germline.annotated-snpeff.${mode}.vcf
+ varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz  > \
+ vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf
 
 # run gatk's funcotator
 $gatk_path/gatk Funcotator \
