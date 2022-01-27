@@ -52,10 +52,10 @@ java -jar $snpeff_jar \
  -v \
  -canon \
  -cancer \
- -stats vcf/snpEff/${tumor}__${normal}.snpEff_summary.html \
- -csvStats vcf/snpEff/${tumor}__${normal}.snpEff_summary.csv \
+ -stats vcf/snpEff/${tumor}__${normal}.somatic.snpEff_summary.html \
+ -csvStats vcf/snpEff/${tumor}__${normal}.somatic.snpEff_summary.csv \
  mutect2/${tumor}__${normal}.mutect2.normalized_head.${mode}.vcf.gz > \
- vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf
+ vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf
 
 # run snpEff on Varscan Germline calls
 java -jar $snpeff_jar \
@@ -68,14 +68,14 @@ java -jar $snpeff_jar \
  varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz  > \
  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf
 
-# run gatk's funcotator
+# run gatk's funcotator on somatic mutations
 $gatk_path/gatk Funcotator \
  --variant mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz \
  --reference $reference \
  --ref-version hg38 \
  --data-sources-path $funcotator_databases \
  --transcript-selection-mode CANONICAL \
- --output vcf/${tumor}__${normal}.mutect2.annotated-funcotator.${mode}.vcf \
+ --output vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf \
  --output-file-format VCF
 
 # same but output maf
@@ -85,7 +85,27 @@ $gatk_path/gatk Funcotator \
   --ref-version hg38 \
   --data-sources-path $funcotator_databases \
   --transcript-selection-mode CANONICAL \
-  --output vcf/${tumor}__${normal}.mutect2.annotated-funcotator.${mode}.maf \
+  --output vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.maf \
+  --output-file-format MAF
+
+# run gatk's funcotator on germline variants
+$gatk_path/gatk Funcotator \
+ --variant varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz \
+ --reference $reference \
+ --ref-version hg38 \
+ --data-sources-path $funcotator_databases \
+ --transcript-selection-mode CANONICAL \
+ --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf \
+ --output-file-format VCF
+
+# same but output maf
+ $gatk_path/gatk Funcotator \
+  --variant varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz \
+  --reference $reference \
+  --ref-version hg38 \
+  --data-sources-path $funcotator_databases \
+  --transcript-selection-mode CANONICAL \
+  --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.maf \
   --output-file-format MAF
 
 # check if finished
@@ -99,7 +119,7 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # bgzip and tabix vcf
-    ls vcf/${tumor}__${normal}.mutect2.annotated*.vcf | parallel index-vcf {}
+    ls vcf/${tumor}__${normal}.*annotated*.vcf | parallel index-vcf {}
     # log to main
     echo "Annotation with SnpEff and Funcotator completed for ${tumor}__${normal}." | tee -a main.log
     # run analyses

@@ -31,7 +31,12 @@ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
  -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
  # skipping read orientation filtering due to high numbers of false negatives
- #  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
+ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
+  -R $reference \
+  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
+  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
+  --tumor-segmentation contamination/${tumor}__${normal}.tumorsegmentation.table \
+  -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
 
 # select passed variants
 $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
