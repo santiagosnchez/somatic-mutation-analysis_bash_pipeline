@@ -12,153 +12,9 @@ library(RColorBrewer)
 library(cowplot)
 library(viridis)
 library(pals)
+library(ggtext)
+library(biomaRt)
 
-# function to match signature to etiology
-extract_matched_sigs <- function(mt_sig, sim){
-  exposure = as.data.frame(mt_sig$Exposure.norm)
-  # signatures as column
-  exposure$signatures = rownames(exposure)
-  # make DF longer
-  exposure = exposure %>% pivot_longer(cols=-signatures, values_to="exposure.norm", names_to="samples")
-  # add matched COSMIC signature
-  # check if object is Signature
-  if (class(mt_sig) == "Signature"){
-    matched_names = unlist(sapply(sim$best_match[ exposure$signatures ], function(x) x["aetiology"]))
-    exposure$ethiology = matched_names
-  } else {
-    all_names = colnames(sim$rss)
-    ethiology = sim$aetiology_db[[1]]
-    names(ethiology) = all_names
-    exposure$ethiology = ethiology[ exposure$signatures ]
-  }
-  # get raw exposure values
-  exposure$exposure.raw = (pivot_longer(as.data.frame(mt_sig$Exposure), cols=everything(), values_to="exposure.raw", names_to="samples"))$exposure.raw
-  # return DF
-  return(exposure)
-}
-
-produce_bar_plots <- function(df, file_name, legend_names=c(NULL,NULL)){
-  # load colors
-  cols = c(stepped(20), stepped2(20), stepped(20))
-  cols = cols[-2]
-  names(cols) = NULL
-  # calculate height from samples
-  n_samples = length(unique(df$samples))
-  # set minimal size of the plot
-  if (n_samples < 4){
-    n_samples = 4
-  }
-  # start plotting device
-  dev.new(file="tmp_Rplot.pdf", height=n_samples, width=14)
-  # get number of legend elements
-  # guides(fill=guide_legend(ncol=2))
-
-  # adjust sig labels to match ethiologies
-  max_size_of_ethiology_label = max(sapply(df$ethiology, nchar))
-  max_size_of_sig_label = max(sapply(df$signatures, nchar))
-  # df$dummy_sig_label = paste0(df$signatures, paste(rep(" ", max_size_of_ethiology_label - max_size_of_sig_label), collapse=""))
-  # # get sample label size
-  max_size_of_samp_label = max(sapply(df$samples, nchar))
-
-  # plot each panel
-  sig1 = ggplot(df, aes(y=samples, x=exposure.norm, fill=signatures)) +
-    geom_bar(stat="identity") +
-    scale_fill_manual(values=cols, name=legend_names[1]) +
-    labs(x="fraction", y="", title="normalized") +
-    guides(fill=guide_legend(ncol=3)) +
-    theme(
-      axis.text.x=element_text(angle=90, hjust=1, vjust=0.5),
-      legend.position="right")
-  sig2 = ggplot(df, aes(y=samples, x=exposure.raw, fill=signatures)) +
-    geom_bar(stat="identity") +
-    scale_fill_manual(values=cols, name=legend_names[1]) +
-    labs(x="SNVs", y="", title="stacked counts") +
-    theme(
-      axis.text.x=element_text(angle=90, hjust=1, vjust=0.5),
-      axis.text.y=element_blank(),
-      legend.position="none")
-  eti3 = ggplot(df, aes(y=samples, x=exposure.norm, fill=ethiology)) +
-    geom_bar(stat="identity") +
-    scale_fill_manual(values=cols, name=legend_names[2]) +
-    labs(x="fraction", y="", title="normalized") +
-    theme(
-      axis.text.x=element_text(angle=90, hjust=1, vjust=0.5),
-      legend.position="right")
-  eti4 = ggplot(df, aes(y=samples, x=exposure.raw, fill=ethiology)) +
-    geom_bar(stat="identity") +
-    scale_fill_manual(values=cols, name=legend_names[2]) +
-    labs(x="SNVs", y="", title="stacked counts") +
-    theme(
-      axis.text.x=element_text(angle=90, hjust=1, vjust=0.5),
-      axis.text.y=element_blank(),
-      legend.position="none")
-
-  # get legends as ggplot objects
-  legend_sig1 = get_legend(sig1)
-  legend_eti3 = get_legend(eti3)
-
-  # plot grid
-  plot_grid(sig1 + theme(legend.position="none", axis.title.x=element_blank()),
-            sig2 + theme(axis.title.x=element_blank()),
-            legend_sig1,
-            eti3 + theme(legend.position="none", plot.title=element_blank()),
-            eti4 + theme(plot.title=element_blank()),
-            legend_eti3,
-            ncol=3,
-            rel_heights=c(6,5.55),
-            rel_widths=c(max_size_of_samp_label,max_size_of_samp_label*.6,max_size_of_samp_label*1.25)
-            )
-  # save PNG
-  ggsave(paste0("analyses/",file_name,".png"), bg="white", type="cairo", height=n_samples, width=14)
-  ggsave(paste0("analyses/",file_name,".pdf"), device="pdf", height=n_samples, width=14)
-  # close device
-  dev.off()
-  # remove tmp plot file
-  #file.remove("tmp_Rplot.pdf")
-  #
-  print("Done")
-}
-
-produce_lolipop_plots <- function(df){
-  # calculate height from samples
-  n_samples = length(unique(df$tumor))
-  # set minimal size of the plot
-  if (n_samples < 4){
-    n_samples = 4
-  }
-  # start plotting device
-  dev.new(file="tmp_Rplot.pdf", height=n_samples, width=14)
-  # SNVs
-  tmb_snvs = ggplot(tmb_data, aes(x=tumor, y=tmb_snvs, color=tmb_snvs)) +
-    geom_point(size=3) +
-    scale_y_continuous(expand=c(0,0), limits=c(0,max(pretty(tmb_data$tmb_snvs))+5)) +
-    geom_linerange(aes(ymin=0, ymax=tmb_snvs)) +
-    scale_color_gradient(high="red", low="blue", name=NULL) +
-    labs(y="mutations/mb", title="tumor mutation burden (SNV)") +
-    background_grid(major="y") +
-    theme(
-      axis.text.x=element_text(angle=90, hjust=1, vjust=0.5),
-      axis.title.x=element_blank()
-    )
-  # Indels
-  tmb_indels = ggplot(tmb_data, aes(x=tumor, y=tmb_indels, color=tmb_indels)) +
-    geom_point(size=3) +
-    scale_y_continuous(expand=c(0,0), limits=c(0,max(pretty(tmb_data$tmb_indels))+5)) +
-    geom_linerange(aes(ymin=0, ymax=tmb_indels)) +
-    scale_color_gradient(high="red", low="blue", name=NULL) +
-    labs(y="mutations/mb", title="tumor mutation burden (indels)") +
-    background_grid(major="y") +
-    theme(
-      axis.text.x=element_text(angle=90, hjust=1, vjust=0.5),
-      axis.title.x=element_blank()
-    )
-  # plot grid
-  plot_grid(tmb_snvs, tmb_indels, ncol=1)
-  ggsave("analyses/snv_and_indel_tmb.png", bg="white", type="cairo", height=8, width=n_samples)
-  ggsave("analyses/snv_and_indel_tmb.pdf", height=8, width=n_samples)
-  # close device
-  dev.off()
-}
 
 # get args and set db_type
 args = base::commandArgs(trailingOnly = TRUE)
@@ -169,7 +25,11 @@ if (args[1] == "wes"){
 }
 
 # sample name
-sample_name = sub("\\..*","",args[2])
+sample_name = sub("\\..*","", args[2])
+
+# tumor - normal
+TUMOR = sub("__.*","",sample_name)
+NORMAL = sub(".*__","",sample_name)
 
 # get working dir
 current_dir=getwd()
@@ -232,8 +92,8 @@ bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
   pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="similarity") %>%
   mutate(sample=sub("\\..*","",args[2])) %>%
   mutate(cosmic_db="v2") %>%
-  mutate(tumor=sub("__.*","",sample)) %>%
-  mutate(normal=sub(".*__","",sample)) %>%
+  mutate(tumor=TUMOR) %>%
+  mutate(normal=NORMAL) %>%
   mutate(method="bNMF") %>%
   mutate(etiology=etio2[cosmic_signature]) %>%
   select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
@@ -249,8 +109,8 @@ bnmf_cosmic3  = as.data.frame(matched_mt_sig_sbs_96$similarity) %>%
   pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="similarity") %>%
   mutate(sample=sub("\\..*","",args[2])) %>%
   mutate(cosmic_db="v3") %>%
-  mutate(tumor=sub("__.*","",sample)) %>%
-  mutate(normal=sub(".*__","",sample)) %>%
+  mutate(tumor=TUMOR) %>%
+  mutate(normal=NORMAL) %>%
   mutate(method="bNMF") %>%
   mutate(etiology=etio3[cosmic_signature]) %>%
   select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
@@ -266,7 +126,7 @@ write.csv(bnmf_cosmic, file=paste0("analyses/", sample_name, ".bnmf_cosmic.csv")
 sig_threshold = 0.05
 
 # fit linear decomposition on SBS_hg38
-linear_decomp_mt_sig_sbs_96 = list()
+
 linear_decomp_mt_sig_sbs_96_raw <- sig_fit(mt_tally$SBS_96 %>% t(), sig_index = "ALL", sig_db = "SBS_hg38")
 # make it proportional
 linear_decomp_mt_sig_sbs_96_norm <- t(t(linear_decomp_mt_sig_sbs_96_raw) / colSums(linear_decomp_mt_sig_sbs_96_raw))
@@ -283,12 +143,8 @@ keep = apply(linear_decomp_mt_sig_sbs_96_norm, 1, sum) > 0
 linear_decomp_mt_sig_sbs_96_norm = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_norm), keep)
 linear_decomp_mt_sig_sbs_96_raw = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_raw), keep)
 
-# store in list
-linear_decomp_mt_sig_sbs_96$Exposure = linear_decomp_mt_sig_sbs_96_raw
-linear_decomp_mt_sig_sbs_96$Exposure.norm = linear_decomp_mt_sig_sbs_96_norm
-
 # fit lienar decomposition on "legacy" signaures (COSMIC v2)
-linear_decomp_mt_sig_legacy_30 = list()
+
 linear_decomp_mt_sig_legacy_30_raw <- sig_fit(mt_tally$SBS_96 %>% t(), sig_index = "ALL", sig_db = "legacy")
 # make it proportional
 linear_decomp_mt_sig_legacy_30_norm <- t(t(linear_decomp_mt_sig_legacy_30_raw) / colSums(linear_decomp_mt_sig_legacy_30_raw))
@@ -304,49 +160,239 @@ for (i in 1:dim(linear_decomp_mt_sig_legacy_30_norm)[2]){
 keep = apply(linear_decomp_mt_sig_legacy_30_norm, 1, sum) > 0
 linear_decomp_mt_sig_legacy_30_norm = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_norm), keep)
 linear_decomp_mt_sig_legacy_30_raw = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_raw), keep)
-# store in list
-linear_decomp_mt_sig_legacy_30$Exposure = linear_decomp_mt_sig_legacy_30_raw
-linear_decomp_mt_sig_legacy_30$Exposure.norm = linear_decomp_mt_sig_legacy_30_norm
 
-# match extracted COSMIC signatures to database of known etiologies
-# Bayesian NMF COSMIC v3
-matched_exposures_bNMF_cosmic3 = extract_matched_sigs(mt_sig_bayes_sbs_96, matched_mt_sig_sbs_96)
-# adjust names
-matched_exposures_bNMF_cosmic3$samples = sub("\\..*","", args[2])
-# Bayesian NMF COSMIC v2
-matched_exposures_bNMF_cosmic2 = extract_matched_sigs(mt_sig_bayes_sbs_96, matched_mt_sig_legacy_30)
-# adjust names
-matched_exposures_bNMF_cosmic2$samples = sub("\\..*","", args[2])
-# linear regression decomposition on COSMIC v3
-matched_exposures_lrDecomp_cosmic3 = extract_matched_sigs(linear_decomp_mt_sig_sbs_96, matched_mt_sig_sbs_96)
-# adjust names
-matched_exposures_lrDecomp_cosmic3$samples = sub("\\..*","", args[2])
-# linear regression decomposition on "legacy" COSMIC v2
-matched_exposures_lrDecomp_cosmic2 = extract_matched_sigs(linear_decomp_mt_sig_legacy_30, matched_mt_sig_legacy_30)
-# adjust names
-matched_exposures_lrDecomp_cosmic2$samples = sub("\\..*","", args[2])
+# rename columns and add data to df
+linear_decomp_cosmic = bind_rows(linear_decomp_mt_sig_legacy_30_norm %>%
+  mutate(cosmic_db="v2") %>%
+  mutate(cosmic_signature = rownames(linear_decomp_mt_sig_legacy_30_norm)) %>%
+  mutate(etiology=etio2[cosmic_signature]),
+linear_decomp_mt_sig_sbs_96_norm %>%
+mutate(cosmic_db="v3") %>%
+mutate(cosmic_signature = rownames(linear_decomp_mt_sig_sbs_96_norm)) %>%
+mutate(etiology=etio3[cosmic_signature]))
+colnames(linear_decomp_cosmic)[1] = "contribution.prop"
+linear_decomp_cosmic = linear_decomp_cosmic %>%
+  mutate(tumor=TUMOR) %>%
+  mutate(normal=NORMAL)
 
-# write files
-write.csv(matched_exposures_bNMF_cosmic3, file="analyses/matched_exposures_bNMF_cosmic3.csv")
-write.csv(matched_exposures_lrDecomp_cosmic3, file="analyses/matched_exposures_lrDecomp_cosmic3.csv")
-write.csv(matched_exposures_lrDecomp_cosmic2, file="analyses/matched_exposures_lrDecomp_cosmic2.csv")
-
-# set cowplot theme
-theme_set(theme_cowplot())
-
-# make plots
-# start with barplots
-# second arg is the file name saved to "analyses"
-produce_bar_plots(matched_exposures_bNMF_cosmic3, "barplot_matched_signatures_bNMF_cosmicV3", c("Bayesian NMF signatures","matched etiologies (COSMIC v3)"))
-produce_bar_plots(matched_exposures_lrDecomp_cosmic3, "barplot_matched_signatures_lrDecomp_cosmicV3", c("COSMIC v3","matched etiologies"))
-produce_bar_plots(matched_exposures_lrDecomp_cosmic2, "barplot_matched_signatures_lrDecomp_cosmicV2", c("COSMIC v2","matched etiologies"))
+write.csv(linear_decomp_cosmic, file="analyses/lrDecomp_cosmic.csv")
 
 # plot tumor mutation burden
 # read data
 tmb_data = read.csv("analyses/coverage_and_tmb.csv")
-# as lolipop plots
-produce_lolipop_plots(tmb_data)
+tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
 
+cols_tmb = rev(stepped(4))
+
+# plot tumor mutation burden
+
+pl_tmb = ggplot(tmb, aes(y=tumor)) +
+  geom_point(aes(x=tmb_snvs)) +
+  geom_rect(aes(xmin=1,xmax=10,ymin=0, ymax=2), fill=cols[1]) +
+  geom_rect(aes(xmin=10,xmax=100,ymin=0, ymax=2), fill=cols[2]) +
+  geom_rect(aes(xmin=100,xmax=1000,ymin=0, ymax=2), fill=cols[3]) +
+  geom_vline(xintercept=c(1,10,100), linetype=2) +
+  annotate(geom="line", x=rep(tmb$tmb_snvs,2), y=c(0,0.8), arrow=arrow(length=unit(0.30,"cm"), ends="first", type = "closed")) +
+  annotate(geom="text", y=1.8, x=c(1.1,11,110), label=c("Low","Hypermutant","Ultrahypermutant"), hjust=0 ) +
+  geom_label(aes(x=tmb_snvs, label=paste(tmb_snvs,"(mt/mb)"))) +
+  scale_x_log10(expand=c(0,0),
+    limits=c(0.5, 5000),
+    breaks=c(1,10,100,1000),
+    labels=c("1","10","100","1,000")) +
+  annotation_logticks(sides="b") +
+  labs(y=TUMOR, x="mutations per million nucleotides\n[Single Nucleotide Variants (SNV), log10 scale]",
+       title="Tumor Mutation Burden") +
+  background_grid(major="x") +
+  theme(
+    panel.background=element_blank(),
+    plot.background=element_rect(fill="grey95", color="black"),
+    axis.text.y=element_blank(),
+    axis.text.x=element_text(size=10),
+    axis.ticks.y=element_blank(),
+    axis.line.x=element_line(),
+    plot.title=element_text(face="bold", size=10),
+    plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm")
+  )
+
+# plot linear decomposition signature contributions
+
+# set colors
+cols_cosmic2 = rep("", 30)
+cols_cosmic2[ grep("DNA mismatch", etio2) ] = stepped3(12)[9:12]
+cols_cosmic2[ grep("polymerase", etio2) ] = stepped3(8)[5:6]
+cols_cosmic2[ grep("eami", etio2) ] = stepped3(4)[1:3]
+cols_cosmic2[ grep("Unknown", etio2) ] = stepped3(20)[18]
+cols_cosmic2[ grep("unknown", etio2) ] = stepped3(20)[18]
+cols_cosmic2[ grep("tobacco", etio2) ] = stepped2(12)[9:10]
+cols_cosmic2[ grep("exposures* to a", etio2) ] = stepped2(16)[13:15]
+cols_cosmic2[ grep("UV exposure", etio2) ] = stepped3(16)[13]
+cols_cosmic2[ grep("DNA-DSB repair by HR", etio2) ] = stepped2(20)[19]
+names(cols_cosmic2) = names(etio2)
+
+prep_caption_ld=paste(paste(etio2[(linear_decomp_cosmic %>% filter(cosmic_db == "v2"))$cosmic_signature], " (",(linear_decomp_cosmic %>% filter(cosmic_db == "v2"))$cosmic_signature, ")", sep=""), collapse="\n")
+
+pl_ld_v2 = ggplot(linear_decomp_cosmic %>% filter(cosmic_db == "v2"),
+    aes(x="", y=round(contribution.prop * 100,1), fill=cosmic_signature)) +
+  geom_bar(stat="identity") +
+  geom_text(aes(label=paste0(round(contribution.prop * 100,0),"%")), position = position_stack(vjust=0.5)) +
+  coord_polar("y", start=0) +
+  labs(title="Contribution from COSMIC Signature\n(legacy db.v2)",
+       caption=prep_caption_ld) +
+  scale_fill_manual(values=cols_cosmic2[(linear_decomp_cosmic %>% filter(cosmic_db == "v2"))$cosmic_signature]) +
+  theme_void() +
+  theme(
+    legend.title=element_blank(),
+    plot.title=element_text(face="bold", size=10),
+    plot.caption=element_text(hjust=0),
+    plot.background=element_rect(fill="grey95", color="black"),
+    plot.margin=unit(c(0.5,0.5,1,0.5), "cm")
+  )
+
+# plot cosine similarity (bNMF)
+
+prep_caption_bnmf=paste(paste(etio2[(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature], " (",(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature, ")", sep=""), collapse="\n")
+
+pl_bnmf_v2 = ggplot(bnmf_cosmic2 %>% mutate(cosmic_signature=factor(cosmic_signature, levels=cosmic_signature[order(similarity)])),
+    aes(y=cosmic_signature, x=round(similarity * 100,0), fill=cosmic_signature)) +
+  geom_bar(stat="identity", show.legend=F) +
+  geom_text(aes(label=paste0(round(similarity * 100,0),"%")), hjust=1.1) +
+  scale_x_continuous(expand=c(0,0), limits=c(0,100)) +
+  labs(x="cosine similarity (%)", title="Similarity to COSMIC Signature\n(legacy db.v2)",
+       caption=prep_caption_bnmf) +
+  scale_fill_manual(values=cols_cosmic2[(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature]) +
+  background_grid(major="xy", color.major="grey85") +
+  theme(
+    panel.background=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.x=element_text(size=10),
+    axis.text.y=element_text(angle=45, vjust=0.5),
+    axis.ticks.y=element_blank(),
+    axis.line.x=element_line(),
+    legend.title=element_blank(),
+    plot.title=element_text(face="bold", size=10),
+    plot.caption=element_text(hjust=0),
+    plot.background=element_rect(fill="grey95", color="black"),
+    plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm")
+  )
+
+#
+
+# set RRD genes to be tested
+RRD_genes = c("MLH1","MSH2","MSH6","PMS2","POLD1","POLD2","POLD3","POLD4","POLE","POLE2")
+
+# set ensembl database
+ensembl = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+RRD_ensembl = getBM(attributes=c('chromosome_name', 'start_position', 'end_position','exon_chrom_start','exon_chrom_end'),
+  filters="hgnc_symbol",
+  values=RRD_genes, mart=ensembl)
+RRD_ensembl$gene = RRD_genes[ factor(RRD_ensembl$start_position, levels=as.character(unique(RRD_ensembl$start_position))) ]
+RRD_ensembl = RRD_ensembl %>% mutate(exon_start = exon_chrom_start - start_position) %>% mutate(exon_end = exon_chrom_end - start_position)
+RRD_ensembl$y = seq_along(RRD_genes)[ factor(RRD_ensembl$gene, levels=RRD_genes) ]
+RRD_transcript_sizes = RRD_ensembl %>% group_by(gene, y) %>% summarize(start=1, end=sum(exon_end-exon_start))
+
+
+
+# plot germline and somatic mutations RRD
+
+germline_mmr = read.csv(paste("analyses/",sample_name,".germline_MMR_mutations.genes.csv",sep=""), head=F, stringsAsFactors=F)
+germline_pol = read.csv(paste("analyses/",sample_name,".germline_POL_mutations.genes.csv",sep=""), head=F, stringsAsFactors=F)
+germline = rbind(germline_mmr, germline_pol)
+colnames(germline) = c("tumor","normal","chromosome","position","reference","alternate","gt","type","effect","gene","","transcript","base_change","aa_change")
+# add transcript base position
+germline$position_tr = as.numeric(gsub("c\\.(\\d+)","", germline$base_change))
+germline$y = which(RRD_genes %in% germline$gene)
+germline$genotype = "het"
+germline$genotype[ grep("1[\\/\\|]1", germline$gt) ] = "hom"
+
+# mutation colors
+cols_gt = rev(stepped(5)[c(1,5)])
+
+# plot germline variants
+
+pl_germl = ggplot(RRD_transcript_sizes, aes(y=y)) +
+  geom_rect(aes(xmin=start, xmax=end, ymin=y-0.1, ymax=y+0.1), fill="grey") +
+  geom_point(data=germline, aes(y=y, x=position_tr, color=genotype), shape="|", size=3) +
+  geom_text(data=germline, aes(x=position_tr, label=sub("[a-z]\\.","",aa_change), color=genotype), size=2.5, hjust=0, vjust=0, angle=45, nudge_y=0.2, show.legend=F) +
+  scale_y_continuous(breaks=seq_along(RRD_genes), limits=c(0.5,11), labels=RRD_genes) +
+  scale_x_continuous(expand=c(0,0), labels=scales:::comma) +
+  scale_color_manual(values=cols_gt) +
+  labs(title="Germline RRD variants", x="transcript position (base pair)") +
+  theme(
+    panel.background=element_blank(),
+    panel.grid=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.x=element_text(size=10),
+    axis.text.y=element_text(angle=45, vjust=0.5),
+    axis.ticks.y=element_blank(),
+    axis.line.x=element_line(),
+    legend.title=element_blank(),
+    legend.background=element_blank(),
+    legend.box.background=element_rect(color="black"),
+    plot.title=element_text(face="bold", size=10),
+    plot.background=element_rect(fill="grey95", color="black"),
+    plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm"),
+    legend.position="none"
+  )
+
+# load somatic variants, potential driver mutations
+somatic_mmr = read.csv(paste("analyses/",sample_name,".somatic_MMR_mutations.genes.csv",sep=""), head=F, stringsAsFactors=F)
+somatic_pol = read.csv(paste("analyses/",sample_name,".somatic_POL_mutations.genes.csv",sep=""), head=F, stringsAsFactors=F)
+somatic = rbind(somatic_mmr, somatic_pol)
+colnames(somatic) = c("tumor","normal","chromosome","position","reference","alternate","gt","type","effect","gene","","transcript","base_change","aa_change")
+# add transcript base position
+somatic$position_tr = as.numeric(gsub("\\D+","", somatic$base_change))
+somatic$y = which(RRD_genes %in% somatic$gene)
+somatic$genotype = "het"
+somatic$genotype[ grep("1[\\/\\|]1", somatic$gt) ] = "hom"
+
+# from MAF
+somatic_maf = maf@data %>% filter(Hugo_Symbol %in% RRD_genes) %>%
+  dplyr::select(Hugo_Symbol, Chromosome, Start_Position, cDNA_Change, Protein_Change, tumor_f)
+colnames(somatic_maf) = c("gene","chromosome","position","base_change","aa_change","tumor_f")
+somatic_maf$position_tr = as.numeric(gsub("\\D+","", somatic_maf$base_change))
+somatic_maf$y = which(RRD_genes %in% somatic_maf$gene)
+
+# plot somatic variants
+
+pl_soma = ggplot(RRD_transcript_sizes, aes(y=y)) +
+  geom_rect(aes(xmin=start, xmax=end, ymin=y-0.1, ymax=y+0.1), fill="grey") +
+  geom_point(data=somatic_maf, aes(y=y, x=position_tr, color=tumor_f), shape="|", size=3) +
+  geom_text(data=somatic_maf, aes(x=position_tr, label=sub("[a-z]\\.","",aa_change)), size=2.5, hjust=0, vjust=0, angle=45, nudge_y=0.2, show.legend=F) +
+  scale_y_continuous(breaks=seq_along(RRD_genes), limits=c(0.5,11), labels=RRD_genes) +
+  scale_x_continuous(expand=c(0,0), labels=scales:::comma) +
+  scale_color_gradient(limits=c(0,1)) +
+  labs(title="Somatic RRD variants", x="transcript position (base pair)") +
+  theme(
+    panel.background=element_blank(),
+    panel.grid=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.x=element_text(size=10),
+    axis.text.y=element_text(angle=45, vjust=0.5),
+    axis.ticks.y=element_blank(),
+    axis.line.x=element_line(),
+    legend.title=element_blank(),
+    legend.background=element_blank(),
+    legend.box.background=element_rect(color="black"),
+    plot.title=element_text(face="bold", size=10),
+    plot.background=element_rect(fill="grey95", color="black"),
+    plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm"),
+    legend.position="none"
+  )
+
+pl_name = ggplot(data.frame(x=1,y=5, z=sample_name), aes(x=x, y=y, label=sample_name)) +
+  geom_text(size=7, fontface="bold") + 
+  theme_void() +
+  scale_y_continuous(expand=c(0,0))
+
+plot_grid(plot_grid(NULL,pl_name,NULL, nrow=1, rel_widths=c(0.2,5,3)),
+  NULL,
+    plot_grid(NULL,pl_germl,NULL,pl_soma,NULL, rel_widths=c(1,9,0.5,9,1), nrow=1),
+      NULL,
+        plot_grid(NULL, pl_tmb, NULL, rel_widths=c(1,8,1), nrow=1),
+          NULL,
+            plot_grid(NULL, pl_ld_v2, NULL, pl_bnmf_v2, NULL, rel_widths=c(0.1,9,0.05,9,1), nrow=1),
+              NULL,
+                ncol=1, rel_heights=c(0.5,0,4,0.2,2,0.2,3,0.2))
 
 # save R objects to disk
 save.image(file="analyses/mutational_signatures_as_R_object.Rdata")
