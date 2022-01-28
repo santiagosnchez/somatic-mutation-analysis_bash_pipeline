@@ -9,8 +9,8 @@ module load java/1.8
 #module load gatk/4.0.1.2
 module load samtools/1.10
 module load bcftools/1.11
-module load R/4.1.0
-#module load R/4.0.2
+#module load R/4.1.0
+module load R/4.0.2
 module load parallel/20210322
 
 # set working dir
@@ -95,6 +95,9 @@ TMB_indels=$( echo "scale=2; ${total_indels}/(${coverage}/1000000)" | bc | sed '
 # output
 echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
 echo "tumor mutation burden done"
+
+# run variant analysis
+Rscript ${pipeline_dir}/variant_analysis.R ${mode} ${tumor}__${normal}
 
 # check if finished
 check_finish=$?

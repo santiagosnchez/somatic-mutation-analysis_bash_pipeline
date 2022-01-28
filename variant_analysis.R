@@ -25,7 +25,7 @@ if (args[1] == "wes"){
 }
 
 # sample name
-sample_name = sub("\\..*","", args[2])
+sample_name = args[2]
 
 # tumor - normal
 TUMOR = sub("__.*","",sample_name)
@@ -35,10 +35,14 @@ NORMAL = sub(".*__","",sample_name)
 current_dir=getwd()
 
 # vector of filtered vcf files
-mafpath <- paste0(current_dir, "/vcf/", args[2])
+somaticmafpath <- paste0(current_dir, "/vcf/", args[2], ".mutect2.all.Somatic.annotated-funcotator.",args[1],".maf")
+germlinemafpath <- paste0(current_dir, "/vcf/", args[2], ".mutect2.all.Germline.annotated-funcotator.",args[1],".maf")
 
 # make/read vcf as maf
-maf <- read.maf(mafpath)
+maf.som <- read.maf(somaticmafpath)
+
+# make/read vcf as maf
+maf.ger <- read.maf(germlinemafpath)
 
 # make tally of maf objects
 # compares each VCF to the hg38 reference and extracts
@@ -49,7 +53,7 @@ maf <- read.maf(mafpath)
 # useSyn is a flag to include synonymous changes
 # add_trans_bias includes categories under transciptional bias
 mt_tally <- sig_tally(
-  maf,
+  maf.som,
   ref_genome = "BSgenome.Hsapiens.UCSC.hg38",
   useSyn = TRUE,
   mode = "ALL",
@@ -380,7 +384,7 @@ pl_soma = ggplot(RRD_transcript_sizes, aes(y=y)) +
   )
 
 pl_name = ggplot(data.frame(x=1,y=5, z=sample_name), aes(x=x, y=y, label=sample_name)) +
-  geom_text(size=7, fontface="bold") + 
+  geom_text(size=7, fontface="bold") +
   theme_void() +
   scale_y_continuous(expand=c(0,0))
 
