@@ -96,6 +96,11 @@ TMB_indels=$( echo "scale=2; ${total_indels}/(${coverage}/1000000)" | bc | sed '
 echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
 echo "tumor mutation burden done"
 
+# look at differences in calls between varscan, mutect2 with ob-priors and without.
+varscan_snvs=$(bcftools view -H -v snps varscan/${tumor}__${normal}.all.Somatic.hc.vcf.gz | wc -l)
+mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf | wc -l)
+mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
+
 # run variant analysis
 Rscript ${pipeline_dir}/variant_analysis.R ${mode} ${tumor}__${normal}
 

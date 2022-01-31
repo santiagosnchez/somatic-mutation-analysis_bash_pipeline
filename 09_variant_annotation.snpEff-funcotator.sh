@@ -98,16 +98,6 @@ $gatk_path/gatk Funcotator \
  --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf \
  --output-file-format VCF
 
-# same but output maf
- $gatk_path/gatk Funcotator \
-  --variant varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz \
-  --reference $reference \
-  --ref-version hg38 \
-  --data-sources-path $funcotator_databases_g \
-  --transcript-selection-mode CANONICAL \
-  --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.maf \
-  --output-file-format MAF
-
 # check if finished
 check_finish=$?
 
