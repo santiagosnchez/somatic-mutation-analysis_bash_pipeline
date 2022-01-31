@@ -73,7 +73,7 @@ $gatk_path/gatk Funcotator \
  --variant mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz \
  --reference $reference \
  --ref-version hg38 \
- --data-sources-path $funcotator_databases \
+ --data-sources-path $funcotator_databases_s \
  --transcript-selection-mode CANONICAL \
  --output vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf \
  --output-file-format VCF
@@ -83,7 +83,7 @@ $gatk_path/gatk Funcotator \
   --variant mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz \
   --reference $reference \
   --ref-version hg38 \
-  --data-sources-path $funcotator_databases \
+  --data-sources-path $funcotator_databases_s \
   --transcript-selection-mode CANONICAL \
   --output vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.maf \
   --output-file-format MAF
@@ -93,7 +93,7 @@ $gatk_path/gatk Funcotator \
  --variant varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz \
  --reference $reference \
  --ref-version hg38 \
- --data-sources-path $funcotator_databases \
+ --data-sources-path $funcotator_databases_g \
  --transcript-selection-mode CANONICAL \
  --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf \
  --output-file-format VCF
@@ -103,7 +103,7 @@ $gatk_path/gatk Funcotator \
   --variant varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz \
   --reference $reference \
   --ref-version hg38 \
-  --data-sources-path $funcotator_databases \
+  --data-sources-path $funcotator_databases_g \
   --transcript-selection-mode CANONICAL \
   --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.maf \
   --output-file-format MAF
