@@ -39,12 +39,18 @@ fi
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes
 # germline on VarScan calls
-# ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
-#  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
-#  MLH1 \
-#  MSH2 \
-#  MSH6 \
-#  PMS2 > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
+${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+ vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+ MLH1 \
+ MSH2 \
+ MSH6 \
+ PMS2 \
+ POLD1 \
+ POLD2 \
+ POLD3 \
+ POLD4 \
+ POLE \
+ POLE2 > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
 #
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
 # vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \

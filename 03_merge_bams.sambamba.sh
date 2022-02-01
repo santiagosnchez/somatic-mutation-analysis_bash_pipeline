@@ -26,7 +26,7 @@
 # load modules
 module load sambamba/0.7.0
 module load samtools/1.10
-module load gatk/4.2.2.0
+#module load gatk/4.2.2.0
 
 # set working dir
 cd $PBS_O_WORKDIR
@@ -64,7 +64,7 @@ else
            mv aligned_bam/${sample}.*.bam aligned_bam/${sample}.merged.bam
        else
            sambamba merge -t 10 /dev/stdout aligned_bam/${sample}.*.sorted.bam \
-           | gatk SetNmMdAndUqTags \
+           | $gatk_path/gatk SetNmMdAndUqTags \
             -I /dev/stdin \
             -O aligned_bam/${sample}.merged.bam \
             -R $reference \
