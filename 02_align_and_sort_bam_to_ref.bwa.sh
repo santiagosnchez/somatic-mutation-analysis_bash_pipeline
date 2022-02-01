@@ -47,6 +47,11 @@ if [[ ! -e aligned_bam ]]; then
     mkdir aligned_bam
 fi
 
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
     if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) != 1 ]]; then

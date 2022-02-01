@@ -20,6 +20,12 @@ cd $PBS_O_WORKDIR
 if [[ ! -e analyses ]]; then
     mkdir analyses
 fi
+
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # set bam dir
 if [[ ! -e bam ]]; then
     dir=BQSR

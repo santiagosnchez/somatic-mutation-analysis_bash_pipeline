@@ -26,6 +26,11 @@ else
     dir=bam
 fi
 
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # load reference path and other reference files
 # for details check script
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh

@@ -17,6 +17,11 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # load reference path and other reference files
 # for details check script
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh

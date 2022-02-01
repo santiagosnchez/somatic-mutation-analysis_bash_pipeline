@@ -23,6 +23,12 @@ echo $PBS_JOBID
 if [[ ! -e varscan ]]; then
     mkdir -p varscan/pileups
 fi
+
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # set bam dir
 if [[ ! -e bam ]]; then
     dir=BQSR

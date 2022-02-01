@@ -19,6 +19,12 @@ echo $PBS_JOBID
 if [[ ! -e mutect2 ]]; then
     mkdir -p mutect2/f1r2
 fi
+
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # set bam dir
 if [[ ! -e bam ]]; then
     dir=BQSR

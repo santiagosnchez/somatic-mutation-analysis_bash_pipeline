@@ -26,6 +26,10 @@ else
     dir=bam
 fi
 
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
 
 # load reference path and other reference files
 # for details check script

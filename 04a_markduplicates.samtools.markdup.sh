@@ -46,6 +46,11 @@ if [[ ! -e preprocessed_bam ]]; then
     mkdir preprocessed_bam
 fi
 
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # run samtools to sort and mark duplicates
 if [[ -e aligned_bam/${sample}.bam && $(samtools quickcheck aligned_bam/${sample}.bam && echo 1) == 1 ]]; then
     if [[ ! -e preprocessed_bam/${sample}.samtools.readname.bam ]]; then

@@ -40,6 +40,11 @@ source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/expo
 # check all
 all_check=0
 
+# create tmp dir
+if [[ ! -e tmp ]]; then
+    mkdir tmp
+fi
+
 # check for file integrity
 # submit previous step if currupt
 for bam in aligned_bam/${sample}.*.sorted.bam; do
