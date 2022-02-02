@@ -45,18 +45,18 @@ fi
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes
 # germline on VarScan calls
-${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
- vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
- MLH1 \
- MSH2 \
- MSH6 \
- PMS2 \
- POLD1 \
- POLD2 \
- POLD3 \
- POLD4 \
- POLE \
- POLE2 > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
+# ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+#  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+#  MLH1 \
+#  MSH2 \
+#  MSH6 \
+#  PMS2 \
+#  POLD1 \
+#  POLD2 \
+#  POLD3 \
+#  POLD4 \
+#  POLE \
+#  POLE2 > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
 #
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
 # vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
@@ -109,12 +109,12 @@ echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},$
 echo "tumor mutation burden done"
 
 # look at differences in calls between varscan, mutect2 with ob-priors and without.
-varscan_snvs=$(bcftools view -H -v snps varscan/${tumor}__${normal}.all.Somatic.hc.vcf.gz | wc -l)
-mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf | wc -l)
-mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
+# varscan_snvs=$(bcftools view -H -v snps varscan/${tumor}__${normal}.all.Somatic.hc.vcf.gz | wc -l)
+# mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf | wc -l)
+# mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
 
 # run variant analysis
-Rscript ${pipeline_dir}/variant_analysis.R ${mode} ${tumor}__${normal}
+Rscript ${pipeline_dir}/variant_analysis.temp.R ${mode} ${tumor}__${normal}
 
 # check if finished
 check_finish=$?
@@ -182,8 +182,8 @@ if [[ "$check_finish" == 0 ]]; then
         fi
     fi
 
-    # run mutational signature analysis
-    Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode} ${tumor}__${normal}.
+    # # run mutational signature analysis
+    # Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode} ${tumor}__${normal}.
 
     grep "pipeline took" main.log
     if [[ "$?" != 0 ]]; then

@@ -19,7 +19,6 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
-
 # load all paths
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 

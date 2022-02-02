@@ -83,15 +83,6 @@ $gatk_path/gatk Funcotator \
  --output vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf \
  --output-file-format VCF
 
-# same but output maf
- $gatk_path/gatk Funcotator \
-  --variant mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz \
-  --reference $reference \
-  --ref-version hg38 \
-  --data-sources-path $funcotator_databases_s \
-  --transcript-selection-mode CANONICAL \
-  --output vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.maf \
-  --output-file-format MAF
 
 # run gatk's funcotator on germline variants
 $gatk_path/gatk Funcotator \
@@ -102,6 +93,10 @@ $gatk_path/gatk Funcotator \
  --transcript-selection-mode CANONICAL \
  --output vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf \
  --output-file-format VCF
+
+# get maf from funcotator vcf
+
+ls vcf/${tumor}__${normal}.*annotated-funcotator* | parallel --plus '${pipeline_dir}/funcotator-vcf2maf.sh {} > {/.vcf/.maf}'
 
 # check if finished
 check_finish=$?

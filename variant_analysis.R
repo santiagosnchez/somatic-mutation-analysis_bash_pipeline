@@ -100,7 +100,7 @@ bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
   mutate(normal=NORMAL) %>%
   mutate(method="bNMF") %>%
   mutate(etiology=etio2[cosmic_signature]) %>%
-  select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
+  dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
   filter(similarity > 0.5)
 
 # cosmic 3
@@ -117,7 +117,7 @@ bnmf_cosmic3  = as.data.frame(matched_mt_sig_sbs_96$similarity) %>%
   mutate(normal=NORMAL) %>%
   mutate(method="bNMF") %>%
   mutate(etiology=etio3[cosmic_signature]) %>%
-  select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
+  dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,similarity,etiology,method) %>%
   filter(similarity > 0.5)
 
 # merge
