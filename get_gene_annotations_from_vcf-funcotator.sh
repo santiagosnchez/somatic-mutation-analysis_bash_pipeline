@@ -11,14 +11,33 @@ for i in `seq 2 ${#args[@]}`; do
     gene=${args[i]}
     bcftools view -H $vcf_file | \
     perl -ne '
+    chomp($_);
     @fields = split /\t/, $_;
     $fields[7] =~ m/FUNCOTATION=\[(.+?)\]/;
     @sample = split "__", $ENV{sample};
     @maf = split /\|/, $1;
-    @data = @sample;
-    push @data, @fields[0,1,3,4,9];
-    $data[6] =~ s/:.*//;
-    push @data, @maf[0,5,7,12,13,15,16,18];
-    print join(",", @data) . "\n";' | \
+    @vcf = @sample;
+    push @vcf, @fields[0,1,3,4,10];
+    if ($fields[8] =~ m/:FREQ:*/){
+      @format = split /:/, $fields[8];
+      @gt = split /:/, $fields[10];
+      @idx = grep { $format[$_] eq "FREQ" } 0 .. $#format;
+      $vcf[6] = $gt[0];
+      $gt[$idx] =~ s/%//;
+      push @vcf, ($gt[$idx[0]]/100);
+    }
+    elsif ($fields[8] =~ m/:AF:*/){
+      @format = split /:/, $fields[8];
+      @gt = split /:/, $fields[10];
+      @idx = grep { $format[$_] eq "AF" } 0 .. ($#format-1);
+      $vcf[6] = $gt[0];
+      push @vcf, ($gt[$idx[0]]);
+    }
+    else {
+      $vcf[6] =~ s/:.+//;
+      push @vcf, ("NA");
+    }
+    print join(",", @vcf) . "," . join(",", @maf[0,5,7,12,13,15,16,18]) . "\n";
+    ' | \
     grep ",${gene},"
 done
