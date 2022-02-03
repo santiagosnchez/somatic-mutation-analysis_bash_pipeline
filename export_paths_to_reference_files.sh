@@ -86,3 +86,21 @@ file_lookup(){
     return 0
 }
 export -f file_lookup
+
+# calculate how long it took to run
+how_long(){
+  start_date=$(head -1 $1)
+  end_date=$(tail -1 $1)
+  # calculate total running time
+  sds=$(date -d "$start_date" +%s)
+  eds=$(date -d "$end_date" +%s)
+  total_time_in_days=$( echo "scale=5; ($eds - $sds) / 86400" | bc)
+  # add 0 if less than 1
+  if [[ $(echo "${total_time_in_days} > 1" | bc) == 0 ]]; then
+    total_time_in_days="0${total_time_in_days}"
+  fi
+  echo $total_time_in_days
+}
+
+# final log
+echo -e "\npipeline took ${total_time_in_days} days to complete" | tee -a main.log
