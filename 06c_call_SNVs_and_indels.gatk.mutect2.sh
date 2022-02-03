@@ -90,7 +90,7 @@ if [[ "$check_finish" == 0 ]]; then
                 rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
             fi
             # log to main
-            echo "${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
+            echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
             echo "Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
             # submit read orientation analysis
             qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
@@ -98,7 +98,7 @@ if [[ "$check_finish" == 0 ]]; then
             mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
         else
             # log to main
-            echo "${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
+            echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
             # move logfile
             mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
         fi
@@ -108,7 +108,7 @@ if [[ "$check_finish" == 0 ]]; then
         ls ${tumor}__${normal}.mutect2.[1-9]*.log &> /dev/null
         if [[ "$?" == 0 ]]; then
             # log to main
-            echo "${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
+            echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
             # move logfile
             mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
         else
@@ -133,8 +133,8 @@ if [[ "$check_finish" == 0 ]]; then
                 fi
             fi
             # log to main
-            echo "${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
-            echo "Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
+            echo "06: ${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
+            echo "06: Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
             # submit read orientation analysis
             qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             # move logfile

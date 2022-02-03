@@ -136,7 +136,7 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
-    echo "${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
+    echo "02: ${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
     # delete pileups

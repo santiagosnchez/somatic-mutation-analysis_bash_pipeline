@@ -123,5 +123,5 @@ if [[ "$check_finish" == 0 ]]; then
     # move logfile
     mv ${sample}.${index}.bwa.log all_logfiles
     # log to main
-    echo "${sample}.${index}.bam has been aligned." | tee -a main.log
+    echo "02: ${sample}.${index}.bam has been aligned." | tee -a main.log
 fi

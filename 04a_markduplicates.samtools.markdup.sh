@@ -103,5 +103,5 @@ if [[ "$check_finish" == 0 ]]; then
      rm $(ls preprocessed_bam/${sample}.samtools.* | grep -v "markdup")
      qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
      # log to main
-     echo "duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
+     echo "04: duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
 fi

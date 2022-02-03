@@ -65,7 +65,7 @@ if [[ -e aligned_bam/${sample}.merged.bam && $(samtools quickcheck aligned_bam/$
      # index bam
      # gatk BuildBamIndex -I preprocessed_bam/${sample}.markdup.bam
 else
-    echo "resubmitting previous step and increase time by 2hrs"
+    echo "04: resubmitting previous step and increase time by 2hrs (${sample})" | tee -a main.log
     # add two more hours of walltime
     wt=$(( wt + 2 ))
     # resubmit previous script and exit
@@ -87,5 +87,5 @@ if [[ "$check_finish" == 0 ]]; then
      # move log files to dir
      mv ${sample}.sambamba.markdup.log all_logfiles
      # log to main
-     echo "duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
+     echo "04: duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
 fi

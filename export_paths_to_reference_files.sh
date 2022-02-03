@@ -90,7 +90,7 @@ export -f file_lookup
 # calculate how long it took to run
 how_long(){
   start_date=$(head -1 $1)
-  end_date=$(tail -1 $1)
+  end_date=$(date)
   # calculate total running time
   sds=$(date -d "$start_date" +%s)
   eds=$(date -d "$end_date" +%s)

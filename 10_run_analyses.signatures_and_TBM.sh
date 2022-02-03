@@ -144,6 +144,10 @@ if [[ "$check_finish" == 0 ]]; then
     # final logs and tidy up dir, ie. gargabe collection
     # run final COSMIC signature analysis
     echo "${tumor},${normal}" >> finished.csv
+    # get time it took
+    total_time_in_days=$( how_long main.log )
+    echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_days} days" | tee -a main.log
+    # check if all samples finished
     finished=$( cat finished.csv | wc -l )
     started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
@@ -168,42 +172,49 @@ if [[ "$check_finish" == 0 ]]; then
         if [[ -e unmapped_bam ]]; then
             rm -rf unmapped_bam
         fi
+        # write final logs and change permissions
+        grep "pipeline took" main.log
+        if [[ "$?" != 0 ]]; then
+            # final log
+            echo "10: pipeline finished for batch." | tee -a main.log
+            # log final
+            date | tee -a main.log
+            # get date pipeline started
+            total_time_in_days=$( how_long main.log )
+            # final log
+            echo -e "10: \npipeline took ${total_time_in_days} days for batch to complete" | tee -a main.log
+            # change/adjust permisions
+            # this configuration allows the main user and the users in the tabori group to
+            # read/write/excecute
+            # dirs first
+            echo "10: changing permissions" | tee -a main.log
+            chmod 774 all_logfiles \
+                      analyses \
+                      bam \
+                      contamination \
+                      mutect2/f1r2 \
+                      vcf/snpEff
+            # files second
+            chmod 664 all_logfiles/* \
+                      analyses/* \
+                      bam/* \
+                      contamination/* \
+                      mutect2/*vcf* \
+                      mutect2/f1r2/* \
+                      vcf/*vcf* \
+                      vcf/*maf* \
+                      vcf/snpEff/* \
+                      varscan/*vcf* \
+                      ${tumor}__${normal}.analyses.log
+            #
+        fi
     fi
 
     # # run mutational signature analysis
     # Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode} ${tumor}__${normal}.
 
-    grep "pipeline took" main.log
-    if [[ "$?" != 0 ]]; then
-        # final log
-        echo "pipeline finished." | tee -a main.log
-        # log final
-        date | tee -a main.log
-        # get date pipeline started
-        start_date=$(head -1 main.log)
-        end_date=$(tail -1 main.log)
-        # calculate total running time
-        sds=$(date -d "$start_date" +%s)
-        eds=$(date -d "$end_date" +%s)
-        total_time_in_days=$( echo "scale=5; ($eds - $sds) / 86400" | bc)
-        # add 0 if less than 1
-        if [[ $(echo "${total_time_in_days} > 1" | bc) == 0 ]]; then
-          total_time_in_days="0${total_time_in_days}"
-        fi
-        # final log
-        echo -e "\npipeline took ${total_time_in_days} days to complete" | tee -a main.log
-        # change/adjust permisions
-        # this configuration allows the main user and the users in the tabori group to
-        # read/write/excecute
-        # dirs first
-        chmod 774 all_logfiles analyses bam contamination mutect2/f1r2 vcf/snpEff
-        # files second
-        chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/* varscan/* mutect2/f1r2/* vcf/* vcf/snpEff/* ${tumor}__${normal}.analyses.log
-        #
-    fi
-    # last log and move logfile to dir
+    # last move logfile to dir
     if [[ -e ${tumor}__${normal}.analyses.log ]]; then
-        echo "Done for ${tumor}__${normal}"
         mv ${tumor}__${normal}.analyses.log all_logfiles
     fi
 fi

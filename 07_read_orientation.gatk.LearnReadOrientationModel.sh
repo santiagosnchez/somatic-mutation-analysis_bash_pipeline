@@ -46,7 +46,7 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
-    echo "${tumor}__${normal} read-orientation analysis completed." | tee -a main.log
+    echo "07: ${tumor}__${normal} read-orientation analysis completed." | tee -a main.log
     # submit next step
     qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
     # move logfiles if found

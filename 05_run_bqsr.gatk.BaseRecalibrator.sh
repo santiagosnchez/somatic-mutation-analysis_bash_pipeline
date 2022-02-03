@@ -63,7 +63,7 @@ if [[ -e ${dir}/${sample}.bqsr.bam ]]; then
         fi
     else
         rm ${dir}/${sample}.bqsr.*
-        echo "resubmitting... increasing time by 2 hrs"
+        echo "05: resubmitting... increasing time by 2 hrs (${sample})" | tee -a main.log
         wt=$(( wt + 2 ))
         qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
         exit 0
@@ -109,7 +109,7 @@ if [[ "$check_finish" == 0 ]]; then
     #fi
     # next round of jobs are submitted manually or not
     # log to main
-    echo "BQSR has been completed for sample ${sample}." | tee -a main.log
+    echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
     # check if file exists and continue
     if [[ -e tumors_and_normals.csv ]]; then
         cat tumors_and_normals.csv | grep "^${sample},"
@@ -139,13 +139,13 @@ if [[ "$check_finish" == 0 ]]; then
                     if [[ "$?" == 0 ]]; then
                         mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
                         # log to main
-                        echo "Mutect2 has started for ${tumor}__${normal} successfully." | tee -a main.log
+                        echo "05: Mutect2 has started for ${tumor}__${normal} successfully." | tee -a main.log
                     fi
                 elif [[ "${check_normal}" != 1 && "${check_tumor}" == 1 ]]; then
                     # resubmit with dependency
                     if [[ -e ${normal}.BQSR.log ]]; then
                         # wait until BQSR finishes
-                        echo "${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
+                        echo "05: ${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
                         # get jobid from first line of log
                         running_jobid=$( head -1 ${normal}.BQSR.log | sed 's/Job Id: //' )
                         qsub -W depend=afterok:${running_jobid} -v sample=${tumor},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
@@ -154,19 +154,19 @@ if [[ "$check_finish" == 0 ]]; then
                         qsub -l walltime=1:00:00 -v sample=${sample},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
                     else
                         # wait for the BQSR script to start
-                        echo "${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
+                        echo "05: ${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
                         qsub -v file="${normal}.BQSR.log",sample=${sample},mode=${mode},script=05_run_bqsr.gatk.BaseRecalibrator.sh ${pipeline_dir}/wait_for_file.sh
                         exit 0
                     fi
                 fi
             done
         else
-            echo "sample $sample not in tumor column (1st)" | tee -a main.log
+            echo "05: sample $sample not in tumor column (1st)" | tee -a main.log
             mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
             exit 0
         fi
     else
-        echo -e "could not find \"tumors_and_normals.csv\" file" | tee -a main.log
+        echo -e "05: could not find \"tumors_and_normals.csv\" file" | tee -a main.log
         exit 1
     fi
 fi

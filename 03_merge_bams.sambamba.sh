@@ -107,5 +107,5 @@ if [[ "$check_finish" == 0 ]]; then
     # mv logfile
     mv ${sample}.sambamba-merge.log all_logfiles
     # log to main
-    echo "bam file(s) for sample ${sample} have been merged." | tee -a main.log
+    echo "03: bam file(s) for sample ${sample} have been merged." | tee -a main.log
 fi
