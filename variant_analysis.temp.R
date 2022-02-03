@@ -186,10 +186,6 @@ linear_decomp_cosmic = linear_decomp_cosmic %>%
 tmb_data = read.csv("analyses/coverage_and_tmb.csv")
 tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
 
-# merge all
-all_signatures = bind_rows(bnmf_cosmic, linear_decomp_cosmic)
-all_data = inner_join(tmb_data, all_signatures, by="tumor")
-
 # get old output
 # tmbs
 if (file.exists("old_output.tmbs.tsv")){

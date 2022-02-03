@@ -42,22 +42,26 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
+# log
+echo "Fetching germline and somatic variants of interest"
+
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes
 # germline on VarScan calls
-# ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
-#  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
-#  MLH1 \
-#  MSH2 \
-#  MSH6 \
-#  PMS2 \
-#  POLD1 \
-#  POLD2 \
-#  POLD3 \
-#  POLD4 \
-#  POLE \
-#  POLE2 > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
-#
+${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+ vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+ MLH1 \
+ MSH2 \
+ MSH6 \
+ PMS2 \
+ POLD1 \
+ POLD2 \
+ POLD3 \
+ POLD4 \
+ POLE \
+ POLE2 > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
+# add IDH4
+
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
 # vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
 # POLD1 \
@@ -68,12 +72,18 @@ fi
 # POLE2 > analyses/${tumor}__${normal}.germline_POL_mutations.genes.csv
 #
 # # somatic on Mutect2
-# ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
-#  vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf.gz \
-#  MLH1 \
-#  MSH2 \
-#  MSH6 \
-#  PMS2 > analyses/${tumor}__${normal}.somatic_MMR_mutations.genes.csv
+${pipeline_dir}/get_gene_annotations_from_vcf.sh \
+  vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf.gz \
+  MLH1 \
+  MSH2 \
+  MSH6 \
+  PMS2 \
+  POLD1 \
+  POLD2 \
+  POLD3 \
+  POLD4 \
+  POLE \
+  POLE2 > analyses/${tumor}__${normal}.somatic_MMR_mutations.genes.csv
 #
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
 # vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf.gz \
@@ -114,7 +124,10 @@ echo "tumor mutation burden done"
 # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
 
 # run variant analysis
-Rscript ${pipeline_dir}/variant_analysis.temp.R ${mode} ${tumor}__${normal}
+Rscript ${pipeline_dir}/variant_analysis.R ${mode} ${tumor}__${normal}
+
+# add to archive
+zip -ru analyses.zip analyses/${tumor}__${normal}.*
 
 # check if finished
 check_finish=$?
@@ -132,36 +145,9 @@ if [[ "$check_finish" == 0 ]]; then
     finished=$( cat finished.csv | wc -l )
     started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
-        # add example of how to load signature data to R
-#         echo -e "
-# # library path to standard and required additional libraries
-# .libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.0/')
-#
-# # load libraries
-# library(sigminer)
-# library(ggplot2)
-# library(dplyr)
-# library(tidyr)
-# library(RColorBrewer)
-# library(cowplot)
-#
-# # load results from analysis
-# load(\"analyses/mutational_signatures_as_R_object.Rdata\")
-#
-# # do stuff with data...
-# # you should find:
-# # (1) linear_decomp_mt_sig_legacy_30 (matrix with matched signatures, COSMIC v2)
-# # (2) linear_decomp_mt_sig_sbs_96 (matrix with matched signatures, COSMIC v3)
-# # (3) maf (vcf files inmaf format)
-# # (4) matched_mt_sig_legacy_30 (data frame with matched mutational signatures, COSMIC v2)
-# # (5) matched_mt_sig_sbs_96 (data frame with matched mutational signatures, COSMIC v3)
-# # (6) mt_sig_bayes_sbs_96 (Bayesian NMF fitted signatures)
-# # (7) mt_tally (tally of SBS, DBS, and indel mutational patterns)
-# # (8) tmb_data (tumor mutational burden data from VCFs)
-#
-# " > analyses/revisit_signature_data.R
-            # tidy and rename
-            # rename dirs
+        # add tmb_and_coverage to archive
+        zip -ru analyses.zip analyses/coverage_and_tmb.csv
+        # tidyup and clean working dir
         if [[ ! -e bam ]]; then
             mv BQSR bam
         else
@@ -210,7 +196,8 @@ if [[ "$check_finish" == 0 ]]; then
         # dirs first
         chmod 774 all_logfiles analyses bam contamination mutect2/f1r2 vcf/snpEff
         # files second
-        chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/*vcf* mutect2/f1r2/* vcf/*vcf* vcf/snpEff/* ${tumor}__${normal}.analyses.log
+        chmod 664 all_logfiles/* analyses/* bam/* contamination/* mutect2/* varscan/* mutect2/f1r2/* vcf/* vcf/snpEff/* ${tumor}__${normal}.analyses.log
+        #
     fi
     # last log and move logfile to dir
     if [[ -e ${tumor}__${normal}.analyses.log ]]; then
