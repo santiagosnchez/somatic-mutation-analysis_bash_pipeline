@@ -38,8 +38,8 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
-# check if previous run finish
-# after main if block
+# add job details
+qstat -f $PBS_JOBID >> ${sample}.sambamba.markdup.log
 
 # load all paths
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh

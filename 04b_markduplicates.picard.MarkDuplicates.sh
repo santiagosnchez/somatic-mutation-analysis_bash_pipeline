@@ -17,9 +17,6 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
-# picard
-#export picard_jar_file=/hpf/tools/centos6/picard-tools/2.18.0/picard.jar
-
 # load all paths
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 

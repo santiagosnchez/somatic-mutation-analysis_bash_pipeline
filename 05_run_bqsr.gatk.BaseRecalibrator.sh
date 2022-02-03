@@ -17,7 +17,7 @@ cd $PBS_O_WORKDIR
 echo $PBS_JOBID
 
 # write job details to log
-qstat -f $PBS_JOBID > ${sample}.BQSR.log
+qstat -f $PBS_JOBID >> ${sample}.BQSR.log
 
 # create dir for BQSR
 # and check if bam dir exists
@@ -147,11 +147,11 @@ if [[ "$check_finish" == 0 ]]; then
                         # wait until BQSR finishes
                         echo "${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
                         # get jobid from first line of log
-                        running_jobid=$( head -1 ${normal}.BQSR.log )
+                        running_jobid=$( head -1 ${normal}.BQSR.log | sed 's/Job Id: //' )
                         qsub -W depend=afterok:${running_jobid} -v sample=${tumor},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
                         exit 0
                     elif [[ -e all_logfiles/${normal}.BQSR.log ]]; then
-                        qsub -v sample=${tumor},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
+                        qsub -l walltime=1:00:00 -v sample=${sample},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
                     else
                         # wait for the BQSR script to start
                         echo "${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
