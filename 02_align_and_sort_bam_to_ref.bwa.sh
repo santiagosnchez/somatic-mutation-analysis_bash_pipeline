@@ -33,11 +33,12 @@ cd $PBS_O_WORKDIR
 
 # print jobid to 1st line
 echo $PBS_JOBID
+
 # get walltime
 wt=$(qstat -f $PBS_JOBID | sed -rn 's/.*Resource_List.walltime = (.*)/\1/p' | sed 's/:.*//')
 
 # write job details to log
-qstat -f $PBS_JOBID > ${sample}.${index}.bwa.log
+qstat -f $PBS_JOBID >> ${sample}.${index}.bwa.log
 
 # load all paths
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh

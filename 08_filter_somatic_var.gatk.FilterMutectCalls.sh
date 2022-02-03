@@ -61,9 +61,9 @@ else
     # resubmit until file is available with dependency
     # first get the job id if the GetPileupSummaries command
     if [[ -e ${tumor}__${normal}.GetPileupSummaries.log ]]; then
-        getpileupsum_job=$(head -1 ${tumor}__${normal}.GetPileupSummaries.log)
+        getpileupsum_job=$(head -1 ${tumor}__${normal}.GetPileupSummaries.log | sed 's/Job Id: //' )
     elif [[ -e all_logfiles/${tumor}__${normal}.GetPileupSummaries.log ]]; then
-        getpileupsum_job=$(head -1 all_logfiles/${tumor}__${normal}.GetPileupSummaries.log)
+        getpileupsum_job=$(head -1 all_logfiles/${tumor}__${normal}.GetPileupSummaries.log | sed 's/Job Id: //' )
     fi
     # then search for the second job id for CalculateContamination
     running_jobid=$(qstat -f -u `whoami` ${getpileupsum_job} | grep "beforeok" | sed 's/.*://')
