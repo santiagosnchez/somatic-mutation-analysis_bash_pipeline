@@ -161,7 +161,7 @@ if [[ "$check_finish" == 0 ]]; then
             rm -rf BQSR
         fi
         # move stats to all_logfiles
-        mv mutect2/*.mutect2.filtered.wes.vcf.filteringStats.tsv all_logfiles
+        mv mutect2/*.filteringStats.tsv all_logfiles
         #mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
         # delete all other vcf files except filtered and unfiltered VCFs
         rm $(ls mutect2/*vcf* | grep -v "filtered")
