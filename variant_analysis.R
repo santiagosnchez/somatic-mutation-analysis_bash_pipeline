@@ -334,13 +334,29 @@ RRD_genes_num = seq_along(RRD_genes)
 names(RRD_genes_num) = RRD_genes
 
 # set ensembl database
-ensembl = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-RRD_ensembl = getBM(attributes=c('chromosome_name', 'start_position', 'end_position','exon_chrom_start','exon_chrom_end'),
-  filters="hgnc_symbol",
-  values=RRD_genes, mart=ensembl)
-RRD_ensembl$gene = RRD_genes[ factor(RRD_ensembl$start_position, levels=as.character(unique(RRD_ensembl$start_position))) ]
-RRD_ensembl = RRD_ensembl %>% mutate(exon_start = exon_chrom_start - start_position) %>% mutate(exon_end = exon_chrom_end - start_position)
-RRD_ensembl$y = seq_along(RRD_genes)[ factor(RRD_ensembl$gene, levels=RRD_genes) ]
+# only run this once. You need internet connection to do this.
+# ensembl = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+# RRD_ensembl = getBM(attributes=c('chromosome_name', 'start_position', 'end_position','exon_chrom_start','exon_chrom_end'),
+#   filters="hgnc_symbol",
+#   values=RRD_genes, mart=ensembl)
+# RRD_ensembl$gene = RRD_genes[ factor(RRD_ensembl$start_position, levels=as.character(unique(RRD_ensembl$start_position))) ]
+# RRD_ensembl = RRD_ensembl %>% mutate(exon_start = exon_chrom_start - start_position) %>% mutate(exon_end = exon_chrom_end - start_position)
+# RRD_ensembl$y = seq_along(RRD_genes)[ factor(RRD_ensembl$gene, levels=RRD_genes) ]
+# write.csv(RRD_ensembl, file="~/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv", quote=F, row.names=F)
+if (file.exists("hpf/largeprojects/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv")){
+  RRD_ensembl = read.csv("hpf/largeprojects/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv")
+} else {
+  # attempt to download database
+  print("Downloading coordinates from biomaRt...")
+  ensembl = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+  RRD_ensembl = getBM(attributes=c('chromosome_name', 'start_position', 'end_position','exon_chrom_start','exon_chrom_end'),
+    filters="hgnc_symbol",
+    values=RRD_genes, mart=ensembl)
+  RRD_ensembl$gene = RRD_genes[ factor(RRD_ensembl$start_position, levels=as.character(unique(RRD_ensembl$start_position))) ]
+  RRD_ensembl = RRD_ensembl %>% mutate(exon_start = exon_chrom_start - start_position) %>% mutate(exon_end = exon_chrom_end - start_position)
+  RRD_ensembl$y = seq_along(RRD_genes)[ factor(RRD_ensembl$gene, levels=RRD_genes) ]
+}
+# get transcript sizes
 RRD_transcript_sizes = RRD_ensembl %>% group_by(gene, y) %>% summarize(start=1, end=sum(exon_end-exon_start))
 
 # plot germline and somatic mutations RRD
