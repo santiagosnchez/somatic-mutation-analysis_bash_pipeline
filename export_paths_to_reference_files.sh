@@ -72,6 +72,9 @@ export -f get_read_group_info
 
 # compresses and generates a tabix index
 index-vcf(){
+    if [[ -e $1.gz ]]; then
+        rm $1.gz $1.gz.tbi
+    fi
     bgzip $1 && tabix $1.gz
 }
 export -f index-vcf
