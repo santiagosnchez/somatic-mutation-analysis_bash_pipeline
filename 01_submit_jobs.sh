@@ -62,7 +62,7 @@ else
             qdel ${jobids}
             # delete logfiles
             rm -rf all_logfiles *.log
-        elif [[ "${response}" == "a"]]; then
+        elif [[ "${response}" == "a"* ]]; then
             append=1
         else
             echo "Exiting..."
