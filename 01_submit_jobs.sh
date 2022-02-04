@@ -54,7 +54,7 @@ else
     # as if user wants to overwrite results
     if [[ -e main.log ]]; then
         echo "It looks like the pipeline has already started..."
-        echo "Do you want to rerun (r), append (a), or quit (q)? (rerun will overwrite results) [r|a|n]:"
+        echo -n "Do you want to rerun (r), append (a), or quit (q)? (rerun will overwrite results) [r|a|n]:"
         read -r response
         if [[ "${response}" == "r"* ]]; then
             # quit running jobs
