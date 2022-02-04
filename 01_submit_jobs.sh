@@ -43,6 +43,8 @@ fi
 
 # export mode
 export mode
+# append to existing run
+append=0
 
 # submit default default file list or specific list
 if [[ ! -z $2 ]]; then
@@ -52,14 +54,16 @@ else
     # as if user wants to overwrite results
     if [[ -e main.log ]]; then
         echo "It looks like the pipeline has already started..."
-        echo "Do you want to rerun? (this will overwrite results) [y|n]:"
+        echo "Do you want to rerun (r), append (a), or quit (q)? (rerun will overwrite results) [r|a|n]:"
         read -r response
-        if [[ "${response}" == "y"* ]]; then
+        if [[ "${response}" == "r"* ]]; then
             # quit running jobs
-            jobids=$(head -1 $(ls *.log | grep -v "main") | grep -o "^[1-9].*$")
+            jobids=$(head -1 $(ls *.log | grep -v "main") | grep -o "^[1-9]*$")
             qdel ${jobids}
             # delete logfiles
             rm -rf all_logfiles *.log
+        elif [[ "${response}" == "a"]]; then
+            append=1
         else
             echo "Exiting..."
             exit 0
@@ -76,7 +80,9 @@ if [[ ! -e tmp ]]; then
 fi
 
 # print date
-date > main.log
+if [[ "$append" == 0 ]]; then
+    date > main.log
+fi
 
 # export file list var
 export file_list
