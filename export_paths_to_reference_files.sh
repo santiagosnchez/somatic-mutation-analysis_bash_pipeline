@@ -101,6 +101,3 @@ how_long(){
   fi
   echo $total_time_in_days
 }
-
-# final log
-echo -e "\npipeline took ${total_time_in_days} days to complete" | tee -a main.log

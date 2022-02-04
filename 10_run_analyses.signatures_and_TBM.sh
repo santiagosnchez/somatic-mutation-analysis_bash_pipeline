@@ -48,7 +48,6 @@ echo "Fetching germline and somatic variants of interest"
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes
 # germline on VarScan calls
-MD1657T06__MD1657B02.mutect2.all.Somatic.annotated-funcotator.wes.vcf.gz
 
 ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
@@ -74,7 +73,7 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLE2 > analyses/${tumor}__${normal}.germline_POL_mutations.genes.csv
 #
 # # somatic on Mutect2
-${pipeline_dir}/get_gene_annotations_from_vcf.sh \
+${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
   vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
   MLH1 \
   MSH2 \
@@ -107,7 +106,6 @@ expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { p
 
 # estimate tumor mutation burden (TMB)
 # use prev coverage estimate
-MD1657T06__MD1657B02.mutect2.all.Somatic.annotated-funcotator.wes.vcf.gz
 # total snvs
 total_snvs=$(bcftools view --types snps vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz | grep -v "^#" | wc -l)
 # total indels
