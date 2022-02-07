@@ -329,7 +329,7 @@ pl_bnmf_v2 = ggplot(bnmf_cosmic2 %>% mutate(cosmic_signature=factor(cosmic_signa
 ###################################################
 
 # set RRD genes to be tested
-RRD_genes = c("MLH1","MSH2","MSH6","PMS2","POLD1","POLD2","POLD3","POLD4","POLE","POLE2")
+RRD_genes = c("MLH1","MSH2","MSH6","PMS2","POLD1","POLE","IDH1","TP53","NF1")
 RRD_genes_num = seq_along(RRD_genes)
 names(RRD_genes_num) = RRD_genes
 
@@ -343,8 +343,8 @@ names(RRD_genes_num) = RRD_genes
 # RRD_ensembl = RRD_ensembl %>% mutate(exon_start = exon_chrom_start - start_position) %>% mutate(exon_end = exon_chrom_end - start_position)
 # RRD_ensembl$y = seq_along(RRD_genes)[ factor(RRD_ensembl$gene, levels=RRD_genes) ]
 # write.csv(RRD_ensembl, file="~/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv", quote=F, row.names=F)
-if (file.exists("hpf/largeprojects/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv")){
-  RRD_ensembl = read.csv("hpf/largeprojects/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv")
+if (file.exists("/hpf/largeprojects/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv")){
+  RRD_ensembl = read.csv("/hpf/largeprojects/tabori/shared/resources/RRD_ensembl/hg38/rrd_ensembl.csv")
 } else {
   # attempt to download database
   print("Downloading coordinates from biomaRt...")
