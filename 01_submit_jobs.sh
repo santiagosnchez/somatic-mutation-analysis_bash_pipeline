@@ -43,33 +43,36 @@ fi
 
 # export mode
 export mode
-# append to existing run
-append=0
 
 # submit default default file list or specific list
 if [[ ! -z $2 ]]; then
     file_list=$2
 else
     file_list="file_list.csv"
-    # as if user wants to overwrite results
-    if [[ -e main.log ]]; then
-        echo "It looks like the pipeline has already started..."
-        echo -n "Do you want to rerun (r), append (a), or quit (q)? (rerun will overwrite results) [r|a|n]:"
-        read -r response
-        if [[ "${response}" == "r"* ]]; then
-            # quit running jobs
-            jobids=$(head -1 $(ls *.log | grep -v "main") | grep -o "^[1-9]*$")
-            qdel ${jobids}
-            # delete logfiles
-            rm -rf all_logfiles *.log
-        elif [[ "${response}" == "a"* ]]; then
-            append=1
-        else
-            echo "Exiting..."
-            exit 0
-        fi
+fi
+
+# append to existing run
+append=0
+
+# as if user wants to overwrite results
+if [[ -e main.log ]]; then
+    echo "It looks like the pipeline has already started..."
+    echo -n "Do you want to rerun (r), append (a), or quit (q)? (rerun will overwrite results) [r|a|n]:"
+    read -r response
+    if [[ "${response}" == "r"* ]]; then
+        # quit running jobs
+        jobids=$(head -1 $(ls *.log | grep -v "main") | grep -o "^[1-9]*$")
+        qdel ${jobids}
+        # delete logfiles
+        rm -rf all_logfiles *.log
+    elif [[ "${response}" == "a"* ]]; then
+        append=1
+    else
+        echo "Exiting..."
+        exit 0
     fi
 fi
+
 
 # load all paths
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
