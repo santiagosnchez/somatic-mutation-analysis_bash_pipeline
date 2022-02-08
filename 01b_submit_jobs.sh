@@ -94,12 +94,12 @@ echo "01: submitting command:" | tee -a main.log
 # submit jobs in parallel
 # first dry run
 cat ${file_list} | parallel --tmpdir ./tmp --dry-run --colsep="," '
-01: wt=$(get_walltime {2} {3});
+01: wt=$(get_walltime {2});
 rg=`get_read_group_info {2} {1}`;
-qsub -l walltime="${wt}":00:00 -v file_list=${file_list},index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log
+qsub -l walltime="${wt}":00:00 -v file_list=${file_list},index={#},sample={1},rg="${rg}",fastq={2},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log
 # then submit
 echo "submitting ..." | tee -a main.log
 cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
 wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
-qsub -l walltime="${wt}":00:00 -v file_list=${file_list},index={#},sample={1},rg="${rg}",forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log
+qsub -l walltime="${wt}":00:00 -v file_list=${file_list},index={#},sample={1},rg="${rg}",fastq={2},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh' | tee -a main.log

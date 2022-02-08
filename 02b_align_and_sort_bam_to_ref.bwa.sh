@@ -59,7 +59,7 @@ if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
        echo "resubmitting step and increase time by 2 hrs"
        wt=$(( wt + 2 ))
        rm aligned_bam/${sample}.${lane}.bam
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh
+       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},fastq=${fastq},mode=${mode} ${pipeline_dir}/02_align_and_sort_bam_to_ref.bwa.sh
        exit 0
     else
        # check if bam is sorted
@@ -80,7 +80,7 @@ else
     -t 10 \
     -R "${rg}" \
     $reference \
-    ${forward} ${reverse} \
+    ${fastq} \
    | sambamba view \
      -S -f bam \
      -o aligned_bam/${sample}.${index}.bam /dev/stdin
