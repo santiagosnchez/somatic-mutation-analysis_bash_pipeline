@@ -46,9 +46,10 @@ fi
 
 if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]]; then
 # first run mpileup in parallel
-if [[ -e varscan/pileups/${normal}.pileup ]]; then
+grep "${normal}" varscan/pileups/done_normals.txt &> /dev/null
+if [[ -e varscan/pileups/${normal}.pileup || -e varscan/pileups/${normal}.1.pileup || "$?" !=0 ]]; then
     if [[ ! -s varscan/pileups/${tumor}.pileup ]]; then
-        samtools mpileup --reference ${reference} -l $intervals_bed ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.pileup
+        samtools mpileup --reference ${reference} -l $bed ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.${index}.pileup
         # not working
         #sambamba mpileup -L $intervals_bed -t 10 ${dir}/${tumor}.bqsr.bam > varscan/pileups/${tumor}.pileup
     else
@@ -56,7 +57,7 @@ if [[ -e varscan/pileups/${normal}.pileup ]]; then
     fi
 else
     export dir
-    parallel "samtools mpileup --reference ${reference} -l $intervals_bed ${dir}/{}.bqsr.bam > varscan/pileups/{}.pileup" ::: ${tumor} ${normal}
+    parallel "samtools mpileup --reference ${reference} -l $bed ${dir}/{}.bqsr.bam > varscan/pileups/{}.${index}.pileup" ::: ${tumor} ${normal}
     #parallel "sambamba mpileup -L $intervals_bed -t 5 ${dir}/{}.bqsr.bam > varscan/pileups/{}.pileup" ::: ${tumor} ${normal}
     echo ${normal} >> varscan/pileups/done_normals.txt
 fi
@@ -118,7 +119,7 @@ if [[ "$?" == 0 ]]; then
         # wait 30 min
         sleep 1800
         # resubmit varscan
-        qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
+        qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
     fi
 fi
 else
@@ -136,12 +137,16 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
-    echo "02: ${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
+    echo "06: ${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
     # delete pileups
     rm varscan/pileups/${tumor}.pileup
     if [[ -e varscan/pileups/${normal}.pileup ]]; then
-        rm varscan/pileups/${normal}.pileup
+        # how many T are paired with N
+        paired_tumors=$(grep -c ",${normal}$" tumors_and_normals.csv)
+        if [[ $(ls *__${normal}.varscan.all.Somatic.hc.wes.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
+            rm varscan/pileups/${normal}.pileup
+        fi
     fi
 fi
