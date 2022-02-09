@@ -66,7 +66,7 @@ mt_tally <- sig_tally(
 ## add more info here
 mt_sig_bayes_sbs_96 <- sig_unify_extract(
   mt_tally$all_matrices$SBS_96,
-  range = 5:10,
+  range = 2:10,
   nrun = 10,
   cores = 8,
   approach = "bayes_nmf"
@@ -91,17 +91,16 @@ etio2 = matched_mt_sig_legacy_30$aetiology_db[[1]]
 names(etio2) = colnames(matched_mt_sig_legacy_30$similarity)[order(as.numeric(sub("COSMIC_","",colnames(matched_mt_sig_legacy_30$similarity))))]
 
 # cosmic 2
-bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
-  mutate(raw_signature=rownames(matched_mt_sig_legacy_30$similarity)) %>%
-  pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="cosine_similarity") %>%
-  mutate(sample=sub("\\..*","",args[2])) %>%
-  mutate(cosmic_db="v2") %>%
-  mutate(tumor=TUMOR) %>%
-  mutate(normal=NORMAL) %>%
-  mutate(method="bNMF") %>%
-  mutate(etiology=etio2[cosmic_signature]) %>%
-  dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,cosine_similarity,etiology,method) %>%
-  filter(cosine_similarity > 0.5)
+# bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
+#   mutate(raw_signature=rownames(matched_mt_sig_legacy_30$similarity)) %>%
+#   pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="cosine_similarity") %>%
+#   mutate(sample=sub("\\..*","",args[2])) %>%
+#   mutate(cosmic_db="v2") %>%
+#   mutate(tumor=TUMOR) %>%
+#   mutate(normal=NORMAL) %>%
+#   mutate(method="bNMF") %>%
+#   mutate(etiology=etio2[cosmic_signature]) %>%
+#   dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,cosine_similarity,etiology,method)
 
 # cosmic 3
 # etiologies db
@@ -114,20 +113,19 @@ etio3 = etio3tab[,2]
 names(etio3) = etio3tab[,1]
 etio3[ grep("Poli", etio3) ] = sub("Poli","Poly",etio3[ grep("Poli", etio3) ])
 
-bnmf_cosmic3  = as.data.frame(matched_mt_sig_sbs_96$similarity) %>%
-  mutate(raw_signature=rownames(matched_mt_sig_sbs_96$similarity)) %>%
-  pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="cosine_similarity") %>%
-  mutate(sample=sub("\\..*","",args[2])) %>%
-  mutate(cosmic_db="v3") %>%
-  mutate(tumor=TUMOR) %>%
-  mutate(normal=NORMAL) %>%
-  mutate(method="bNMF") %>%
-  mutate(etiology=etio3[cosmic_signature]) %>%
-  dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,cosine_similarity,etiology,method) %>%
-  filter(cosine_similarity > 0.5)
-
-# merge
-bnmf_cosmic = bind_rows(bnmf_cosmic2, bnmf_cosmic3)
+# bnmf_cosmic3  = as.data.frame(matched_mt_sig_sbs_96$similarity) %>%
+#   mutate(raw_signature=rownames(matched_mt_sig_sbs_96$similarity)) %>%
+#   pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="cosine_similarity") %>%
+#   mutate(sample=sub("\\..*","",args[2])) %>%
+#   mutate(cosmic_db="v3") %>%
+#   mutate(tumor=TUMOR) %>%
+#   mutate(normal=NORMAL) %>%
+#   mutate(method="bNMF") %>%
+#   mutate(etiology=etio3[cosmic_signature]) %>%
+#   dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,cosine_similarity,etiology,method)
+#
+# # merge
+# bnmf_cosmic = bind_rows(bnmf_cosmic2, bnmf_cosmic3)
 
 # save to csv
 #write.csv(bnmf_cosmic, file=paste0("analyses/", sample_name, ".bnmf_cosmic.csv"), row.names=F)
@@ -168,7 +166,7 @@ linear_decomp_mt_sig_legacy_30 <- sig_fit(catalogue_matrix=mt_tally$all_matrices
                                             method="NNLS",
                                             type="relative",
                                             sig_db = "legacy")
-# make it proportional
+# # make it proportional
 # linear_decomp_mt_sig_legacy_30_norm <- t(t(linear_decomp_mt_sig_legacy_30_raw) / colSums(linear_decomp_mt_sig_legacy_30_raw))
 # # ignore matches below sig_threshold
 # for (i in 1:dim(linear_decomp_mt_sig_legacy_30_norm)[2]){
@@ -184,14 +182,14 @@ linear_decomp_mt_sig_legacy_30 <- sig_fit(catalogue_matrix=mt_tally$all_matrices
 # linear_decomp_mt_sig_legacy_30_raw = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_raw), keep)
 
 # rename columns and add data to df
-linear_decomp_cosmic = bind_rows(as.data.frame(linear_decomp_mt_sig_legacy_30) %>%
-  mutate(cosmic_db="v2") %>%
-  mutate(cosmic_signature = rownames(linear_decomp_mt_sig_legacy_30)) %>%
-  mutate(etiology=etio2[cosmic_signature]),
-as.data.frame(linear_decomp_mt_sig_sbs_96) %>%
+# linear_decomp_cosmic = bind_rows(as.data.frame(linear_decomp_mt_sig_legacy_30) %>%
+#   mutate(cosmic_db="v2") %>%
+#   mutate(cosmic_signature = rownames(linear_decomp_mt_sig_legacy_30)) %>%
+#   mutate(etiology=etio2[cosmic_signature]),
+linear_decomp_cosmic = as.data.frame(linear_decomp_mt_sig_sbs_96) %>%
 mutate(cosmic_db="v3") %>%
 mutate(cosmic_signature = rownames(linear_decomp_mt_sig_sbs_96)) %>%
-mutate(etiology=ifelse(is.na(etio3[cosmic_signature]), "Possible sequencing artifact", etio3[cosmic_signature])))
+mutate(etiology=ifelse(is.na(etio3[cosmic_signature]), "Possible sequencing artifact", etio3[cosmic_signature]))
 colnames(linear_decomp_cosmic)[1] = "contribution_proportion"
 linear_decomp_cosmic = linear_decomp_cosmic %>%
   mutate(tumor=TUMOR) %>%
@@ -206,9 +204,10 @@ tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
 
 # write merged usable output
 # merge all
-all_signatures = bind_rows(bnmf_cosmic, linear_decomp_cosmic)
-all_data = inner_join(tmb_data, all_signatures %>% dplyr::select(-normal), by="tumor")
-write.csv(all_data, file=paste0("analyses/", sample_name, ".signatures.csv"), quote=F, row.names=F)
+# all_signatures = bind_rows(bnmf_cosmic, linear_decomp_cosmic)
+# all_data = inner_join(tmb_data, all_signatures %>% dplyr::select(-normal), by="tumor")
+# write.csv(all_data, file=paste0("analyses/", sample_name, ".signatures.csv"), quote=F, row.names=F)
+write.csv(linear_decomp_cosmic, file=paste0("analyses/", sample_name, "COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
 
 # print old output
 # tmbs
@@ -218,19 +217,33 @@ if (file.exists("analyses/old_output.tmbs.tsv")){
   cat("sample", "total_SNV", "TMB", "\n", sep="\t", file="analyses/old_output.tmbs.tsv")
   cat(sample_name, tmb$snvs, tmb$tmb_snvs, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
 }
-# signatures
-if (file.exists("analyses/old_output.sigs.tsv")){
-  tmp_sigs = rep(0, 30)
-  names(tmp_sigs) = names(etio2)
-  tmp_sigs[ rownames(linear_decomp_mt_sig_legacy_30_norm) ] = linear_decomp_mt_sig_legacy_30_norm[,1]
-  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.sigs.tsv")
+# signatures v3.2
+if (file.exists("analyses/old_output.v3.sigs.tsv")){
+  tmp_sigs = rep(0, length(linear_decomp_mt_sig_sbs_96[,1]))
+  names(tmp_sigs) = names(etio3)
+  tmp_sigs[ rownames(linear_decomp_mt_sig_sbs_96) ] = linear_decomp_mt_sig_sbs_96[,1]
+  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
 } else {
-  cat("Signature", gsub("COSMIC_","Signature\\.", names(etio2)), "\n", sep="\t", file="analyses/old_output.sigs.tsv")
-  cat("Etiology", etio2, "\n", sep="\t", append=T, file="analyses/old_output.sigs.tsv")
+  cat("Signature", names(etio3), "\n", sep="\t", file="analyses/old_output.v3.sigs.tsv")
+  cat("Etiology", etio3, "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+  tmp_sigs = rep(0, length(linear_decomp_mt_sig_sbs_96[,1]))
+  names(tmp_sigs) = names(etio3)
+  tmp_sigs[ rownames(linear_decomp_mt_sig_sbs_96) ] = linear_decomp_mt_sig_sbs_96[,1]
+  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+}
+# signatures v2
+if (file.exists("analyses/old_output.v2.sigs.tsv")){
+  tmp_sigs = rep(0, length(etio2))
+  names(tmp_sigs) = names(etio2)
+  tmp_sigs[ rownames(linear_decomp_mt_sig_legacy_30) ] = linear_decomp_mt_sig_legacy_30[,1]
+  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v2.sigs.tsv")
+} else {
+  cat("Signature", gsub("COSMIC_","Signature\\.", names(etio2)), "\n", sep="\t", file="analyses/old_output.v2.sigs.tsv")
+  cat("Etiology", etio2, "\n", sep="\t", append=T, file="analyses/old_output.v2.sigs.tsv")
   tmp_sigs = rep(0, 30)
   names(tmp_sigs) = names(etio2)
-  tmp_sigs[ rownames(linear_decomp_mt_sig_legacy_30_norm) ] = linear_decomp_mt_sig_legacy_30_norm[,1]
-  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.sigs.tsv")
+  tmp_sigs[ rownames(linear_decomp_mt_sig_legacy_30) ] = linear_decomp_mt_sig_legacy_30[,1]
+  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v2.sigs.tsv")
 }
 
 ##############################
