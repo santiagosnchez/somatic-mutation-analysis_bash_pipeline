@@ -16,12 +16,6 @@ module load parallel/20210322
 # set working dir
 cd $PBS_O_WORKDIR
 
-if [[ ! -e "vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz" ]]; then
-    echo "10: VarScan has not finished for ${tumor}__${normal}. Waiting..." | tee -a main.log
-    qsub -v file="vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz",tumor=${tumor},normal=${normal},mode=${mode},script=05_run_bqsr.gatk.BaseRecalibrator.sh ${pipeline_dir}/wait_for_file.sh
-    exit 0
-fi
-
 # create output dirs
 if [[ ! -e analyses ]]; then
     mkdir analyses
@@ -47,6 +41,14 @@ source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/expo
 if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
+
+# check if Germline vcf exists, otherwise wait for file.
+if [[ ! -e "vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz" ]]; then
+    echo "10: VarScan has not finished for ${tumor}__${normal}. Waiting..." | tee -a main.log
+    qsub -v file="vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz",tumor=${tumor},normal=${normal},mode=${mode},script=10_run_analyses.signatures_and_TBM.sh ${pipeline_dir}/wait_for_file.sh
+    exit 0
+fi
+
 
 # log
 echo "Fetching germline and somatic variants of interest"
