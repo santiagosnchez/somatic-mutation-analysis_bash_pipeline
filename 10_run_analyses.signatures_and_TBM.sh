@@ -51,7 +51,7 @@ fi
 
 
 # log
-echo "Fetching germline and somatic variants of interest"
+echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
 
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes

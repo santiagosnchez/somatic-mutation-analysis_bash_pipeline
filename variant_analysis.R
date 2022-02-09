@@ -6,6 +6,7 @@ library(sigminer)
 library(maftools)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(ggplot2)
+library(ggrepel)
 library(dplyr)
 library(tidyr)
 library(RColorBrewer)
@@ -337,20 +338,25 @@ prop_lower = 0.02
 
 # prep caption
 caption = etio3
-caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n",sub("and ","and\n",sub("of ","of\n",etio3[nchar(etio3) > 60])))
+caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n   ",sub("and ","and\n   ",sub("of ","of\n   ",etio3[nchar(etio3) > 60])))
+caption = sub("^","*", caption)
 prep_caption_ld=paste(paste(caption[(linear_decomp_cosmic %>% filter(cosmic_db == "v3" & contribution_proportion > prop_lower))$cosmic_signature], " (",(linear_decomp_cosmic %>% filter(cosmic_db == "v3" & contribution_proportion > prop_lower))$cosmic_signature, ")", sep=""), collapse="\n")
 
 # plot bar graph
-pl_ld_v2 = ggplot(linear_decomp_cosmic %>%
+pl_ld_v3 = ggplot(linear_decomp_cosmic %>%
                   filter(cosmic_db == "v3" & contribution_proportion > prop_lower) %>%
                   mutate(cosmic_signature=as.character(cosmic_signature)),
     aes(y=cosmic_signature, x=round(contribution_proportion * 100,1), fill=cosmic_signature)) +
-  geom_bar(stat="identity") +
+  geom_bar(stat="identity", show.legend=F) +
   geom_text(aes(label=paste0(round(contribution_proportion * 100,0),"%")), hjust=-0.1) +
   scale_x_continuous(expand=c(0,0), breaks=seq(0,100,10), limits=c(0,110)) +
+  scale_y_discrete(limits=(linear_decomp_cosmic %>%
+                    filter(cosmic_db == "v3" & contribution_proportion > prop_lower) %>%
+                    mutate(cosmic_signature=as.character(cosmic_signature)) %>%
+                    arrange(contribution_proportion))$cosmic_signature) +
   #coord_polar("y", start=0) +
-  labs(title="Contribution from COSMIC Signature\n(SBS-96 v3.2, hg38)",
-       caption=prep_caption_ld) +
+  labs(title="COSMIC Signature Analysis\n(SBS-96 v3.2, hg38)",
+       caption=prep_caption_ld, x="contribution to mutational signature (%)") +
   scale_fill_manual(values=cols_cosmic3.2[(linear_decomp_cosmic %>% filter(cosmic_db == "v3" & contribution_proportion > prop_lower))$cosmic_signature]) +
   background_grid(major="xy", color.major="grey85") +
   theme(
@@ -370,32 +376,32 @@ pl_ld_v2 = ggplot(linear_decomp_cosmic %>%
 # plot cosine similarity (bNMF)
 
 # break long etiology
-caption = etio3
-caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n",sub("and ","and\n",sub("of ","of\n",etio3[nchar(etio3) > 60])))
-prep_caption_bnmf=paste(paste(caption[(bnmf_cosmic2 %>% filter(cosmic_db == "v3"))$cosmic_signature], " (",(bnmf_cosmic2 %>% filter(cosmic_db == "v3"))$cosmic_signature, ")", sep=""), collapse="\n")
-
-pl_bnmf_v2 = ggplot(bnmf_cosmic2 %>% mutate(cosmic_signature=factor(cosmic_signature, levels=cosmic_signature[order(cosine_similarity)])),
-    aes(y=cosmic_signature, x=round(cosine_similarity * 100,0), fill=cosmic_signature)) +
-  geom_bar(stat="identity", show.legend=F) +
-  geom_text(aes(label=paste0(round(cosine_similarity * 100,0),"%")), hjust=1.1) +
-  scale_x_continuous(expand=c(0,0), limits=c(0,100)) +
-  labs(x="cosine similarity (%)", title="Similarity to COSMIC Signature\n(legacy db.v2)",
-       caption=prep_caption_bnmf) +
-  scale_fill_manual(values=cols_cosmic2[(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature]) +
-  background_grid(major="xy", color.major="grey85") +
-  theme(
-    panel.background=element_blank(),
-    axis.title.y=element_blank(),
-    axis.text.x=element_text(size=10),
-    axis.text.y=element_text(angle=45, vjust=0.5),
-    axis.ticks.y=element_blank(),
-    axis.line.x=element_line(),
-    legend.title=element_blank(),
-    plot.title=element_text(face="bold", size=10),
-    plot.caption=element_text(hjust=0),
-    plot.background=element_rect(fill="grey95", color="black"),
-    plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm")
-  )
+# caption = etio3
+# caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n",sub("and ","and\n",sub("of ","of\n",etio3[nchar(etio3) > 60])))
+# prep_caption_bnmf=paste(paste(caption[(bnmf_cosmic2 %>% filter(cosmic_db == "v3"))$cosmic_signature], " (",(bnmf_cosmic2 %>% filter(cosmic_db == "v3"))$cosmic_signature, ")", sep=""), collapse="\n")
+#
+# pl_bnmf_v2 = ggplot(bnmf_cosmic2 %>% mutate(cosmic_signature=factor(cosmic_signature, levels=cosmic_signature[order(cosine_similarity)])),
+#     aes(y=cosmic_signature, x=round(cosine_similarity * 100,0), fill=cosmic_signature)) +
+#   geom_bar(stat="identity", show.legend=F) +
+#   geom_text(aes(label=paste0(round(cosine_similarity * 100,0),"%")), hjust=1.1) +
+#   scale_x_continuous(expand=c(0,0), limits=c(0,100)) +
+#   labs(x="cosine similarity (%)", title="Similarity to COSMIC Signature\n(legacy db.v2)",
+#        caption=prep_caption_bnmf) +
+#   scale_fill_manual(values=cols_cosmic2[(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature]) +
+#   background_grid(major="xy", color.major="grey85") +
+#   theme(
+#     panel.background=element_blank(),
+#     axis.title.y=element_blank(),
+#     axis.text.x=element_text(size=10),
+#     axis.text.y=element_text(angle=45, vjust=0.5),
+#     axis.ticks.y=element_blank(),
+#     axis.line.x=element_line(),
+#     legend.title=element_blank(),
+#     plot.title=element_text(face="bold", size=10),
+#     plot.caption=element_text(hjust=0),
+#     plot.background=element_rect(fill="grey95", color="black"),
+#     plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm")
+#   )
 
 ###################################################
 # Process/plot germline and somatic RRD mutations #
@@ -454,12 +460,12 @@ if (length(ls(pattern="germline_mmr")) != 0){
   pl_germl = ggplot(RRD_transcript_sizes, aes(y=y)) +
     geom_rect(aes(xmin=start, xmax=end, ymin=y-0.1, ymax=y+0.1), fill="grey") +
     geom_point(data=germline_mmr %>% filter(!(is.na(position_tr) | class == "SILENT")),
-      aes(y=y, x=position_tr, color=factor(genotype, levels=c("het","hom"))), shape="|", size=3, show.legend=T) +
+      aes(y=y, x=position_tr, color=factor(genotype, levels=c("het","hom"))), shape="*", size=5, show.legend=T) +
     #geom_text(data=germline_mmr %>% filter(!(is.na(position_tr) | class == "SILENT")), aes(x=position_tr, label=sub("[a-z]\\.","",aa_change), color=genotype), size=2.5, hjust=0, vjust=0, angle=45, nudge_y=0.2, show.legend=F) +
     geom_text_repel(data=germline_mmr %>% filter(!(is.na(position_tr) | class == "SILENT")),
       aes(x=position_tr, label=sub("[a-z]\\.","", aa_change), color=genotype),
       direction="x",
-      nudge_x=500,
+      nudge_x=1000,
       nudge_y=0.1,
       size=2.5,
       hjust=0,
