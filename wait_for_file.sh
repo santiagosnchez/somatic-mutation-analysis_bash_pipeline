@@ -39,7 +39,15 @@ timeout 19800 bash -c "file_lookup $file"
 
 # check if commands completes
 if [[ "$?" == 0 ]]; then
+  if [[ -z $sample ]]; then
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/${script}
+  else
     qsub -v sample=${sample},mode=${mode} ${pipeline_dir}/${script}
+  fi
 else
+  if [[ -z $sample ]]; then
+    qsub -v file=${file},tumor=${tumor},normal=${normal},mode=${mode},script=${script} ${pipeline_dir}/wait_for_file.sh
+  else
     qsub -v file=${file},sample=${sample},mode=${mode},script=${script} ${pipeline_dir}/wait_for_file.sh
+  fi
 fi
