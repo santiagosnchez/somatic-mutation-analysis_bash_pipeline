@@ -66,7 +66,7 @@ mt_tally <- sig_tally(
 ## add more info here
 mt_sig_bayes_sbs_96 <- sig_unify_extract(
   mt_tally$all_matrices$SBS_96,
-  range = 10,
+  range = 5:10,
   nrun = 10,
   cores = 8,
   approach = "bayes_nmf"
@@ -75,7 +75,7 @@ mt_sig_bayes_sbs_96 <- sig_unify_extract(
 # match signatures using cosine similarity COSMIC v3
 matched_mt_sig_sbs_96 <- get_sig_similarity(
   mt_sig_bayes_sbs_96,
-  sig_db="SBS_hg38",
+  sig_db="latest_SBS_GRCh38",
   db_type=db_type
 )
 
@@ -105,8 +105,14 @@ bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
 
 # cosmic 3
 # etiologies db
-etio3 = matched_mt_sig_sbs_96$aetiology_db[[1]]
-names(etio3) = colnames(matched_mt_sig_sbs_96$similarity)[order(as.numeric(gsub("[A-Za-z]","",colnames(matched_mt_sig_sbs_96$similarity))))]
+# etio3 = matched_mt_sig_sbs_96$aetiology_db[[1]]
+# names(etio3) = colnames(matched_mt_sig_sbs_96$similarity)[order(as.numeric(gsub("[A-Za-z]","",colnames(matched_mt_sig_sbs_96$similarity))))]
+# etio3["SBS9"] = sub("Poli","Poly",etio3["SBS9"])
+
+etio3tab = read.table("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/cosmic_db_v3.2_signatures_and_etiologies.txt", sep="\t")
+etio3 = etio3tab[,2]
+names(etio3) = etio3tab[,1]
+etio3[ grep("Poli", etio3) ] = sub("Poli","Poly",etio3[ grep("Poli", etio3) ])
 
 bnmf_cosmic3  = as.data.frame(matched_mt_sig_sbs_96$similarity) %>%
   mutate(raw_signature=rownames(matched_mt_sig_sbs_96$similarity)) %>%
@@ -127,58 +133,70 @@ bnmf_cosmic = bind_rows(bnmf_cosmic2, bnmf_cosmic3)
 #write.csv(bnmf_cosmic, file=paste0("analyses/", sample_name, ".bnmf_cosmic.csv"), row.names=F)
 
 # set threshold for matched signatures
-sig_threshold = 0.05
+sig_threshold = 0.01
 
-# fit linear decomposition on SBS_hg38
+# fit linear decomposition on latest COSMIC db v3.2
 
-linear_decomp_mt_sig_sbs_96_raw <- sig_fit(mt_tally$all_matrices$SBS_96 %>% t(), sig_index = "ALL", sig_db = "SBS_hg38")
+linear_decomp_mt_sig_sbs_96 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
+                                            sig=mt_sig_bayes_sbs_96$Signature,
+                                            sig_index = "ALL",
+                                            db_type=db_type,
+                                            method="NNLS",
+                                            type="relative",
+                                            sig_db = "latest_SBS_GRCh38")
 # make it proportional
-linear_decomp_mt_sig_sbs_96_norm <- t(t(linear_decomp_mt_sig_sbs_96_raw) / colSums(linear_decomp_mt_sig_sbs_96_raw))
-# ignore matches below sig_threshold
-for (i in 1:dim(linear_decomp_mt_sig_sbs_96_norm)[2]){
-  # find and set to zero
-  set_to_zero = which(linear_decomp_mt_sig_sbs_96_norm[,i] < sig_threshold)
-  linear_decomp_mt_sig_sbs_96_raw[set_to_zero,i] = 0
-  # rescale
-  linear_decomp_mt_sig_sbs_96_norm[,i] = linear_decomp_mt_sig_sbs_96_raw[,i] / sum(linear_decomp_mt_sig_sbs_96_raw[,i])
-}
-# remove non-matches
-keep = apply(linear_decomp_mt_sig_sbs_96_norm, 1, sum) > 0
-linear_decomp_mt_sig_sbs_96_norm = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_norm), keep)
-linear_decomp_mt_sig_sbs_96_raw = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_raw), keep)
+# linear_decomp_mt_sig_sbs_96_norm <- t(t(linear_decomp_mt_sig_sbs_96_raw) / colSums(linear_decomp_mt_sig_sbs_96_raw))
+# # ignore matches below sig_threshold
+# for (i in 1:dim(linear_decomp_mt_sig_sbs_96_norm)[2]){
+#   # find and set to zero
+#   set_to_zero = which(linear_decomp_mt_sig_sbs_96_norm[,i] < sig_threshold)
+#   linear_decomp_mt_sig_sbs_96_raw[set_to_zero,i] = 0
+#   # rescale
+#   linear_decomp_mt_sig_sbs_96_norm[,i] = linear_decomp_mt_sig_sbs_96_raw[,i] / sum(linear_decomp_mt_sig_sbs_96_raw[,i])
+# }
+# # remove non-matches
+# keep = apply(linear_decomp_mt_sig_sbs_96_norm, 1, sum) > 0
+# linear_decomp_mt_sig_sbs_96_norm = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_norm), keep)
+# linear_decomp_mt_sig_sbs_96_raw = subset(as.data.frame(linear_decomp_mt_sig_sbs_96_raw), keep)
 
 # fit lienar decomposition on "legacy" signaures (COSMIC v2)
 
-linear_decomp_mt_sig_legacy_30_raw <- sig_fit(mt_tally$all_matrices$SBS_96 %>% t(), sig_index = "ALL", sig_db = "legacy")
+linear_decomp_mt_sig_legacy_30 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
+                                            sig=mt_sig_bayes_sbs_96$Signature,
+                                            sig_index = "ALL",
+                                            db_type=db_type,
+                                            method="NNLS",
+                                            type="relative",
+                                            sig_db = "legacy")
 # make it proportional
-linear_decomp_mt_sig_legacy_30_norm <- t(t(linear_decomp_mt_sig_legacy_30_raw) / colSums(linear_decomp_mt_sig_legacy_30_raw))
-# ignore matches below sig_threshold
-for (i in 1:dim(linear_decomp_mt_sig_legacy_30_norm)[2]){
-  # find and set to zero
-  set_to_zero = which(linear_decomp_mt_sig_legacy_30_norm[,i] < sig_threshold)
-  linear_decomp_mt_sig_legacy_30_raw[set_to_zero,i] = 0
-  # rescale
-  linear_decomp_mt_sig_legacy_30_norm[,i] = linear_decomp_mt_sig_legacy_30_raw[,i] / sum(linear_decomp_mt_sig_legacy_30_raw[,i])
-}
-# remove non-matches
-keep = apply(linear_decomp_mt_sig_legacy_30_norm, 1, sum) > 0
-linear_decomp_mt_sig_legacy_30_norm = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_norm), keep)
-linear_decomp_mt_sig_legacy_30_raw = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_raw), keep)
+# linear_decomp_mt_sig_legacy_30_norm <- t(t(linear_decomp_mt_sig_legacy_30_raw) / colSums(linear_decomp_mt_sig_legacy_30_raw))
+# # ignore matches below sig_threshold
+# for (i in 1:dim(linear_decomp_mt_sig_legacy_30_norm)[2]){
+#   # find and set to zero
+#   set_to_zero = which(linear_decomp_mt_sig_legacy_30_norm[,i] < sig_threshold)
+#   linear_decomp_mt_sig_legacy_30_raw[set_to_zero,i] = 0
+#   # rescale
+#   linear_decomp_mt_sig_legacy_30_norm[,i] = linear_decomp_mt_sig_legacy_30_raw[,i] / sum(linear_decomp_mt_sig_legacy_30_raw[,i])
+# }
+# # remove non-matches
+# keep = apply(linear_decomp_mt_sig_legacy_30_norm, 1, sum) > 0
+# linear_decomp_mt_sig_legacy_30_norm = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_norm), keep)
+# linear_decomp_mt_sig_legacy_30_raw = subset(as.data.frame(linear_decomp_mt_sig_legacy_30_raw), keep)
 
 # rename columns and add data to df
-linear_decomp_cosmic = bind_rows(linear_decomp_mt_sig_legacy_30_norm %>%
+linear_decomp_cosmic = bind_rows(as.data.frame(linear_decomp_mt_sig_legacy_30) %>%
   mutate(cosmic_db="v2") %>%
-  mutate(cosmic_signature = rownames(linear_decomp_mt_sig_legacy_30_norm)) %>%
+  mutate(cosmic_signature = rownames(linear_decomp_mt_sig_legacy_30)) %>%
   mutate(etiology=etio2[cosmic_signature]),
-linear_decomp_mt_sig_sbs_96_norm %>%
+as.data.frame(linear_decomp_mt_sig_sbs_96) %>%
 mutate(cosmic_db="v3") %>%
-mutate(cosmic_signature = rownames(linear_decomp_mt_sig_sbs_96_norm)) %>%
-mutate(etiology=etio3[cosmic_signature]))
+mutate(cosmic_signature = rownames(linear_decomp_mt_sig_sbs_96)) %>%
+mutate(etiology=ifelse(is.na(etio3[cosmic_signature]), "Possible sequencing artifact", etio3[cosmic_signature])))
 colnames(linear_decomp_cosmic)[1] = "contribution_proportion"
 linear_decomp_cosmic = linear_decomp_cosmic %>%
   mutate(tumor=TUMOR) %>%
   mutate(normal=NORMAL) %>%
-  mutate(method="LRD")
+  mutate(method="NNLS")
 
 #write.csv(linear_decomp_cosmic, file="analyses/lrDecomp_cosmic.csv")
 
@@ -268,38 +286,80 @@ cols_cosmic2[ grep("UV exposure", etio2) ] = stepped3(16)[13]
 cols_cosmic2[ grep("DNA-DSB repair by HR", etio2) ] = stepped2(20)[19]
 names(cols_cosmic2) = names(etio2)
 
-prep_caption_ld=paste(paste(etio2[(linear_decomp_cosmic %>% filter(cosmic_db == "v2"))$cosmic_signature], " (",(linear_decomp_cosmic %>% filter(cosmic_db == "v2"))$cosmic_signature, ")", sep=""), collapse="\n")
+# set colors for cosmic 3.2
+cols_cosmic3 = rep("", length(etio3))
+names(cols_cosmic3) = etio3
+# unknown data
+cols_cosmic3[ grep("^Unknown$", etio3) ] = stepped3(20)[18]
+cols_cosmic3[ grep("Possible sequencing artefacts", etio3) ] = stepped3(20)[17]
+# MMR
+cols_cosmic3[ grep("DNA mismatch", etio3) ] = colorRampPalette(stepped3(12)[9:12][c(1,4)])(7)
+cols_cosmic3[ grep("Polymerase|POLD1 proofreading", etio3) ] = colorRampPalette(stepped3(8)[5:8][c(1,4)])(5)
+# clocklike
+cols_cosmic3[ grep("clock-like signature", etio3) ] = stepped3(4)[1:2]
+# UV
+cols_cosmic3[ grep("Ultraviolet", etio3) ] = stepped3(16)[13:16]
+# tobacco
+cols_cosmic3[ grep("Tobacco", etio3) ] = stepped(8)[5:7]
+# treatment
+cols_cosmic3[ grep("treatment", etio3) ] = colorRampPalette(stepped2(4)[c(1,4)])(7)
+# homologous recombination DNA damage repair
+cols_cosmic3[ grep("Defective homologous recombination DNA damage repair", etio3) ] = stepped2(12)[10]
+# APOBEC
+cols_cosmic3[ grep("APOBEC|cytidine deaminase", etio3) ] = stepped2(16)[13:16]
+# carcinogens
+cols_cosmic3[ grep("exposure", etio3)[5:length(grep("exposure", etio3))] ] = colorRampPalette(stepped2(20)[c(1,4)])(5)
+# DNA base excision repair
+cols_cosmic3[ grep("DNA base excision", etio3) ] = stepped2(8)[5:6]
+# reactive oxigen
+cols_cosmic3[ grep("reactive oxygen", etio3) ] = stepped(4)[2]
+# indirect UV
+cols_cosmic3[ grep("Indirect effect of ultraviolet", etio3) ] = stepped(16)[1]
+# rename
+cols_cosmic3.2 = cols_cosmic3
+names(cols_cosmic3.2) = names(etio3)
 
-# break COSMIC_1 etiology
-if (length(grep("COSMIC_1", prep_caption_ld)) != 0){
-  prep_caption_ld = sub(" \\(","\n\\(", prep_caption_ld)
-}
+# set proportion threshold
+prop_lower = 0.02
 
-pl_ld_v2 = ggplot(linear_decomp_cosmic %>% filter(cosmic_db == "v2"),
-    aes(x="", y=round(contribution_proportion * 100,1), fill=cosmic_signature)) +
+# prep caption
+caption = etio3
+caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n",sub("and ","and\n",sub("of ","of\n",etio3[nchar(etio3) > 60])))
+prep_caption_ld=paste(paste(caption[(linear_decomp_cosmic %>% filter(cosmic_db == "v3" & contribution_proportion > prop_lower))$cosmic_signature], " (",(linear_decomp_cosmic %>% filter(cosmic_db == "v3" & contribution_proportion > prop_lower))$cosmic_signature, ")", sep=""), collapse="\n")
+
+# plot bar graph
+pl_ld_v2 = ggplot(linear_decomp_cosmic %>%
+                  filter(cosmic_db == "v3" & contribution_proportion > prop_lower) %>%
+                  mutate(cosmic_signature=as.character(cosmic_signature)),
+    aes(y=cosmic_signature, x=round(contribution_proportion * 100,1), fill=cosmic_signature)) +
   geom_bar(stat="identity") +
-  geom_text(aes(label=paste0(round(contribution_proportion * 100,0),"%")), position = position_stack(vjust=0.5)) +
-  coord_polar("y", start=0) +
-  labs(title="Contribution from COSMIC Signature\n(legacy db.v2)",
+  geom_text(aes(label=paste0(round(contribution_proportion * 100,0),"%")), hjust=-0.1) +
+  scale_x_continuous(expand=c(0,0), breaks=seq(0,100,10), limits=c(0,110)) +
+  #coord_polar("y", start=0) +
+  labs(title="Contribution from COSMIC Signature\n(SBS-96 v3.2, hg38)",
        caption=prep_caption_ld) +
-  scale_fill_manual(values=cols_cosmic2[(linear_decomp_cosmic %>% filter(cosmic_db == "v2"))$cosmic_signature]) +
-  theme_void() +
+  scale_fill_manual(values=cols_cosmic3.2[(linear_decomp_cosmic %>% filter(cosmic_db == "v3" & contribution_proportion > prop_lower))$cosmic_signature]) +
+  background_grid(major="xy", color.major="grey85") +
   theme(
+    panel.background=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.x=element_text(size=10),
+    axis.text.y=element_text(angle=45, vjust=0.5),
+    axis.ticks.y=element_blank(),
+    axis.line.x=element_line(),
     legend.title=element_blank(),
     plot.title=element_text(face="bold", size=10),
     plot.caption=element_text(hjust=0),
     plot.background=element_rect(fill="grey95", color="black"),
-    plot.margin=unit(c(0.5,0.5,1,0.5), "cm")
+    plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm")
   )
 
 # plot cosine similarity (bNMF)
 
-prep_caption_bnmf=paste(paste(etio2[(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature], " (",(bnmf_cosmic2 %>% filter(cosmic_db == "v2"))$cosmic_signature, ")", sep=""), collapse="\n")
-
-# break COSMIC_1 etiology
-if (length(grep("COSMIC_1", prep_caption_bnmf)) != 0){
-  prep_caption_bnmf = sub(" \\(","\n\\(", prep_caption_bnmf)
-}
+# break long etiology
+caption = etio3
+caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n",sub("and ","and\n",sub("of ","of\n",etio3[nchar(etio3) > 60])))
+prep_caption_bnmf=paste(paste(caption[(bnmf_cosmic2 %>% filter(cosmic_db == "v3"))$cosmic_signature], " (",(bnmf_cosmic2 %>% filter(cosmic_db == "v3"))$cosmic_signature, ")", sep=""), collapse="\n")
 
 pl_bnmf_v2 = ggplot(bnmf_cosmic2 %>% mutate(cosmic_signature=factor(cosmic_signature, levels=cosmic_signature[order(cosine_similarity)])),
     aes(y=cosmic_signature, x=round(cosine_similarity * 100,0), fill=cosmic_signature)) +
