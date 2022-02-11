@@ -26,6 +26,9 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
+# new read group string
+rg2=`echo $(echo -e $rg)`
+
 # check length of file names and run script
 if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
    # run script
@@ -40,13 +43,15 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
           # make tmp file_list file
           echo "${sample},${new_forward},${new_reverse}" >> tmp/${sample}_file_list.csv
           echo "${sample},${singletons}," >> tmp/${sample}_file_list.csv
-          # calculate new walltime
+          # make sure it's not duplicating
+          cat tmp/${sample}_file_list.csv | sort -u > tmp/${sample}_file_list2.csv && mv tmp/${sample}_file_list2.csv tmp/${sample}_file_list.csv
+          # calculate new walltime and read group
           wt=$(get_walltime $new_forward $new_reverse)
           # submit new jobs
-          qsub -l walltime="${wt}":00:00 -v file_list="tmp/${sample}_file_list.csv",index=${index},sample=${sample},rg="${rg}",forward=${new_forward},reverse=${new_reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+          qsub -l walltime="${wt}":00:00 -v file_list="tmp/${sample}_file_list.csv",index=${index},sample=${sample},rg="${rg2}",forward=${new_forward},reverse=${new_reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
           # for singletons
           wt=$(get_walltime $singletons)
-          qsub -l walltime="${wt}":00:00 -v file_list="tmp/${sample}_file_list.csv",index="${index}s",sample=${sample},rg="${rg}",forward=${singletons},reverse="",mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+          qsub -l walltime="${wt}":00:00 -v file_list="tmp/${sample}_file_list.csv",index="${index}s",sample=${sample},rg=${rg2},forward=${singletons},reverse="",mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       else
           # delete tmp files
           new_forward=$(cat ${sample}.checkpairs.log | grep "tmp/${sample}.*.1.fastq.gz")
@@ -54,7 +59,7 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
           singletons=$(cat ${sample}.checkpairs.log | grep "tmp/${sample}.*.S.fastq.gz")
           rm $new_forward $new_reverse $singletons
           # proceed normally
-          qsub -l walltime="${wt}":00:00 -v file_list="$file_list",index=${index},sample=${sample},rg="${rg}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+          qsub -l walltime="${wt}":00:00 -v file_list="$file_list",index=${index},sample=${sample},rg="${rg2}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       fi
    else
       echo "fetch_fwd_rev_sing.pl failed with an error for ${sample}"
@@ -62,7 +67,7 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
    fi
 else
     # submit as single ended
-     qsub -l walltime="${wt}":00:00 -v file_list="$file_list",index=${index},sample=${sample},rg="${rg}",forward=${forward},reverse="",mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+     qsub -l walltime="${wt}":00:00 -v file_list="$file_list",index=${index},sample=${sample},rg=${rg},forward=${forward},reverse="",mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
 fi
 
 # final check

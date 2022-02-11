@@ -52,7 +52,7 @@ for bam in aligned_bam/${sample}.*.sorted.bam; do
     if [[ $(samtools quickcheck $bam && echo 1) != 1 ]]; then
        echo "resubmitting previous step and increase time by 2hrs"
        wt=$(( wt + 2 ))
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},mode=${mode} ${pipeline_dir}/02_align_bam_to_ref.bwa.sh
+       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02b_align_bam_to_ref.bwa.sh
        all_check=1
     fi
 done
@@ -99,6 +99,10 @@ fi
 if [[ "$check_finish" == 0 ]]; then
     # delete scattered bams
     rm aligned_bam/${sample}.*.sorted.bam*
+    # delete temporary files
+    if [[ -e tmp/${sample}_file_list.csv ]]; then
+        rm tmp/${sample}_file_list.csv
+    fi
     # get new walltime
     wt=$(get_walltime aligned_bam/${sample}.merged.bam)
     # submit next job

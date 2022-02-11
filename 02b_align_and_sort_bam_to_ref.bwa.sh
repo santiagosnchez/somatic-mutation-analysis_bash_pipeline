@@ -110,13 +110,13 @@ check_finish=$?
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
     # delete tmp files
-    if [[ $( echo ${forward} | grep -c "^tmp\/" ) == 1 ]]; then
-        if [[ "${#reverse}" -gt 0 ]]; then
-            rm "./${forward}" "./${reverse}"
-        else
-            rm "./${forward}"
-        fi
-    fi
+    # if [[ $( echo ${forward} | grep -c "^tmp\/" ) == 1 ]]; then
+    #     if [[ "${#reverse}" -gt 0 ]]; then
+    #         rm "./${forward}" "./${reverse}"
+    #     else
+    #         rm "./${forward}"
+    #     fi
+    # fi
     # calculate the number of bam files to merge
     expected_bams=$(cat ${file_list} | grep -c "^${sample},")
     found_sorted_bams=$(ls aligned_bam/${sample}.*.sorted.bam | wc -l)
@@ -126,7 +126,7 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "$?" == 0 && "${expected_bams}" == "${found_sorted_bams}" ]]; then
         # submit next job
         # can switch this to picards MarkDuplicate method
-        qsub -l walltime=${wt}:00:00 -v file_list=${file_list},sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
     # move logfile
     mv ${sample}.${index}.bwa.log all_logfiles
