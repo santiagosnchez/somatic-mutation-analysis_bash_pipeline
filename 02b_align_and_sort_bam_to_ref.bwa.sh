@@ -53,6 +53,11 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
     if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) != 1 ]]; then
@@ -80,7 +85,7 @@ else
     -t 10 \
     -R "${rg}" \
     $reference \
-    ${forward} ${reverse} \
+    ${forward} ${reverse}  \
    | sambamba view \
      -S -f bam \
      -o aligned_bam/${sample}.${index}.bam /dev/stdin
@@ -101,11 +106,6 @@ fi
 
 # check finish
 check_finish=$?
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
 
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
