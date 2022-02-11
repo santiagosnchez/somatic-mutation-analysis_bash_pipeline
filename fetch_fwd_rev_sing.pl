@@ -1,7 +1,7 @@
 #!/bin/perl
 
 # Description:
-# Parses two gzipped fastq files and checks if 
+# Parses two gzipped fastq files and checks if
 # fwd and rev reads are properly [paired
 # and saves singletons to separate file
 
@@ -33,10 +33,10 @@ if (substr($fastq_fwd, 0, 1) eq "/"){
 }
 if (substr($fastq_rev, 0, 1) eq "/"){
     $path2[ $#path2 ] =~ s/_R2.*//;
-    $fastq_SNR = $path2[ $#path2 ]; 
+    $fastq_SNR = $path2[ $#path2 ];
 } else {
     $path2[ $#path2 - 1 ] =~ s/_R2.*//;
-    $fastq_SNR = $path2[ $#path2 -1 ]; 
+    $fastq_SNR = $path2[ $#path2 -1 ];
 }
 
 # initialize filehandles
@@ -53,7 +53,7 @@ open(OUT_FWD, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.1.fastq.gz");
 open(OUT_REV, "|-", "/usr/bin/gzip > tmp/$fastq_SNR.2.fastq.gz");
 open(OUT_SIN, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.S.fastq.gz");
 
-# start fwd and rev dictionaries/hashes 
+# start fwd and rev dictionaries/hashes
 # and other variables
 my %fwd={};
 my %rev={};
@@ -66,7 +66,7 @@ my $total_sing=0;
 
 # parse both files simultaneously
 while ($line_fwd = <IN_FWD>, $line_rev = <IN_REV>){
-    # if first line is header 
+    # if first line is header
     if (($. % 4) == 1){
         $block1 .= $line_fwd;
         $block2 .= $line_rev;
@@ -76,7 +76,7 @@ while ($line_fwd = <IN_FWD>, $line_rev = <IN_REV>){
         $head2 = $line_rev;
         $head1 =~ s/ .*|\/[12]$//g;
         $head2 =~ s/ .*|\/[12]$//g;
-    } 
+    }
     # if line is last for block (i.e., quality scores)
     elsif (($. % 4) == 0){
         # complete block
@@ -88,7 +88,7 @@ while ($line_fwd = <IN_FWD>, $line_rev = <IN_REV>){
            print OUT_REV $block2;
            # count records
            $total_paired += 1;
-        } 
+        }
         else {
            # look for fwd header in rev dictionary
            # save to file if present and delete entry
@@ -99,7 +99,7 @@ while ($line_fwd = <IN_FWD>, $line_rev = <IN_REV>){
                delete $rev{$head1};
                # count records
                $total_paired += 1;
-           } 
+           }
            else {
                # otherwise add to dictionary
                $fwd{$head1} = $block1;
@@ -134,18 +134,23 @@ close(IN_REV);
 
 # write unmatched reads to file
 # starting with fwd
-foreach $head (keys %fwd){
-    print OUT_SIN $fwd{$head};
-    delete $fwd{$head};
-    # count singletons
-    $total_sing += 1;
+if (scalar(keys %fwd) > 1){
+    foreach $head (keys %fwd){
+        print OUT_SIN $fwd{$head};
+        delete $fwd{$head};
+        # count singletons
+        $total_sing += 1;
+    }
 }
+
 # then for rev
-foreach $head (keys %rev){
-    print OUT_SIN $rev{$head};
-    delete $rev{$head};
-    # count singletons
-    $total_sing += 1;
+if (scalar(keys %rev) > 1){
+    foreach $head (keys %rev){
+        print OUT_SIN $rev{$head};
+        delete $rev{$head};
+        # count singletons
+        $total_sing += 1;
+    }
 }
 
 # final time
@@ -160,5 +165,3 @@ tmp/$fastq_SNF.1.fastq.gz
 tmp/$fastq_SNR.2.fastq.gz
 tmp/$fastq_SNF.S.fastq.gz\n";
 printf "%.5f hours to finish\n", $total_hours;
-
-

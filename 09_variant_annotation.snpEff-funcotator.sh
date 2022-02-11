@@ -36,6 +36,13 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
+if [[ ! -e "varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz" ]]; then
+    echo "09: VarScan has not finished for ${tumor}__${normal}. Waiting..." | tee -a main.log
+    qsub -v file="vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz",tumor=${tumor},normal=${normal},mode=${mode},script=10_run_analyses.signatures_and_TBM.sh ${pipeline_dir}/wait_for_file.sh
+    exit 0
+fi
+
+
 # make temporary header file with pedigree
 echo "##PEDIGREE=<Derived=${tumor},Original=${normal}>" > ${tumor}__${normal}.tmp.vcf.header.txt
 
@@ -96,7 +103,7 @@ $gatk_path/gatk Funcotator \
 
 # get maf from funcotator vcf
 
-ls vcf/${tumor}__${normal}.*annotated-funcotator* | parallel --plus '${pipeline_dir}/funcotator-vcf2maf.sh {} > {/.vcf/.maf}'
+#ls vcf/${tumor}__${normal}.*annotated-funcotator* | parallel --plus '${pipeline_dir}/funcotator-vcf2maf.sh {} > {/.vcf/.maf}'
 
 # check if finished
 check_finish=$?
