@@ -58,6 +58,11 @@ if [[ ! -e all_logfiles ]]; then
     mkdir all_logfiles
 fi
 
+# debug
+echo ${rg}
+echo "${rg}"
+echo -e "${rg}"
+
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
     if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) != 1 ]]; then
@@ -89,6 +94,8 @@ else
    | sambamba view \
      -S -f bam \
      -o aligned_bam/${sample}.${index}.bam /dev/stdin
+   # debug
+   echo $?
    # sort file
    if [[ "$?" == 0 ]]; then
        sambamba sort \
@@ -98,11 +105,16 @@ else
          -o aligned_bam/${sample}.${index}.sorted.bam \
          aligned_bam/${sample}.${index}.bam
    fi
+   # debug
+   echo $?
    # delete unsorted
    if [[ "$?" == 0 ]]; then
        rm aligned_bam/${sample}.${index}.bam
    fi
 fi
+
+# debug
+echo $?
 
 # check finish
 check_finish=$?
