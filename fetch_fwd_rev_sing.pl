@@ -16,6 +16,7 @@ if (scalar(@ARGV) != 2){
 # location of fastq files
 my $fastq_fwd = $ARGV[0];
 my $fastq_rev = $ARGV[1];
+my $index = $ARGV[2];
 # split path
 my @path1 = split /\//, $fastq_fwd;
 my @path2 = split /\//, $fastq_rev;
@@ -49,9 +50,9 @@ my $OUT_SIN;
 # open gzippped files (input and output)
 open(IN_FWD, "-|", "/usr/bin/gunzip", "-c", $fastq_fwd);
 open(IN_REV, "-|", "/usr/bin/gunzip", "-c", $fastq_rev);
-open(OUT_FWD, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.1.fastq.gz");
-open(OUT_REV, "|-", "/usr/bin/gzip > tmp/$fastq_SNR.2.fastq.gz");
-open(OUT_SIN, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.S.fastq.gz");
+open(OUT_FWD, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.$index.1.fastq.gz");
+open(OUT_REV, "|-", "/usr/bin/gzip > tmp/$fastq_SNR.$index.2.fastq.gz");
+open(OUT_SIN, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.$index.S.fastq.gz");
 
 # start fwd and rev dictionaries/hashes
 # and other variables
@@ -161,7 +162,7 @@ my $total_hours = ($end - $start)/60/60;
 print "Paried: $total_paired\n";
 print "Single: $total_sing\n";
 print "Files written to:
-tmp/$fastq_SNF.1.fastq.gz
-tmp/$fastq_SNR.2.fastq.gz
-tmp/$fastq_SNF.S.fastq.gz\n";
+tmp/$fastq_SNF.$index.1.fastq.gz
+tmp/$fastq_SNR.$index.2.fastq.gz
+tmp/$fastq_SNF.$index.S.fastq.gz\n";
 printf "%.5f hours to finish\n", $total_hours;

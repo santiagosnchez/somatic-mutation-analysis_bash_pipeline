@@ -58,10 +58,8 @@ if [[ ! -e all_logfiles ]]; then
     mkdir all_logfiles
 fi
 
-# debug
-echo ${rg}
-echo "${rg}"
-echo -e "${rg}"
+# start finish
+check_finish=1
 
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
@@ -69,7 +67,7 @@ if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
        echo "resubmitting step and increase time by 2 hrs"
        wt=$(( wt + 2 ))
        rm aligned_bam/${sample}.${lane}.bam
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh
+       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg="${rg}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh
        exit 0
     else
        # check if bam is sorted
@@ -80,8 +78,10 @@ if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
             -t 10 \
             -o aligned_bam/${sample}.${index}.sorted.bam \
                aligned_bam/${sample}.${index}.bam
+           # check
+           check_finish=0
        else
-           ls &> /dev/null
+           check_finish=0
        fi
     fi
 else
@@ -94,10 +94,8 @@ else
    | sambamba view \
      -S -f bam \
      -o aligned_bam/${sample}.${index}.bam /dev/stdin
-   # debug
-   echo $?
    # sort file
-   if [[ "$?" == 0 ]]; then
+   if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) == 1 ]]; then
        sambamba sort \
          --tmpdir=./tmp \
          -m 5GB \
@@ -105,19 +103,13 @@ else
          -o aligned_bam/${sample}.${index}.sorted.bam \
          aligned_bam/${sample}.${index}.bam
    fi
-   # debug
-   echo $?
    # delete unsorted
-   if [[ "$?" == 0 ]]; then
+   if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.sorted.bam && echo 1) == 1 ]]; then
        rm aligned_bam/${sample}.${index}.bam
+       # define check
+       check_finish=0
    fi
 fi
-
-# debug
-echo $?
-
-# check finish
-check_finish=$?
 
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
@@ -138,7 +130,7 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "$?" == 0 && "${expected_bams}" == "${found_sorted_bams}" ]]; then
         # submit next job
         # can switch this to picards MarkDuplicate method
-        qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        qsub -l walltime=${wt}:00:00 -v sample=${sample},rg="${rg}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
     # move logfile
     mv ${sample}.${index}.bwa.log all_logfiles
