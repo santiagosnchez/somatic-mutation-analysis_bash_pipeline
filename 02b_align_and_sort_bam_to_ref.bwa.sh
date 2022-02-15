@@ -61,10 +61,8 @@ fi
 # start finish
 check_finish=1
 
-# debug
-echo "$rg"
-echo $rg
-echo -e "$rg"
+# force readgroup string to have literal tab string characters
+readgroup=$(echo $rg | sed 's/,/\\t/g')
 
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then

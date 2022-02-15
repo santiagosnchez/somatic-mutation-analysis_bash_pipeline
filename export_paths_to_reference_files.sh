@@ -61,10 +61,12 @@ get_read_group_info(){
     PU=${head_split[2]} # flowcell id
     BC=${head_split[10]} # barcode ID
     # build read group string
-    RG="@RG\\\tID:${ID}\\\tSM:${SM}\\\tLB:${BC}\\\tPL:${PL}\\\tBC:${BC}\\\tPU:${PU}\\\tPM:${PM}"
+    #RG="@RG\\\tID:${ID}\\\tSM:${SM}\\\tLB:${BC}\\\tPL:${PL}\\\tBC:${BC}\\\tPU:${PU}\\\tPM:${PM}"
+    RG="@RG,ID:${ID},SM:${SM},LB:${BC},PL:${PL},BC:${BC},PU:${PU},PM:${PM}"
   else
     ID=1 # run id
-    RG="@RG\\\tID:${ID}\\\tSM:${SM}\\\tPL:${PL}"
+    #RG="@RG\\\tID:${ID}\\\tSM:${SM}\\\tPL:${PL}"
+    RG="@RG,ID:${ID},SM:${SM},PL:${PL}"
   fi
   echo "$RG"
 }
