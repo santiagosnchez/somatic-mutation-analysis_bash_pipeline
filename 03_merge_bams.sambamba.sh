@@ -107,7 +107,7 @@ if [[ "$check_finish" == 0 ]]; then
     wt=$(get_walltime aligned_bam/${sample}.merged.bam)
     # submit next job
     # can switch this to picards MarkDuplicate method
-    qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${walltime},mode=${mode} ${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh
+    qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh
     # mv logfile
     mv ${sample}.sambamba-merge.log all_logfiles
     # log to main
