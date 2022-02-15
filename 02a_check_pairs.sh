@@ -54,9 +54,9 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
           qsub -l walltime="${wt}":00:00 -v file_list="tmp/${sample}_file_list.csv",index="${index}s",sample=${sample},rg="${rg}",forward=${singletons},reverse="",mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       else
           # delete tmp files
-          new_forward=$(cat ${sample}.checkpairs.log | grep "tmp/${sample}.*.${index}.1.fastq.gz")
-          new_reverse=$(cat ${sample}.checkpairs.log | grep "tmp/${sample}.*.${index}.2.fastq.gz")
-          singletons=$(cat ${sample}.checkpairs.log | grep "tmp/${sample}.*.${index}.S.fastq.gz")
+          new_forward=$(cat ${sample}.${index}.checkpairs.log | grep "tmp/${sample}.*.${index}.1.fastq.gz")
+          new_reverse=$(cat ${sample}.${index}.checkpairs.log | grep "tmp/${sample}.*.${index}.2.fastq.gz")
+          singletons=$(cat ${sample}.${index}.checkpairs.log | grep "tmp/${sample}.*.${index}.S.fastq.gz")
           rm $new_forward $new_reverse $singletons
           # proceed normally
           qsub -l walltime="${wt}":00:00 -v file_list="$file_list",index=${index},sample=${sample},rg="${rg}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
@@ -73,6 +73,6 @@ fi
 # final check
 if [[ "$?" == 0 ]]; then
     # move log
-    mv ${sample}.checkpairs.log all_logfiles
-    echo "02: Done checking pairs for ${sample}" | tee -a main.log
+    mv ${sample}.${index}.checkpairs.log all_logfiles
+    echo "02: Done checking pairs for ${sample}.${index}" | tee -a main.log
 fi

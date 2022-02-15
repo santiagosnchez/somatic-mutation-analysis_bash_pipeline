@@ -61,6 +61,11 @@ fi
 # start finish
 check_finish=1
 
+# debug
+echo "$rg"
+echo $rg
+echo -e "$rg"
+
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
     if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) != 1 ]]; then
