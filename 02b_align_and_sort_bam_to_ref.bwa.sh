@@ -64,6 +64,9 @@ check_finish=1
 # force readgroup string to have literal tab string characters
 readgroup=$(echo $rg | sed 's/,/\\t/g')
 
+# debug
+echo "$readgroup"
+
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
     if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) != 1 ]]; then
