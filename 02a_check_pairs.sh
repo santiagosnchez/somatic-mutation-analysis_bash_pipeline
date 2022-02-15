@@ -29,6 +29,11 @@ fi
 # load all paths
 source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
 
+# debug
+echo "$rg"
+echo $rg
+echo -e "$rg"
+
 # check length of file names and run script
 if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
    # run script
