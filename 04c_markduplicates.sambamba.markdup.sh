@@ -54,23 +54,28 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
-# run sambamba to mark duplicates
-if [[ -e aligned_bam/${sample}.merged.bam && $(samtools quickcheck aligned_bam/${sample}.merged.bam && echo 1) == 1 ]]; then
-    sambamba markdup \
-     --tmpdir=./tmp \
-     -t 10 \
-     aligned_bam/${sample}.merged.bam \
-     preprocessed_bam/${sample}.markdup.bam
-     # prev step already generates index
-     # index bam
-     # gatk BuildBamIndex -I preprocessed_bam/${sample}.markdup.bam
+# check if preprocess bam exists
+if [[ -e preprocessed_bam/${sample}.markdup.bam && $(samtools quickcheck preprocessed_bam/${sample}.markdup.bam && echo 1) == 1 ]]; then
+    ls &> /dev/null
 else
-    echo "04: resubmitting previous step and increase time by 2hrs (${sample})" | tee -a main.log
-    # add two more hours of walltime
-    wt=$(( wt + 2 ))
-    # resubmit previous script and exit
-    qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
-    exit 0
+    # run sambamba to mark duplicates
+    if [[ -e aligned_bam/${sample}.merged.bam && $(samtools quickcheck aligned_bam/${sample}.merged.bam && echo 1) == 1 ]]; then
+        sambamba markdup \
+         --tmpdir=./tmp \
+         -t 10 \
+         aligned_bam/${sample}.merged.bam \
+         preprocessed_bam/${sample}.markdup.bam
+         # prev step already generates index
+         # index bam
+         # gatk BuildBamIndex -I preprocessed_bam/${sample}.markdup.bam
+    else
+        echo "04: resubmitting previous step and increase time by 2hrs (${sample})" | tee -a main.log
+        # add two more hours of walltime
+        wt=$(( wt + 2 ))
+        # resubmit previous script and exit
+        qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        exit 0
+    fi
 fi
 
 check_finish=$?
@@ -82,7 +87,16 @@ fi
 
 if [[ "$check_finish" == 0 ]]; then
      # remove unnecessary files
-     rm preprocessed_bam/${sample}.merged.*
+     ls preprocessed_bam/${sample}.merged.* &> /dev/null
+     if [[ "$?" == 0 ]]; then
+         rm preprocessed_bam/${sample}.merged.*
+         rm aligned_bam/${sample}.merged.bam
+         rm aligned_bam/${sample}.merged.bam
+     fi
+     # check if there is a walltime
+     if [[ -z $wt ]]; then
+         wt=$(get_walltime aligned_bam/${sample}.markdup.bam)
+     fi
      qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
      # move log files to dir
      mv ${sample}.sambamba.markdup.log all_logfiles
