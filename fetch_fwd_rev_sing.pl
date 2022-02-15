@@ -9,8 +9,8 @@
 my $start = time();
 
 # check args
-if (scalar(@ARGV) != 2){
-   die "Needs forward and reverse read files (only two gzipped files)\n";
+if (scalar(@ARGV) != 3){
+   die "Needs forward and reverse read files (two gzipped files and an index)\n";
 }
 
 # location of fastq files
