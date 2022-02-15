@@ -61,11 +61,8 @@ fi
 # start finish
 check_finish=1
 
-# force readgroup string to have literal tab string characters
-readgroup=$(echo $rg | sed 's/,/\\t/g')
-
-# debug
-echo "$readgroup"
+# get readgroup info
+rg=$(get_read_group_info ${forward} ${sample})
 
 # check if prev step finished correctly
 if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
@@ -73,7 +70,7 @@ if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
        echo "resubmitting step and increase time by 2 hrs"
        wt=$(( wt + 2 ))
        rm aligned_bam/${sample}.${lane}.bam
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg="${rg}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh
+       qsub -l walltime=${wt}:00:00 -v sample=${sample},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh
        exit 0
     else
        # check if bam is sorted
@@ -122,9 +119,9 @@ if [[ "$check_finish" == 0 ]]; then
     # delete tmp files
     # if [[ $( echo ${forward} | grep -c "^tmp\/" ) == 1 ]]; then
     #     if [[ "${#reverse}" -gt 0 ]]; then
-    #         rm "./${forward}" "./${reverse}"
+    #         rm "./tmp/${forward}" "./tmp/${reverse}"
     #     else
-    #         rm "./${forward}"
+    #         rm "./tmp/${forward}"
     #     fi
     # fi
     # calculate the number of bam files to merge
@@ -136,7 +133,7 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "$?" == 0 && "${expected_bams}" == "${found_sorted_bams}" ]]; then
         # submit next job
         # can switch this to picards MarkDuplicate method
-        qsub -l walltime=${wt}:00:00 -v sample=${sample},rg="${rg}",forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        qsub -l walltime=${wt}:00:00 -v sample=${sample},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
     # move logfile
     mv ${sample}.${index}.bwa.log all_logfiles

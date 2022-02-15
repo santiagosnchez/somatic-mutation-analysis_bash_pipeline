@@ -62,11 +62,11 @@ get_read_group_info(){
     BC=${head_split[10]} # barcode ID
     # build read group string
     #RG="@RG\\\tID:${ID}\\\tSM:${SM}\\\tLB:${BC}\\\tPL:${PL}\\\tBC:${BC}\\\tPU:${PU}\\\tPM:${PM}"
-    RG="@RG,ID:${ID},SM:${SM},LB:${BC},PL:${PL},BC:${BC},PU:${PU},PM:${PM}"
+    RG="@RG\\tID:${ID}\\tSM:${SM}\\tLB:${BC}\\tPL:${PL}\\tBC:${BC}\\tPU:${PU}\\tPM:${PM}"
   else
     ID=1 # run id
     #RG="@RG\\\tID:${ID}\\\tSM:${SM}\\\tPL:${PL}"
-    RG="@RG,ID:${ID},SM:${SM},PL:${PL}"
+    RG="@RG\\tID:${ID}\\tSM:${SM}\\tPL:${PL}"
   fi
   echo "$RG"
 }
