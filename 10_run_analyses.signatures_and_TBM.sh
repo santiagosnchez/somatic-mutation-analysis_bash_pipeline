@@ -132,10 +132,10 @@ echo "tumor mutation burden done"
 # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
 
 # run variant analysis
-Rscript ${pipeline_dir}/variant_analysis.R ${mode} ${tumor}__${normal}
+Rscript ${pipeline_dir}/variant_analysis.nofigs.R ${mode} ${tumor}__${normal}
 
 # add to archive
-zip -ru analyses.zip analyses/${tumor}__${normal}.*
+zip -ru ${tumor}__${normal}.analyses.zip analyses/${tumor}__${normal}.*
 
 # check if finished
 check_finish=$?

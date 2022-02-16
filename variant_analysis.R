@@ -17,8 +17,10 @@ library(ggtext)
 library(biomaRt)
 
 
-# get args and set db_type
+# get args
 args = base::commandArgs(trailingOnly = TRUE)
+
+# define db_type for sigminer
 if (args[1] == "wes"){
   db_type="human-exome"
 } else {
@@ -208,7 +210,7 @@ tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
 # all_signatures = bind_rows(bnmf_cosmic, linear_decomp_cosmic)
 # all_data = inner_join(tmb_data, all_signatures %>% dplyr::select(-normal), by="tumor")
 # write.csv(all_data, file=paste0("analyses/", sample_name, ".signatures.csv"), quote=F, row.names=F)
-write.csv(linear_decomp_cosmic, file=paste0("analyses/", sample_name, "COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
+write.csv(linear_decomp_cosmic, file=paste0("analyses/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
 
 # print old output
 # tmbs
