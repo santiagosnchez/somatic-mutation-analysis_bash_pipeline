@@ -144,8 +144,10 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ -e varscan/pileups/${normal}.pileup ]]; then
         # how many T are paired with N
         paired_tumors=$(grep -c ",${normal}$" tumors_and_normals.csv)
-        if [[ $(ls *__${normal}.varscan.all.Somatic.hc.wes.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
+        if [[ $(ls varscan/*__${normal}.varscan.all.Somatic.hc.wes.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
             rm varscan/pileups/${normal}.pileup
         fi
     fi
+    # submit annotation
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode},tissue="Germline" ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
 fi
