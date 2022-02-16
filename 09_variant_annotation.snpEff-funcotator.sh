@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=5:00:00
-#PBS -e ${tumor}__${normal}.annotation.log
+#PBS -e ${tumor}__${normal}.annotation.${tissue}.log
 #PBS -j eo
 # scheduler settings
 
@@ -127,7 +127,9 @@ if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "09: Annotation with SnpEff and Funcotator completed for ${tumor}__${normal}." | tee -a main.log
     # run analyses
-    qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
+    if [[ "${tissue}" == "Somatic" ]]; then
+        qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
+    fi
     # move logfile
-    mv ${tumor}__${normal}.annotation.log all_logfiles
+    mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles
 fi
