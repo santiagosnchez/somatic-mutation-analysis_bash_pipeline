@@ -123,7 +123,7 @@ fi
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # bgzip and tabix vcf
-    ls vcf/${tumor}__${normal}.*annotated*.vcf | parallel index-vcf {}
+    ls vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated*.vcf | parallel index-vcf {}
     # log to main
     echo "09: Annotation with SnpEff and Funcotator completed for ${tumor}__${normal}." | tee -a main.log
     # run analyses
