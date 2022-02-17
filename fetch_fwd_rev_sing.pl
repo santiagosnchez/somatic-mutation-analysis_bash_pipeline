@@ -9,7 +9,7 @@
 my $start = time();
 
 # check args
-if (scalar(@ARGV) != 3){
+if (scalar(@ARGV) != 4){
    die "Needs forward and reverse read files (two gzipped files and an index)\n";
 }
 
