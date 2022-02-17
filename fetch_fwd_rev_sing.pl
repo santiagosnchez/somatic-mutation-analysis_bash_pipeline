@@ -17,6 +17,7 @@ if (scalar(@ARGV) != 3){
 my $fastq_fwd = $ARGV[0];
 my $fastq_rev = $ARGV[1];
 my $index = $ARGV[2];
+my $sample = $ARGV[3];
 # split path
 my @path1 = split /\//, $fastq_fwd;
 my @path2 = split /\//, $fastq_rev;
@@ -25,20 +26,20 @@ my $fastq_SNF;
 my $fastq_SNR;
 
 # find the last element in path and replace suffix
-if (substr($fastq_fwd, 0, 1) eq "/"){
-    $path1[ $#path1 ] =~ s/_R1.*//;
-    $fastq_SNF = $path1[ $#path1 ];
-} else {
-    $path1[ $#path1 - 1 ] =~ s/_R1.*//;
-    $fastq_SNF = $path1[ $#path1 - 1 ];
-}
-if (substr($fastq_rev, 0, 1) eq "/"){
-    $path2[ $#path2 ] =~ s/_R2.*//;
-    $fastq_SNR = $path2[ $#path2 ];
-} else {
-    $path2[ $#path2 - 1 ] =~ s/_R2.*//;
-    $fastq_SNR = $path2[ $#path2 -1 ];
-}
+# if (substr($fastq_fwd, 0, 1) eq "/"){
+#     $path1[ $#path1 ] =~ s/_R1.*//;
+#     $fastq_SNF = $path1[ $#path1 ];
+# } else {
+#     $path1[ $#path1 - 1 ] =~ s/_R1.*//;
+#     $fastq_SNF = $path1[ $#path1 - 1 ];
+# }
+# if (substr($fastq_rev, 0, 1) eq "/"){
+#     $path2[ $#path2 ] =~ s/_R2.*//;
+#     $fastq_SNR = $path2[ $#path2 ];
+# } else {
+#     $path2[ $#path2 - 1 ] =~ s/_R2.*//;
+#     $fastq_SNR = $path2[ $#path2 -1 ];
+# }
 
 # initialize filehandles
 my $IN_FWD;
@@ -50,9 +51,9 @@ my $OUT_SIN;
 # open gzippped files (input and output)
 open(IN_FWD, "-|", "/usr/bin/gunzip", "-c", $fastq_fwd);
 open(IN_REV, "-|", "/usr/bin/gunzip", "-c", $fastq_rev);
-open(OUT_FWD, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.$index.1.fastq.gz");
-open(OUT_REV, "|-", "/usr/bin/gzip > tmp/$fastq_SNR.$index.2.fastq.gz");
-open(OUT_SIN, "|-", "/usr/bin/gzip > tmp/$fastq_SNF.$index.S.fastq.gz");
+open(OUT_FWD, "|-", "/usr/bin/gzip > tmp/$sample.$index.1.fastq.gz");
+open(OUT_REV, "|-", "/usr/bin/gzip > tmp/$sample.$index.2.fastq.gz");
+open(OUT_SIN, "|-", "/usr/bin/gzip > tmp/$sample.$index.S.fastq.gz");
 
 # start fwd and rev dictionaries/hashes
 # and other variables
@@ -162,7 +163,7 @@ my $total_hours = ($end - $start)/60/60;
 print "Paried: $total_paired\n";
 print "Single: $total_sing\n";
 print "Files written to:
-tmp/$fastq_SNF.$index.1.fastq.gz
-tmp/$fastq_SNR.$index.2.fastq.gz
-tmp/$fastq_SNF.$index.S.fastq.gz\n";
+tmp/$sample.$index.1.fastq.gz
+tmp/$sample.$index.2.fastq.gz
+tmp/$sample.$index.S.fastq.gz\n";
 printf "%.5f hours to finish\n", $total_hours;
