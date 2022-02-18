@@ -96,6 +96,9 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLE \
 # POLE2 > analyses/${tumor}__${normal}.somatic_POL_mutations.genes.csv
 
+# log
+echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
+
 # add header to analyses/coverage_and_tmb.csv
 if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
     echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
