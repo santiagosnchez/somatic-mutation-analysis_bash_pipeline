@@ -119,13 +119,13 @@ fi
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
     # delete tmp files
-    # if [[ $( echo ${forward} | grep -c "^tmp\/" ) == 1 ]]; then
-    #     if [[ "${#reverse}" -gt 0 ]]; then
-    #         rm "./tmp/${forward}" "./tmp/${reverse}"
-    #     else
-    #         rm "./tmp/${forward}"
-    #     fi
-    # fi
+    if [[ $( echo ${forward} | grep -c "^tmp\/" ) == 1 ]]; then
+        if [[ "${#reverse}" -gt 0 ]]; then
+            rm "./tmp/${forward}" "./tmp/${reverse}"
+        else
+            rm "./tmp/${forward}"
+        fi
+    fi
     # calculate the number of bam files to merge
     expected_bams=$(cat ${file_list} | grep -c "^${sample},")
     found_sorted_bams=$(ls aligned_bam/${sample}.*.sorted.bam | wc -l)
