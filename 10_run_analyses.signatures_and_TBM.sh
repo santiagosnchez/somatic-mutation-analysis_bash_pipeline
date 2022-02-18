@@ -42,13 +42,6 @@ if [[ "${mode}" != "wes" ]]; then
     intervals=null
 fi
 
-# check if Germline vcf exists, otherwise wait for file.
-if [[ ! -e "vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz" ]]; then
-    echo "10: VarScan has not finished for ${tumor}__${normal}. Waiting..." | tee -a main.log
-    qsub -v file="vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz",tumor=${tumor},normal=${normal},mode=${mode},script=10_run_analyses.signatures_and_TBM.sh ${pipeline_dir}/wait_for_file.sh
-    exit 0
-fi
-
 
 # log
 echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
