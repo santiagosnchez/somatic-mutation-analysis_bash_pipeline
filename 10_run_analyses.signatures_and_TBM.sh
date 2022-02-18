@@ -127,6 +127,9 @@ echo "tumor mutation burden done"
 # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf | wc -l)
 # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
 
+# log
+echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
+
 # run variant analysis
 Rscript ${pipeline_dir}/variant_analysis.nofigs.R ${mode} ${tumor}__${normal}
 
