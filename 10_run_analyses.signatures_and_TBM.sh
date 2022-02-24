@@ -96,6 +96,9 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLE \
 # POLE2 > analyses/${tumor}__${normal}.somatic_POL_mutations.genes.csv
 
+# log
+echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
+
 # add header to analyses/coverage_and_tmb.csv
 if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
     echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
@@ -123,6 +126,9 @@ echo "tumor mutation burden done"
 # varscan_snvs=$(bcftools view -H -v snps varscan/${tumor}__${normal}.all.Somatic.hc.vcf.gz | wc -l)
 # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf | wc -l)
 # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
+
+# log
+echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
 
 # run variant analysis
 Rscript ${pipeline_dir}/variant_analysis.nofigs.R ${mode} ${tumor}__${normal}
