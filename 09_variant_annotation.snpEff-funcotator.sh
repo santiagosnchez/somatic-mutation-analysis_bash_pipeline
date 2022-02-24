@@ -130,12 +130,10 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "${tissue}" == "Somatic" && -e "all_logfiles/${tumor}__${normal}.annotation.Germline.log " ]]; then
         # submit last step
         qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
-        # move logfile
-        mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles
     elif [[ "${tissue}" == "Germline" && -e "all_logfiles/${tumor}__${normal}.annotation.Somatic.log " ]]; then
         # submit last step
         qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
-        # move logfile
-        mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles
     fi
+    # move logfile
+    mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles
 fi
