@@ -8,7 +8,7 @@ perl -ne '
       print $_;
     }
     if ($_ =~ m/##INFO=<ID=ANN/){
-      $_ =~ m/Functional annotations: \'(.+?)\' \">/;
+      $_ =~ m/Functional annotations: (.+?) \">/;
       @heads = split /\ | /, $1;
       print join("\t", @heads) . "\n";
     }
@@ -18,4 +18,4 @@ perl -ne '
     @maf = split /\|/, $1;
     print join("\t", @maf) . "\n";
   }
-'
+' | sed "s/\'//g"
