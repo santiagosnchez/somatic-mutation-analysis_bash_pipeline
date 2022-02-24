@@ -7,16 +7,14 @@ perl -ne '
     if ($_ =~ m/##Funcotator /){
       print $_;
     }
-    if ($_ =~ m/##INFO=<ID=FUNCOTATION/){
-      $_ =~ m/Funcotation fields are: (.+?)\"/;
-      @heads = split /\|/, $1;
-      map { $_ =~ s/Gencode_\d+_//; substr($_, 0, 1) = uc substr($_, 0, 1) } @heads;
-      $heads[0] = "Hugo_Symbol";
+    if ($_ =~ m/##INFO=<ID=ANN/){
+      $_ =~ m/Functional annotations: \'(.+?)\' \">/;
+      @heads = split /\ | /, $1;
       print join("\t", @heads) . "\n";
     }
   } else {
     @fields = split /\t/, $_;
-    $fields[7] =~ m/FUNCOTATION=\[(.+?)\]/;
+    $fields[7] =~ m/;*ANN=(.+?);*/;
     @maf = split /\|/, $1;
     print join("\t", @maf) . "\n";
   }
