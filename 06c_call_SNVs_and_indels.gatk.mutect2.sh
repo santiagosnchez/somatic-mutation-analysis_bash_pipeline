@@ -91,7 +91,7 @@ if [[ "$check_finish" == 0 ]]; then
             fi
             # log to main
             echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
-            echo "Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
+            echo "06: Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
             # submit read orientation analysis
             qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             # move logfile

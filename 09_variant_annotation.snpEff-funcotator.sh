@@ -19,10 +19,6 @@ if [[ ! -e vcf/snpEff ]]; then
     mkdir -p vcf/snpEff
 fi
 
-if [[ ! -e varscan/snpEff ]]; then
-    mkdir -p varscan/snpEff
-fi
-
 # create tmp dir
 if [[ ! -e tmp ]]; then
     mkdir tmp
@@ -90,8 +86,8 @@ elif [[ "${tissue}" == "Germline" ]]; then
      hg38 \
      -v \
      -canon \
-     -stats ${caller}/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
-     -csvStats ${caller}/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
+     -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
+     -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
      ${caller}/${tumor}__${normal}.${caller}.all.${tissue}.hc.${mode}.vcf.gz  > \
      vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
 
