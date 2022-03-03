@@ -17,8 +17,13 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
-# load all paths
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+# load reference path and other reference files
+# for details check script
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
 
 # create dir for preprocessed bam
 if [[ ! -e preprocessed_bam ]]; then

@@ -38,7 +38,12 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
+
 # change intervals to null if not WES
 if [[ "${mode}" != "wes" ]]; then
     intervals=null

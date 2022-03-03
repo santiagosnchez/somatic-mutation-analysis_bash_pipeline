@@ -31,8 +31,13 @@ if [[ -z $wt ]]; then
     wt=$(qstat -f $PBS_JOBID | sed -rn 's/.*Resource_List.walltime = (.*)/\1/p' | sed 's/:.*//')
 fi
 
-# load all paths
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+# load reference path and other reference files
+# for details check script
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
 
 # check length of file names and run script
 if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
