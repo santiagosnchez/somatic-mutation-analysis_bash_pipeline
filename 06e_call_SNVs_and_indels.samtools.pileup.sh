@@ -67,8 +67,8 @@ if [[ "$check_finish" == 0 ]]; then
         # check how many pileups finished
         pileups=$(ls all_logfiles/${sample}.VarScan.pileup.*.log | wc -l)
         if [[ "${pileups}" == 29 ]]; then
-            cat $(ls varscan/pileups/${tumor}.*.pileup | sort -V) > varscan/pileups/${sample}.pileup && \
-            rm varscan/pileups/${tumor}.*.pileup
+            cat $(ls varscan/pileups/${sample}.*.pileup | sort -V) > varscan/pileups/${sample}.pileup && \
+            rm varscan/pileups/${sample}.*.pileup
             # check if both tumor and normal pileups are found
             cat tumors_and_normals.csv | grep "^${sample},"
             if [[ "$?" == 0 ]]; then
@@ -98,7 +98,7 @@ if [[ "$check_finish" == 0 ]]; then
                 done
             else
                 # if sample is normal, just tidyup
-                normal=$(grep ",${sample}$" tumors_and_normals.csv && echo ${sample})
+                normal=$(grep ",${sample}$" tumors_and_normals.csv &> /dev/null && echo ${sample})
                 if [[ ${sample} == ${normal} ]]; then
                     echo "06: pileup finished for normal ${normal} interval ${index}." | tee -a main.log
                     # mv log and merge pileup logs
