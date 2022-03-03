@@ -1,6 +1,7 @@
 #!/bin/bash
 # pipeline folder
-export pipeline_dir=/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery
+# tmp for testing
+export pipeline_dir=/home/ssanchez/somatic-mutation-analysis_bash_pipeline
 # path to human reference genome assembly v38
 export reference=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/Homo_sapiens_assembly38.fasta
 # path to WES target intervals

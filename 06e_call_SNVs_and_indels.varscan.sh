@@ -119,4 +119,6 @@ if [[ "$check_finish" == 0 ]]; then
     fi
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
+    # submit annotation
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode},tissue="Germline" ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
 fi
