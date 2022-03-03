@@ -96,14 +96,14 @@ if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]];
             # index
             tabix varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
         fi
-    else
-        if [[ -e varscan/pileup/${tumor}.pileup ]]; then
-            # resubmit normal pileup
-        elif [[ -e varscan/pileup/${normal}.pileup ]]; then
-            # resubmit tumor pileup
-        else
-            # resubmit both
-        fi
+    # else
+    #     if [[ -e varscan/pileup/${tumor}.pileup ]]; then
+    #         # resubmit normal pileup
+    #     elif [[ -e varscan/pileup/${normal}.pileup ]]; then
+    #         # resubmit tumor pileup
+    #     else
+    #         # resubmit both
+    #     fi
     fi
 else
   ls &> /dev/null
