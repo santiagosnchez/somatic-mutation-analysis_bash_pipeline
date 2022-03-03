@@ -45,56 +45,65 @@ else
 fi
 
 if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]]; then
-# double check files
-if [[ -e varscan/pileup/${tumor}.pileup && -e varscan/pileup/${normal}.pileup ]]; then
-    # run varscan
-    java -jar ${varscan_jar} somatic \
-     varscan/pileups/${normal}.pileup \
-     varscan/pileups/${tumor}.pileup \
-     varscan/${tumor}__${normal}.varscan \
-     --output-vcf 1 \
-     --strand-filter
+    # double check files
+    if [[ -e varscan/pileup/${tumor}.pileup && -e varscan/pileup/${normal}.pileup ]]; then
+        # run varscan
+        java -jar ${varscan_jar} somatic \
+         varscan/pileups/${normal}.pileup \
+         varscan/pileups/${tumor}.pileup \
+         varscan/${tumor}__${normal}.varscan \
+         --output-vcf 1 \
+         --strand-filter
 
-    if [[ "$?" == 0 ]]; then
-        # first SNVs
-        java -jar ${varscan_jar} processSomatic \
-          varscan/${tumor}__${normal}.varscan.snp.vcf \
-          --min-tumor-freq 0.10 \
-          --max-normal-freq 0.05 \
-          --p-value 0.05
-        # then indels
-        java -jar ${varscan_jar} processSomatic \
-          varscan/${tumor}__${normal}.varscan.indel.vcf \
-          --min-tumor-freq 0.10 \
-          --max-normal-freq 0.05 \
-          --p-value 0.05
-        # compress and index
-        index-vcf varscan/${tumor}__${normal}.varscan.snp.Somatic.hc.vcf
-        index-vcf varscan/${tumor}__${normal}.varscan.indel.Somatic.hc.vcf
-        index-vcf varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf
-        index-vcf varscan/${tumor}__${normal}.varscan.indel.Germline.hc.vcf
-        # concat Somatic
-        bcftools concat \
-         -a \
-         -Oz \
-         varscan/${tumor}__${normal}.varscan.snp.Somatic.hc.vcf.gz \
-         varscan/${tumor}__${normal}.varscan.indel.Somatic.hc.vcf.gz \
-         > varscan/${tumor}__${normal}.varscan.all.Somatic.hc.vcf.gz
-        # rename
-        mv varscan/${tumor}__${normal}.varscan.all.Somatic.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
-        # index
-        tabix varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
-        # concat Germline
-        bcftools concat \
-         -a \
-         -Oz \
-         varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf.gz \
-         varscan/${tumor}__${normal}.varscan.indel.Germline.hc.vcf.gz \
-         > varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz
-        # rename
-        mv varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
-        # index
-        tabix varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
+        if [[ "$?" == 0 ]]; then
+            # first SNVs
+            java -jar ${varscan_jar} processSomatic \
+              varscan/${tumor}__${normal}.varscan.snp.vcf \
+              --min-tumor-freq 0.10 \
+              --max-normal-freq 0.05 \
+              --p-value 0.05
+            # then indels
+            java -jar ${varscan_jar} processSomatic \
+              varscan/${tumor}__${normal}.varscan.indel.vcf \
+              --min-tumor-freq 0.10 \
+              --max-normal-freq 0.05 \
+              --p-value 0.05
+            # compress and index
+            index-vcf varscan/${tumor}__${normal}.varscan.snp.Somatic.hc.vcf
+            index-vcf varscan/${tumor}__${normal}.varscan.indel.Somatic.hc.vcf
+            index-vcf varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf
+            index-vcf varscan/${tumor}__${normal}.varscan.indel.Germline.hc.vcf
+            # concat Somatic
+            bcftools concat \
+             -a \
+             -Oz \
+             varscan/${tumor}__${normal}.varscan.snp.Somatic.hc.vcf.gz \
+             varscan/${tumor}__${normal}.varscan.indel.Somatic.hc.vcf.gz \
+             > varscan/${tumor}__${normal}.varscan.all.Somatic.hc.vcf.gz
+            # rename
+            mv varscan/${tumor}__${normal}.varscan.all.Somatic.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
+            # index
+            tabix varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz
+            # concat Germline
+            bcftools concat \
+             -a \
+             -Oz \
+             varscan/${tumor}__${normal}.varscan.snp.Germline.hc.vcf.gz \
+             varscan/${tumor}__${normal}.varscan.indel.Germline.hc.vcf.gz \
+             > varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz
+            # rename
+            mv varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
+            # index
+            tabix varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
+        fi
+    else
+        if [[ -e varscan/pileup/${tumor}.pileup ]]; then
+            # resubmit normal pileup
+        elif [[ -e varscan/pileup/${normal}.pileup ]]; then
+            # resubmit tumor pileup
+        else
+            # resubmit both
+        fi
     fi
 else
   ls &> /dev/null
