@@ -42,7 +42,7 @@ fi
 
 if [[ $(samtools quickcheck ${dir}/${sample}.bqsr.bam && echo 1) == 1 ]]; then
 # run mpileup in parallel for 30 intervals
-    samtools mpileup --reference ${reference} -l $bed30intervals/$bed ${dir}/${sample}.bqsr.bam > varscan/pileups/${tumor}.${index}.pileup
+    samtools mpileup --reference ${reference} -l $bed30intervals/$bed ${dir}/${sample}.bqsr.bam > varscan/pileups/${sample}.${index}.pileup
     # check if finished
     check_finish=$?
 else
