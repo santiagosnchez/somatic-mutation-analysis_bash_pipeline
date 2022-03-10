@@ -47,9 +47,10 @@ if [[ $(samtools quickcheck ${dir}/${sample}.bqsr.bam && echo 1) == 1 ]]; then
     check_finish=$?
 else
     # log
-    echo "06: ${sample} resubmitting to previous." | tee -a main.log
-    # resubmit previous
-    qsub -v sample=${sample},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
+    echo "06: ${sample} bam not found or truncated." | tee -a main.log
+    # fail signal
+    ls | grep ${RANDOM}
+    check_finish=$?
 fi
 
 # create log dir
@@ -68,7 +69,7 @@ if [[ "$check_finish" == 0 ]]; then
         pileups=$(ls all_logfiles/${sample}.VarScan.pileup.*.log | wc -l)
         if [[ "${pileups}" == 29 ]]; then
             cat $(ls varscan/pileups/${sample}.*.pileup | sort -V) > varscan/pileups/${sample}.pileup && \
-            rm varscan/pileups/${sample}.*.pileup
+            #rm varscan/pileups/${sample}.*.pileup
             # check if both tumor and normal pileups are found
             cat tumors_and_normals.csv | grep "^${sample},"
             if [[ "$?" == 0 ]]; then
