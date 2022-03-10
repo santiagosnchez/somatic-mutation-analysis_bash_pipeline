@@ -49,7 +49,7 @@ else
     # log
     echo "06: ${sample} resubmitting to previous." | tee -a main.log
     # resubmit previous
-    qsub -v sample=${sample},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
+    qsub -v sample=${sample},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
 fi
 
 # create log dir
@@ -78,7 +78,7 @@ if [[ "$check_finish" == 0 ]]; then
                     normal=$(echo $line | sed 's/^.*,//')
                     if [[ -e varscan/pileups/${tumor}.pileup && -e varscan/pileups/${normal}.pileup ]]; then
                         # submit calling step
-                        qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
+                        qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
                         # mv log and merge pileup logs
                         mv ${sample}.VarScan.pileup.${index}.log all_logfiles
                         cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log

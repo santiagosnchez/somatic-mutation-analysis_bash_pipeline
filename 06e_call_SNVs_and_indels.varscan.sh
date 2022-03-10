@@ -19,6 +19,9 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
+# debug
+qstat -f $PBS_JOBID
+
 # create output dirs
 if [[ ! -e varscan ]]; then
     mkdir -p varscan/pileups
