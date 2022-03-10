@@ -98,7 +98,9 @@ if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]];
             mv varscan/${tumor}__${normal}.varscan.all.Germline.hc.vcf.gz varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
             # index
             tabix varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz
-        fi
+        else
+            # should give $? == 1
+            ls | grep "${RANDOM}"
     # else
     #     if [[ -e varscan/pileup/${tumor}.pileup ]]; then
     #         # resubmit normal pileup
@@ -107,6 +109,7 @@ if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]];
     #     else
     #         # resubmit both
     #     fi
+        fi
     fi
 else
   ls &> /dev/null
