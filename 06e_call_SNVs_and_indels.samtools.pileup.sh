@@ -77,6 +77,8 @@ if [[ "$check_finish" == 0 ]]; then
                     tumor=$(echo $line | sed 's/,.*//')
                     normal=$(echo $line | sed 's/^.*,//')
                     if [[ -e varscan/pileups/${tumor}.pileup && -e varscan/pileups/${normal}.pileup ]]; then
+                        # log
+                        echo "06: all pileup finished for tumor ${tumor} and ${normal}." | tee -a main.log
                         # submit calling step
                         qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
                         # mv log and merge pileup logs
@@ -100,7 +102,7 @@ if [[ "$check_finish" == 0 ]]; then
                 # if sample is normal, just tidyup
                 normal=$(grep ",${sample}$" tumors_and_normals.csv &> /dev/null && echo ${sample})
                 if [[ ${sample} == ${normal} ]]; then
-                    echo "06: pileup finished for normal ${normal} interval ${index}." | tee -a main.log
+                    echo "06: all pileup finished for normal ${normal}." | tee -a main.log
                     # mv log and merge pileup logs
                     mv ${sample}.VarScan.pileup.${index}.log all_logfiles
                     cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
@@ -113,12 +115,12 @@ if [[ "$check_finish" == 0 ]]; then
                 fi
             fi
         else
-            echo "06: pileup finished for normal ${normal} interval ${index}." | tee -a main.log
+            echo "06: pileup finished for ${sample} interval ${index}." | tee -a main.log
             # mv log and merge pileup logs
             mv ${sample}.VarScan.pileup.${index}.log all_logfiles
         fi
     else
-        echo "06: pileup finished for normal ${normal} interval ${index}." | tee -a main.log
+        echo "06: pileup finished for ${sample} interval ${index}." | tee -a main.log
         # mv log and merge pileup logs
         mv ${sample}.VarScan.pileup.${index}.log all_logfiles
     fi
