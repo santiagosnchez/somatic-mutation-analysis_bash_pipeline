@@ -49,7 +49,7 @@ fi
 
 if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]]; then
     # double check files
-    if [[ -e varscan/pileup/${tumor}.pileup && -e varscan/pileup/${normal}.pileup ]]; then
+    if [[ -e varscan/pileups/${tumor}.pileup && -e varscan/pileups/${normal}.pileup ]]; then
         # run varscan
         java -jar ${varscan_jar} somatic \
          varscan/pileups/${normal}.pileup \

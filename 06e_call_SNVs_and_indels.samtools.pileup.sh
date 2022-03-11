@@ -79,7 +79,7 @@ if [[ "$check_finish" == 0 ]]; then
                     normal=$(echo $line | sed 's/^.*,//')
                     if [[ -e varscan/pileups/${tumor}.pileup && -e varscan/pileups/${normal}.pileup ]]; then
                         # log
-                        echo "06: all pileup finished for tumor ${tumor} and ${normal}." | tee -a main.log
+                        echo "06: all pileup finished for tumor ${tumor} and normal ${normal}." | tee -a main.log
                         # submit calling step
                         qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
                         # mv log and merge pileup logs
