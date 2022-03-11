@@ -49,11 +49,11 @@ if [[ "$?" == 0 ]]; then
   else
     qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/${script}
   fi
-  mv ${sample}.waitforfile.log
+  mv ${sample}.waitforfile.log all_logfiles
 else
   if [[ -z $tumor ]]; then
     qsub -v file=${file},sample=${sample},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
   else
-    qsub -v file=${file},sample=${tumor},tumor=${tumor},normal=${normal},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
+    qsub -v file=${file},sample=${sample},tumor=${tumor},normal=${normal},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
   fi
 fi

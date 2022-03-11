@@ -128,14 +128,14 @@ if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "06: ${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
     # delete pileups
-    rm varscan/pileups/${tumor}.pileup
-    if [[ -e varscan/pileups/${normal}.pileup ]]; then
-        # how many T are paired with N
-        paired_tumors=$(grep -c ",${normal}$" tumors_and_normals.csv)
-        if [[ $(ls *__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
-            rm varscan/pileups/${normal}.pileup
-        fi
-    fi
+    # rm varscan/pileups/${tumor}.pileup
+    # if [[ -e varscan/pileups/${normal}.pileup ]]; then
+    #     # how many T are paired with N
+    #     paired_tumors=$(grep -c ",${normal}$" tumors_and_normals.csv)
+    #     if [[ $(ls *__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
+    #         rm varscan/pileups/${normal}.pileup
+    #     fi
+    # fi
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
     # submit annotation

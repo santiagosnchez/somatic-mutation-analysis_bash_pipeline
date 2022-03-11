@@ -67,9 +67,9 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "$?" == 0 ]]; then
         # check how many pileups finished
         pileups=$(ls all_logfiles/${sample}.VarScan.pileup.*.log | wc -l)
-        if [[ "${pileups}" == 29 ]]; then
-            cat $(ls varscan/pileups/${sample}.*.pileup | sort -V) > varscan/pileups/${sample}.pileup && \
-            #rm varscan/pileups/${sample}.*.pileup
+        if [[ "${pileups}" == 29 || "${pileups}" == 30 ]]; then
+            cat $(ls varscan/pileups/${sample}.*.pileup | sort -V) > varscan/pileups/${sample}.pileup
+            rm varscan/pileups/${sample}.*.pileup
             # check if both tumor and normal pileups are found
             cat tumors_and_normals.csv | grep "^${sample},"
             if [[ "$?" == 0 ]]; then
@@ -91,7 +91,7 @@ if [[ "$check_finish" == 0 ]]; then
                         # log
                         echo "06: waiting for normal ${normal} pileup to finish." | tee -a main.log
                         # wait for file
-                        qsub -v file="varscan/pileups/${normal}.pileup",tumor=${tumor},normal=${normal},mode=${mode},script=06e_call_SNVs_and_indels.varscan.sh ${pipeline_dir}/wait_for_file.sh
+                        qsub -v file="varscan/pileups/${normal}.pileup",sample=${tumor},tumor=${tumor},normal=${normal},mode=${mode},script=06e_call_SNVs_and_indels.varscan.sh,pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
                         # mv log and merge pileup logs
                         mv ${sample}.VarScan.pileup.${index}.log all_logfiles
                         cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
