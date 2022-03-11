@@ -42,8 +42,13 @@ fi
 # write job details to log
 qstat -f $PBS_JOBID
 
-# load all paths
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+# load reference path and other reference files
+# for details check script
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
 
 # create dir for ubam
 if [[ ! -e aligned_bam ]]; then

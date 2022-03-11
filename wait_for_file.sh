@@ -29,8 +29,13 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
-# load pipeline path
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+# load reference path and other reference files
+# for details check script
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
 
 # set a timeout for the the file lookup function
 # timeout is set for 5.5 hours (in seconds)
@@ -40,15 +45,15 @@ timeout 19800 bash -c "file_lookup $file"
 # check if commands completes
 if [[ "$?" == 0 ]]; then
   if [[ -z $tumor ]]; then
-    qsub -v sample=${sample},mode=${mode} ${pipeline_dir}/${script}
+    qsub -v sample=${sample},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/${script}
   else
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/${script}
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/${script}
   fi
-  mv ${sample}.waitforfile.log
+  mv ${sample}.waitforfile.log all_logfiles
 else
   if [[ -z $tumor ]]; then
-    qsub -v file=${file},sample=${sample},mode=${mode},script=${script} ${pipeline_dir}/wait_for_file.sh
+    qsub -v file=${file},sample=${sample},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
   else
-    qsub -v file=${file},sample=${tumor},tumor=${tumor},normal=${normal},mode=${mode},script=${script} ${pipeline_dir}/wait_for_file.sh
+    qsub -v file=${file},sample=${sample},tumor=${tumor},normal=${normal},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
   fi
 fi

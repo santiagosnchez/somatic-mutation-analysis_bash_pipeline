@@ -38,7 +38,12 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
+
 # change intervals to null if not WES
 if [[ "${mode}" != "wes" ]]; then
     intervals=null
@@ -110,6 +115,9 @@ if [[ "$check_finish" == 0 ]]; then
     # next round of jobs are submitted manually or not
     # log to main
     echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
+    # submit varscan
+    echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
+    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp "qsub -v sample=${sample},bed={},mode=${mode},index={#},pipeline_dir=${pipeline_dir} ${pipeline_dir}/06e_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
     # check if file exists and continue
     if [[ -e tumors_and_normals.csv ]]; then
         cat tumors_and_normals.csv | grep "^${sample},"
@@ -134,7 +142,7 @@ if [[ "$check_finish" == 0 ]]; then
                     # submit mutect2 jobs on 30 intervals
                     ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp "qsub -v normal=${normal},tumor=${tumor},bed={},mode=${mode},index={#} ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
                     # submit varscan
-                    qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
+                    #qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
                     # move logfiles
                     if [[ "$?" == 0 ]]; then
                         mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles

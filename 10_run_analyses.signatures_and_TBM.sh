@@ -33,10 +33,14 @@ else
     dir=bam
 fi
 
-
 # load reference path and other reference files
 # for details check script
-source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+if [[ -z ${pipeline_dir} ]]; then
+    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
+else
+    source ${pipeline_dir}/export_paths_to_reference_files.sh
+fi
+
 # change intervals to null if not WES
 if [[ "${mode}" != "wes" ]]; then
     intervals=null
@@ -153,11 +157,11 @@ if [[ "$check_finish" == 0 ]]; then
     total_time_in_days=$( how_long main.log )
     echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_days} days" | tee -a main.log
     # check if all samples finished
-    finished=$( cat finished.csv | wc -l )
-    started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
+    finished=$( cat finished.csv | sort -u | wc -l )
+    started=$( cat tumors_and_normals.csv | grep -v "^#" | sort -u | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
         # add tmb_and_coverage to archive
-        zip -ru analyses.zip analyses/coverage_and_tmb.csv
+        zip -ru all_samples.analyses.zip *.analyses.zip coverage_and_tmb.csv
         # tidyup and clean working dir
         if [[ ! -e bam ]]; then
             mv BQSR bam
@@ -193,24 +197,26 @@ if [[ "$check_finish" == 0 ]]; then
             # read/write/excecute
             # dirs first
             echo "10: changing permissions" | tee -a main.log
-            chmod 774 all_logfiles \
-                      analyses \
-                      bam \
-                      contamination \
-                      mutect2/f1r2 \
-                      vcf/snpEff
+            find . -type d -user `whoami` -exec chmod 774 {} \;
+            find . -type f -user `whoami` -exec chmod 664 {} \;
+            # chmod 774 all_logfiles \
+            #           analyses \
+            #           bam \
+            #           contamination \
+            #           mutect2/f1r2 \
+            #           vcf/snpEff
             # files second
-            chmod 664 all_logfiles/* \
-                      analyses/* \
-                      bam/* \
-                      contamination/* \
-                      mutect2/*vcf* \
-                      mutect2/f1r2/* \
-                      vcf/*vcf* \
-                      vcf/*maf* \
-                      vcf/snpEff/* \
-                      varscan/*vcf* \
-                      ${tumor}__${normal}.analyses.log
+            # chmod 664 all_logfiles/* \
+            #           analyses/* \
+            #           bam/* \
+            #           contamination/* \
+            #           mutect2/*vcf* \
+            #           mutect2/f1r2/* \
+            #           vcf/*vcf* \
+            #           vcf/*maf* \
+            #           vcf/snpEff/* \
+            #           varscan/*vcf* \
+            #           ${tumor}__${normal}.analyses.log
             #
         fi
     fi
