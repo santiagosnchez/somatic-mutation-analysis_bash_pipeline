@@ -19,9 +19,6 @@ cd $PBS_O_WORKDIR
 # print jobid to 1st line
 echo $PBS_JOBID
 
-# debug
-qstat -f $PBS_JOBID
-
 # create output dirs
 if [[ ! -e varscan ]]; then
     mkdir -p varscan/pileups
@@ -101,14 +98,6 @@ if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]];
         else
             # should give $? == 1
             ls | grep "${RANDOM}"
-    # else
-    #     if [[ -e varscan/pileup/${tumor}.pileup ]]; then
-    #         # resubmit normal pileup
-    #     elif [[ -e varscan/pileup/${normal}.pileup ]]; then
-    #         # resubmit tumor pileup
-    #     else
-    #         # resubmit both
-    #     fi
         fi
     fi
 else
@@ -128,16 +117,16 @@ if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "06: ${tumor}__${normal} VarScan2 variant calling completed." | tee -a main.log
     # delete pileups
-    # rm varscan/pileups/${tumor}.pileup
-    # if [[ -e varscan/pileups/${normal}.pileup ]]; then
-    #     # how many T are paired with N
-    #     paired_tumors=$(grep -c ",${normal}$" tumors_and_normals.csv)
-    #     if [[ $(ls *__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
-    #         rm varscan/pileups/${normal}.pileup
-    #     fi
-    # fi
+    rm varscan/pileups/${tumor}.pileup
+    if [[ -e varscan/pileups/${normal}.pileup ]]; then
+        # how many T are paired with N
+        paired_tumors=$(grep -c ",${normal}$" tumors_and_normals.csv)
+        if [[ $(ls varscan/*__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz | wc -l) == "${paired_tumors}" ]]; then
+            rm varscan/pileups/${normal}.pileup
+        fi
+    fi
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
     # submit annotation
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode},tissue="Germline" ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
+    qsub -v tumor=${tumor},normal=${normal},mode=${mode},tissue="Germline",pipeline_dir=${pipeline_dir} ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
 fi
