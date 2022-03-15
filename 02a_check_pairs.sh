@@ -58,10 +58,27 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
           # calculate new walltime and read group
           wt=$(get_walltime $new_forward $new_reverse)
           # submit new jobs
-          qsub -l walltime="${wt}":00:00 -v wt="${wt}",file_list="tmp/${sample}_file_list.csv",index=${index},sample=${sample},forward=${new_forward},reverse=${new_reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+          qsub -l walltime="${wt}":00:00 -v \
+wt="${wt}",\
+file_list="tmp/${sample}_file_list.csv",\
+index=${index},\
+sample=${sample},\
+forward=${new_forward},\
+reverse=${new_reverse},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir} \
+${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
           # for singletons
           wt=$(get_walltime $singletons)
-          qsub -l walltime="${wt}":00:00 -v wt="${wt}",file_list="tmp/${sample}_file_list.csv",index="${index}s",sample=${sample},forward=${singletons},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+          qsub -l walltime="${wt}":00:00 -v \
+wt="${wt}",\
+file_list="tmp/${sample}_file_list.csv",\
+index="${index}s",\
+sample=${sample},\
+forward=${singletons},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir} \
+${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       else
           # delete tmp files
           new_forward="tmp/${sample}.${index}.1.fastq.gz"
@@ -69,7 +86,16 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
           singletons="tmp/${sample}.${index}.S.fastq.gz"
           rm $new_forward $new_reverse $singletons
           # proceed normally
-          qsub -l walltime="${wt}":00:00 -v wt="${wt}",file_list="$file_list",index=${index},sample=${sample},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+          qsub -l walltime="${wt}":00:00 -v \
+wt="${wt}",\
+file_list="$file_list",\
+index=${index},\
+sample=${sample},\
+forward=${forward},\
+reverse=${reverse},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir} \
+${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       fi
    else
       echo "fetch_fwd_rev_sing.pl failed with an error for ${sample}"
@@ -77,7 +103,15 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
    fi
 else
     # submit as single ended
-     qsub -l walltime="${wt}":00:00 -v wt="${wt}",file_list="$file_list",index=${index},sample=${sample},forward=${forward},mode=${mode} ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
+     qsub -l walltime="${wt}":00:00 -v \
+wt="${wt}",\
+file_list="$file_list",\
+index=${index},\
+sample=${sample},\
+forward=${forward},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir} \
+${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
 fi
 
 # final check

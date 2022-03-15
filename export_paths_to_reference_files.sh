@@ -1,21 +1,47 @@
 #!/bin/bash
-# pipeline folder
-# tmp for testing
-export pipeline_dir=/home/ssanchez/somatic-mutation-analysis_bash_pipeline
-# path to human reference genome assembly v38
-export reference=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/Homo_sapiens_assembly38.fasta
-# path to WES target intervals
-export intervals=/hpf/largeprojects/tabori/shared/resources/hg38/AgilentSureSelectV5/AgilentSureSelectV5_LiftOver-hg19TOhg38_CoveredRegions.interval_list
-# path to WES tergets in bed format
-export intervals_bed=/hpf/largeprojects/tabori/shared/resources/hg38/AgilentSureSelectV5/AgilentSureSelectV5_LiftOver-hg19TOhg38_CoveredRegions.bed
-# path to vcf file with known SNPs from the 1000 genomes project
-export knownsites_snps=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
-# path to vcf file with known indels from the 1000 genomes project
-export knownsites_indels=/hpf/largeprojects/tabori/shared/resources/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
-# path to WES intervals for running MuTect2
-export bed30intervals=/hpf/largeprojects/tabori/shared/resources/hg38/AgilentSureSelectV5/AgilentSureSelectV5-exome-interval-files-gatk-split-30/
-# path to gnomad resource
-export gnomad_resource=/hpf/largeprojects/tabori/shared/resources/hg38/gnomad/gnomad.biallelic.AF0.0001.PASS.vcf
+
+resources_dir=/hpf/largeprojects/tabori/shared/resources
+
+if [[ -z $1 ]]; then
+    # path to human reference genome assembly v38
+    export reference=${resources_dir}/hg38/gatk_bundle/Homo_sapiens_assembly38.fasta
+    # path to WES target intervals
+    export intervals=${resources_dir}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.interval_list
+    # path to WES tergets in bed format
+    export intervals_bed=${resources_dir}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.bed
+    # path to vcf file with known SNPs from the 1000 genomes project
+    export knownsites_snps=${resources_dir}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
+    # path to vcf file with known indels from the 1000 genomes project
+    export knownsites_indels=${resources_dir}/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
+    # path to WES intervals for running MuTect2
+    export bed30intervals=${resources_dir}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.30-bed-files/
+    # path to gnomad resource
+    export gnomad_resource=${resources_dir}/hg38/gnomad/gnomad.biallelic.AF0.0001.PASS.vcf
+else
+    # test organism
+    if [[ ${1} == "human" ]]; then
+        # test reference version
+        if [[ ${2} == "hg38" ]]; then
+            # test mode
+            if [[ ${3} == "wes" ]]; then
+                # path to human reference genome assembly v38
+                export reference=${resources_dir}/hg38/gatk_bundle/Homo_sapiens_assembly38.fasta
+                # path to WES target intervals
+                export intervals=${resources_dir}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.interval_list
+                # path to WES tergets in bed format
+                export intervals_bed=${resources_dir}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.bed
+                # path to vcf file with known SNPs from the 1000 genomes project
+                export knownsites_snps=${resources_dir}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
+                # path to vcf file with known indels from the 1000 genomes project
+                export knownsites_indels=${resources_dir}/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
+                # path to WES intervals for running MuTect2
+                export bed30intervals=${resources_dir}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.30-bed-files/
+                # path to gnomad resource
+                export gnomad_resource=${resources_dir}/hg38/gnomad/gnomad.biallelic.AF0.0001.PASS.vcf
+            else
+
+
+# reference independent locations:
 # path to snpEff jar file
 export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
 # path to snpEff data dir
@@ -25,8 +51,8 @@ export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
 # point to recent version of gatk
 export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
 # funcotator data resources
-export funcotator_databases_s=/hpf/largeprojects/tabori/shared/resources/funcotator_dataSources.v1.7.20200521s
-export funcotator_databases_g=/hpf/largeprojects/tabori/shared/resources/funcotator_dataSources.v1.7.20200521g
+export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
+export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
 
 # functions
 

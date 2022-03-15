@@ -1,86 +1,141 @@
 #!/bin/bash
 
-#####################
-# example:
-# bash ~/pipline/01_submit_jobs.sh wes
-# or
-# bash ~/pipline/01_submit_jobs.sh wes added_file_list.csv
-# where "added_file_list.csv" is a list with additional samples
-# to add
-#####################
+# print message and exit
+die(){
+    echo -e "$@"
+    return 0
+}
+export -f die
 
+help_message="
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Somatic and Germline Mutation Discovery Pipeline
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+©Santiago Sánchez-Ramírez, SickKids
+Contact: santiago.sanchezramirez@sickkids.ca
+
+Required arguments:
+
+--mode, -m              STR       Data mode. Options are: wes, wgs
+
+Optional arguments:
+
+--file_list, -f         STR       3-column CSV file with paths to FASTQ files.
+                                  First column is the sample name. Second is the path
+                                  to the forward reads (R1.fastq.gz). Third is the path
+                                  to the reverse reads (R2.fastq.gz).
+                                  Default: file_list.csv
+
+--organism, -o          STR       Organismal data source. Needed to adjust the genome
+                                  reference files. Options are: human, mouse
+                                  Default: human
+
+--append, -a            BOOL      Flag to append to current run.
+                                  Default: false
+
+--reference, -r         STR       Provide a the version of the reference to use.
+                                  Default: hg38
+                                  Options: hg38, hs37d5, b37, (need to add those from other organisms)
+
+--skip-alignment, -s    BOOL      Flag to skip the alignment steps. Go directly to
+                                  variant calling.
+                                  Default: false
+
+--pipeline, -p          STR       Specify a different source location for pipeline scripts.
+                                  Useful for testing new or old versions.
+                                  Default: /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery
+
+--help, -h              BOOL      Print this help message.
+
+Example commands:
+
+# run whole exome data on human genome hg38
+01_submit_jobs -m wes
+
+# run whole exome data on mouse genome
+01_submit_jobs -m wes -o mouse
+
+# run a whole genome sequencing analysis on human data
+01_submit_jobs -m wgs
+
+# add/append more samples to already started WES analysis
+01_submit_jobs -m wes -f file_list.more_samples.csv -a
+
+"
+export help_message
+
+# function that reads and then exports arguments
+read_and_export_arguments(){
+    args=($@)
+    # default arguments
+    export organism="human"
+    export file_list="file_list.csv"
+    export append=0
+    export reference="hg38"
+    export pipeline_dir="/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery"
+    export skip_aln=0
+    # required
+    export mode=""
+    # loop through arguments if there are any
+    if [[ ${#args[@]} > 0 ]]; then
+        for i in `seq 1 ${#args[@]}`; do
+            i=$(( i - 1 ))
+            if [[ "${args[$i]}" == "-h" || "${args[$i]}" == "--help" || "${args[$i]}" == "-help" ]]; then
+                die "$help_message" && return 1
+            elif [[ "${args[$i]}" == "-m" || "${args[$i]}" == "--mode" ]]; then
+                export mode=${args[$(( i + 1 ))]}
+            elif [[ "${args[$i]}" == "-o" || "${args[$i]}" == "--organism" ]]; then
+                export organism=${args[$(( i + 1 ))]}
+            elif [[ "${args[$i]}" == "-f" || "${args[$i]}" == "--file_list" ]]; then
+                export file_list=${args[$(( i + 1 ))]}
+            elif [[ "${args[$i]}" == "-r" || "${args[$i]}" == "--reference" ]]; then
+                export reference=${args[$(( i + 1 ))]}
+            elif [[ "${args[$i]}" == "-p" || "${args[$i]}" == "--pipeline" ]]; then
+                export pipeline_dir=${args[$(( i + 1 ))]}
+            elif [[ "${args[$i]}" == "-a" || "${args[$i]}" == "--append" ]]; then
+                export append=1
+            elif [[ "${args[$i]}" == "-s" || "${args[$i]}" == "--skip-alignment" ]]; then
+                export skip_aln=1
+            fi
+        done
+        return 0
+    else
+        die "$help_message" && return 1
+    fi
+}
+
+# load parallel module
 module load parallel/20210322
 
-# check/find out mode
-# first argument should be either wes or wgs
-if [[ $# == 0 ]]; then
-    echo "are sample \"wes\" or \"wgs\"?"
-    echo -n "enter here: "
-    read -r mode
+# read all arguments
+read_and_export_arguments $* || exit 1
+
+# test required mode
+if [[ ${#mode} == 0 ]]; then
+    echo -e "$help_message"
+    echo "Error: -m/--mode is required. Select wes or wgs."
+    exit 1
+elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
+    echo "Running as mode: ${mode}"
 else
-    if [[ "$1" = *"wes"* ]]; then
-        mode="wes"
-    elif [[ "$1" = *"wgs"* ]]; then
-        mode="wgs"
-    else
-        echo "mode not recognized..."
-        echo -n "enter \"wes\" or \"wgs\" here: "
-        read -r mode
-    fi
+    echo -e "$help_message"
+    echo -e "Error: -m/--mode can only be \"wes\" or \"wgs\" (all lowercase)."
+    exit 1
 fi
-
-# check if mode var is correct
-if [[ "${mode}" = *"wes"* || "${mode}" = *"wgs"* ]]; then
-    echo "mode is ${mode}"
-else
-    echo "mode is still not recognized..."
-    echo -n "enter \"wes\" or \"wgs\" here: "
-    read -r mode
-    if [[ "${mode}" != "wes" || "${mode}" != "wgs" ]]; then
-        bash 1_submit_jobs.sh
-    fi
-fi
-
-# export mode
-export mode
-
-# submit default default file list or specific list
-if [[ ! -z $2 ]]; then
-    file_list=$2
-else
-    file_list="file_list.csv"
-fi
-
-# append to existing run
-append=0
 
 # as if user wants to overwrite results
-if [[ -e main.log ]]; then
-    echo "It looks like the pipeline has already started..."
-    echo -n "Do you want to rerun (r), append (a), or quit (q)? (rerun will overwrite results) [r|a|n]:"
-    read -r response
-    if [[ "${response}" == "r"* ]]; then
-        # quit running jobs
-        jobids=$(head -1 $(ls *.log | grep -v "main") | grep -o "^[1-9]*$")
-        qdel ${jobids}
-        # delete logfiles
-        rm -rf all_logfiles *.log
-    elif [[ "${response}" == "a"* ]]; then
-        append=1
-    else
-        echo "Exiting..."
-        exit 0
-    fi
+if [[ -e main.log && ${append} == 0 ]]; then
+    echo -e "$help_message"
+    echo -e "Error: It looks like the pipeline has already started. Run command with the -a flag to\nappend new samples (see examples)."
+    exit 1
 fi
 
 
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${reference} ${mode} || exit 1
 
 # create tmp dir
 if [[ ! -e tmp ]]; then
@@ -100,10 +155,29 @@ echo "01: submitting command:" | tee -a main.log
 # first dry run
 cat ${file_list} | parallel --tmpdir ./tmp --dry-run --colsep="," '
 01: wt=$(get_walltime {2} {3});
-qsub -l walltime="${wt}":00:00 -v wt="${wt}",file_list=${file_list},index={#},sample={1},forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
+rg=`get_read_group_info {2} {1}`;
+qsub -l walltime="${wt}":00:00 -v \
+wt="${wt}",\
+file_list=${file_list},\
+index={#},\
+sample={1},\
+forward={2},\
+reverse={3},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir} \
+${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
 # then submit
 echo "submitting ..." | tee -a main.log
 cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
 wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
-qsub -l walltime="${wt}":00:00 -v wt="${wt}",file_list=${file_list},index={#},sample={1},forward={2},reverse={3},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
+qsub -l walltime="${wt}":00:00 -v \
+wt="${wt}",\
+file_list=${file_list},\
+index={#},\
+sample={1},\
+forward={2},\
+reverse={3},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir} \
+${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
