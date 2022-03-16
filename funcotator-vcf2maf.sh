@@ -20,4 +20,4 @@ perl -ne '
     @maf = split /\|/, $1;
     print join(",", @maf) . "\n";
   }
-' | sed "3,$ s/^/${2},${3},${4},/; 2,2 s/^/Tumor,Normal,Source,/1p' | sed '2d'
+' | sed "3,$ s/^/${2},${3},${4},/; 2,2 s/^/Tumor,Normal,Source,/1p" | sed '2d'
