@@ -96,6 +96,65 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLE \
 # POLE2 > analyses/${tumor}__${normal}.somatic_POL_mutations.genes.csv
 
+echo "10: Fetching all variant annoations." | tee -a main.log
+
+# get all annotations into csv
+# funcotator Somatic
+if [[ ! -e analyses/all_annotations_funcotator_somatic.csv ]]; then
+    ${pipline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic \
+    > analyses/all_annotations_funcotator_somatic.csv
+else
+    ${pipline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic | \
+    tail -n +3 \
+    >> analyses/all_annotations_funcotator_somatic.csv
+fi
+
+if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
+    ${pipline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline \
+    > analyses/all_annotations_funcotator_germline.csv
+else
+    ${pipline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline | \
+    tail -n +3 \
+    >> analyses/all_annotations_funcotator_germline.csv
+fi
+
+# get all annotations into csv
+# snpeff Somatic
+if [[ ! -e analyses/all_annotations_funcotator_somatic.csv ]]; then
+    ${pipline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic \
+    > analyses/all_annotations_snpeff_somatic.csv
+else
+    ${pipline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic | \
+    tail -n +2 \
+    >> analyses/all_annotations_snpeff_somatic.csv
+fi
+
+if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
+    ${pipline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline \
+    > analyses/all_annotations_snpeff_germline.csv
+else
+    ${pipline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline | \
+    tail -n +2 \
+    >> analyses/all_annotations_snpeff_germline.csv
+fi
+
+
 # log
 echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
 
