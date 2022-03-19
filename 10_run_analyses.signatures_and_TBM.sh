@@ -43,9 +43,6 @@ if [[ "${mode}" != "wes" ]]; then
 fi
 
 
-# log
-echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
-
 # list of MMR genes:
 # MLH1 MSH2 MSH6 PMS2 POLD1 POLE IDH1 TP53 NF1
 
@@ -53,18 +50,18 @@ echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal
 # look for MMR genes
 # germline on VarScan calls
 
-${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
- vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
- MLH1 \
- MSH2 \
- MSH6 \
- PMS2 \
- POLD1 \
- POLE \
- IDH1 \
- TP53 \
- NF1 \
- > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
+# ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+#  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+#  MLH1 \
+#  MSH2 \
+#  MSH6 \
+#  PMS2 \
+#  POLD1 \
+#  POLE \
+#  IDH1 \
+#  TP53 \
+#  NF1 \
+#  > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
 # add IDH4
 
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
@@ -77,18 +74,18 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLE2 > analyses/${tumor}__${normal}.germline_POL_mutations.genes.csv
 #
 # # somatic on Mutect2
-${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
-  vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
-  MLH1 \
-  MSH2 \
-  MSH6 \
-  PMS2 \
-  POLD1 \
-  POLE \
-  IDH1 \
-  TP53 \
-  NF1 \
-  > analyses/${tumor}__${normal}.somatic_MMR_mutations.genes.csv
+# ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+#   vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+#   MLH1 \
+#   MSH2 \
+#   MSH6 \
+#   PMS2 \
+#   POLD1 \
+#   POLE \
+#   IDH1 \
+#   TP53 \
+#   NF1 \
+#   > analyses/${tumor}__${normal}.somatic_MMR_mutations.genes.csv
 #
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
 # vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf.gz \
@@ -196,7 +193,7 @@ echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
 Rscript ${pipeline_dir}/variant_analysis.nofigs.R ${mode} ${tumor}__${normal}
 
 # add to archive
-zip -ru ${tumor}__${normal}.analyses.zip analyses/${tumor}__${normal}.*
+# zip -ru ${tumor}__${normal}.analyses.zip analyses/${tumor}__${normal}.*
 
 # check if finished
 check_finish=$?
@@ -215,11 +212,38 @@ if [[ "$check_finish" == 0 ]]; then
     total_time_in_days=$( how_long main.log )
     echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_days} days" | tee -a main.log
     # check if all samples finished
-    finished=$( cat finished.csv | wc -l )
+    finished=$( cat finished.csv | sort -u | wc -l )
     started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
+        # log and fetch MMR genes in annotations
+        echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+
+        fetch_mmr_ann() {
+          skip_rows=2
+          if [[ $(echo $1 | grep "funcotator" &> /dev/null && echo 1) == 1 ]]; then
+            skip_rows=3
+          fi
+          awk -v FS="," SR=$skip_rows '{
+          if (NR >= SR){
+            if ($10 ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
+              print $0
+            }
+          } else {
+           print $0
+         }}' $1
+        }
+
+        fetch_mmr_ann analyses/all_annotations_snpeff_somatic.csv > analyses/mmr_annotations_snpeff_somatic.csv
+        fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
+        fetch_mmr_ann analyses/all_annotations_funcotator_somatic.csv > analyses/mmr_annotations_funcotator_somatic.csv
+        fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
+
+        # export to zip file
+
+        zip -r export_results.zip analyses/old_output* analyses/mmr_annotations_*
+
         # add tmb_and_coverage to archive
-        zip -ru analyses.zip analyses/coverage_and_tmb.csv
+        #zip -ru analyses.zip analyses/coverage_and_tmb.csv
         # tidyup and clean working dir
         if [[ ! -e bam ]]; then
             mv BQSR bam
@@ -255,24 +279,26 @@ if [[ "$check_finish" == 0 ]]; then
             # read/write/excecute
             # dirs first
             echo "10: changing permissions" | tee -a main.log
-            chmod 774 all_logfiles \
-                      analyses \
-                      bam \
-                      contamination \
-                      mutect2/f1r2 \
-                      vcf/snpEff
-            # files second
-            chmod 664 all_logfiles/* \
-                      analyses/* \
-                      bam/* \
-                      contamination/* \
-                      mutect2/*vcf* \
-                      mutect2/f1r2/* \
-                      vcf/*vcf* \
-                      vcf/*maf* \
-                      vcf/snpEff/* \
-                      varscan/*vcf* \
-                      ${tumor}__${normal}.analyses.log
+            find . -type d -exec chmod 774 {} \;
+            find . -type f -exec chmod 664 {} \;
+            # chmod 774 all_logfiles \
+            #           analyses \
+            #           bam \
+            #           contamination \
+            #           mutect2/f1r2 \
+            #           vcf/snpEff
+            # # files second
+            # chmod 664 all_logfiles/* \
+            #           analyses/* \
+            #           bam/* \
+            #           contamination/* \
+            #           mutect2/*vcf* \
+            #           mutect2/f1r2/* \
+            #           vcf/*vcf* \
+            #           vcf/*maf* \
+            #           vcf/snpEff/* \
+            #           varscan/*vcf* \
+            #           ${tumor}__${normal}.analyses.log
             #
         fi
     fi
