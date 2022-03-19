@@ -46,6 +46,9 @@ fi
 # log
 echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
 
+# list of MMR genes:
+# MLH1 MSH2 MSH6 PMS2 POLD1 POLE IDH1 TP53 NF1
+
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes
 # germline on VarScan calls
@@ -128,7 +131,7 @@ fi
 
 # get all annotations into csv
 # snpeff Somatic
-if [[ ! -e analyses/all_annotations_funcotator_somatic.csv ]]; then
+if [[ ! -e analyses/all_annotations_snpeff_somatic.csv ]]; then
     ${pipeline_dir}/snpeff-vcf2tbl.sh \
     vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
     ${tumor} ${normal} Somatic \
@@ -141,7 +144,7 @@ else
     >> analyses/all_annotations_snpeff_somatic.csv
 fi
 
-if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
+if [[ ! -e analyses/all_annotations_snpeff_germline.csv ]]; then
     ${pipeline_dir}/snpeff-vcf2tbl.sh \
     vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
     ${tumor} ${normal} Germline \
