@@ -31,11 +31,7 @@ echo $PBS_JOBID
 
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # set a timeout for the the file lookup function
 # timeout is set for 5.5 hours (in seconds)
@@ -45,15 +41,46 @@ timeout 19800 bash -c "file_lookup $file"
 # check if commands completes
 if [[ "$?" == 0 ]]; then
   if [[ -z $tumor ]]; then
-    qsub -v sample=${sample},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/${script}
+    qsub -v \
+sample=${sample},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/${script}
   else
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/${script}
+    qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/${script}
   fi
   mv ${sample}.waitforfile.log all_logfiles
 else
   if [[ -z $tumor ]]; then
-    qsub -v file=${file},sample=${sample},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
+    qsub -v \
+file=${file},\
+sample=${sample},\
+script=${script},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/wait_for_file.sh
   else
-    qsub -v file=${file},sample=${sample},tumor=${tumor},normal=${normal},mode=${mode},script=${script},pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
+    qsub -v \
+file=${file},\
+sample=${sample},\
+tumor=${tumor},\
+normal=${normal},\
+script=${script},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/wait_for_file.sh
   fi
 fi

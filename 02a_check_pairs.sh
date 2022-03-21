@@ -33,11 +33,7 @@ fi
 
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # check length of file names and run script
 if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
@@ -66,7 +62,9 @@ sample=${sample},\
 forward=${new_forward},\
 reverse=${new_reverse},\
 mode=${mode},\
-pipeline_dir=${pipeline_dir} \
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
           # for singletons
           wt=$(get_walltime $singletons)
@@ -77,7 +75,9 @@ index="${index}s",\
 sample=${sample},\
 forward=${singletons},\
 mode=${mode},\
-pipeline_dir=${pipeline_dir} \
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       else
           # delete tmp files
@@ -94,7 +94,9 @@ sample=${sample},\
 forward=${forward},\
 reverse=${reverse},\
 mode=${mode},\
-pipeline_dir=${pipeline_dir} \
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       fi
    else
@@ -110,7 +112,9 @@ index=${index},\
 sample=${sample},\
 forward=${forward},\
 mode=${mode},\
-pipeline_dir=${pipeline_dir} \
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
 fi
 

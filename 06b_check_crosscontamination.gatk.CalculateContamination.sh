@@ -31,18 +31,14 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
-# load reference path and other reference files
-# for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
 fi
 
-# change intervals to null if not WES
-if [[ "${mode}" != "wes" ]]; then
-    intervals=null
-fi
+# load reference path and other reference files
+# for details check script
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # run gatk's CalculateContamination
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" CalculateContamination \
@@ -53,11 +49,6 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" CalculateContami
 
 # check if finished
 check_finish=$?
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then

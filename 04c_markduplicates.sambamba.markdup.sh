@@ -43,11 +43,7 @@ qstat -f $PBS_JOBID >> ${sample}.sambamba.markdup.log
 
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # create dir for preprocessed bam files
 if [[ ! -e preprocessed_bam ]]; then
@@ -57,6 +53,11 @@ fi
 # create tmp dir
 if [[ ! -e tmp ]]; then
     mkdir tmp
+fi
+
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
 fi
 
 # check if preprocess bam exists
@@ -74,21 +75,23 @@ else
          # index bam
          # gatk BuildBamIndex -I preprocessed_bam/${sample}.markdup.bam
     else
-        echo "04: resubmitting previous step and increase time by 2hrs (${sample})" | tee -a main.log
+        echo "04: Resubmitting previous step and increase time by 2hrs (${sample})" | tee -a main.log
         # add two more hours of walltime
         wt=$(( wt + 2 ))
         # resubmit previous script and exit
-        qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/03_merge_bams.sambamba.sh
         exit 0
     fi
 fi
 
 check_finish=$?
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
 
 if [[ "$check_finish" == 0 ]]; then
      # remove unnecessary files
@@ -96,15 +99,21 @@ if [[ "$check_finish" == 0 ]]; then
      if [[ "$?" == 0 ]]; then
          rm preprocessed_bam/${sample}.merged.*
          rm aligned_bam/${sample}.merged.bam
-         rm aligned_bam/${sample}.merged.bam
      fi
      # check if there is a walltime
      if [[ -z $wt ]]; then
-         wt=$(get_walltime aligned_bam/${sample}.markdup.bam)
+         wt=$(get_walltime preprocessed_bam/${sample}.markdup.bam)
      fi
-     qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
-     # move log files to dir
-     mv ${sample}.sambamba.markdup.log all_logfiles
+     qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
      # log to main
      echo "04: duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
+     # move log files to dir
+     mv ${sample}.sambamba.markdup.log all_logfiles
 fi

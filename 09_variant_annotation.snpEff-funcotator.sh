@@ -24,18 +24,14 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
-# load reference path and other reference files
-# for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
 fi
 
-# change intervals to null if not WES
-if [[ "${mode}" != "wes" ]]; then
-    intervals=null
-fi
+# load reference path and other reference files
+# for details check script
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # if [[ ! -e "varscan/${tumor}__${normal}.varscan.all.Germline.hc.${mode}.vcf.gz" ]]; then
 #     echo "09: VarScan has not finished for ${tumor}__${normal}. Waiting..." | tee -a main.log
@@ -116,11 +112,6 @@ fi
 # check if finished
 check_finish=$?
 
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
-
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # bgzip and tabix vcf
@@ -130,10 +121,24 @@ if [[ "$check_finish" == 0 ]]; then
     # run analyses
     if [[ "${tissue}" == "Somatic" && -e "all_logfiles/${tumor}__${normal}.annotation.Germline.log" ]]; then
         # submit last step
-        qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
+        qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
     elif [[ "${tissue}" == "Germline" && -e "all_logfiles/${tumor}__${normal}.annotation.Somatic.log" ]]; then
         # submit last step
-        qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
+        qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
     fi
     # move logfile
     mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles

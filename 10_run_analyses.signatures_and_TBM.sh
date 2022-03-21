@@ -33,19 +33,14 @@ else
     dir=bam
 fi
 
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
-
-# change intervals to null if not WES
-if [[ "${mode}" != "wes" ]]; then
-    intervals=null
-fi
-
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # log
 echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log

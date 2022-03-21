@@ -22,13 +22,14 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table && -e contamination/${tumor}__${normal}.tumorsegmentation.table ]]; then
 # run gatk's FilterMutectCalls
@@ -73,18 +74,20 @@ else
     running_jobid=$(qstat -f -u `whoami` ${getpileupsum_job} | grep "beforeok" | sed 's/.*://')
     #running_jobid=$( head -1 ${tumor}__${normal}.CalculateContamination.log  )
     # log
-    echo "08: waiting for Calculate Contamination to finish for ${tumor}__${normal}: ${running_jobid}" | tee -a main.log
-    qsub -W depend=afterok:${running_jobid} -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
+    echo "08: Waiting for Calculate Contamination to finish for ${tumor}__${normal}: ${running_jobid}" | tee -a main.log
+    qsub -W depend=afterok:${running_jobid} -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
     exit 0
 fi
 
 # check if finished
 check_finish=$?
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
@@ -92,7 +95,15 @@ if [[ "$check_finish" == 0 ]]; then
     echo "08: FilterMutectCalls completed for ${tumor}__${normal}." | tee -a main.log
     # next round of jobs are submitted manually or not
     # annotate VCF file
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode},tissue="Somatic" ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
+    qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+tissue="Somatic",\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
     # move log
     mv ${tumor}__${normal}.FilterMutectCalls.log all_logfiles
 fi

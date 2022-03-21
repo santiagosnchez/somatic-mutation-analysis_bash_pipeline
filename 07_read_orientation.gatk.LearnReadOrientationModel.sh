@@ -19,13 +19,14 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # check if file exists
 if [[ ! -e mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz ]]; then
@@ -43,17 +44,19 @@ fi
 # check if finished
 check_finish=$?
 
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
-
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "07: ${tumor}__${normal} read-orientation analysis completed." | tee -a main.log
     # submit next step
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
+    qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
     # move logfiles if found
     if [[ -e ${tumor}__${normal}.read-orientation.log ]]; then
         mv ${tumor}__${normal}.read-orientation.log all_logfiles

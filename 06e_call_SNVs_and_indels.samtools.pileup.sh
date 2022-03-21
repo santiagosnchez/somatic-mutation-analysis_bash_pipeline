@@ -32,13 +32,14 @@ else
     dir=bam
 fi
 
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 if [[ $(samtools quickcheck ${dir}/${sample}.bqsr.bam && echo 1) == 1 ]]; then
 # run mpileup in parallel for 30 intervals
@@ -49,13 +50,7 @@ else
     # log
     echo "06: ${sample} bam not found or truncated." | tee -a main.log
     # fail signal
-    ls | grep ${RANDOM}
-    check_finish=$?
-fi
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
+    check_finish=1
 fi
 
 # check if command finished
@@ -81,7 +76,14 @@ if [[ "$check_finish" == 0 ]]; then
                         # log
                         echo "06: all pileup finished for tumor ${tumor} and normal ${normal}." | tee -a main.log
                         # submit calling step
-                        qsub -v tumor=${tumor},normal=${normal},mode=${mode},pipeline_dir=${pipeline_dir} ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
+                        qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
                         # mv log and merge pileup logs
                         mv ${sample}.VarScan.pileup.${index}.log all_logfiles
                         cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
@@ -91,7 +93,17 @@ if [[ "$check_finish" == 0 ]]; then
                         # log
                         echo "06: waiting for normal ${normal} pileup to finish." | tee -a main.log
                         # wait for file
-                        qsub -v file="varscan/pileups/${normal}.pileup",sample=${tumor},tumor=${tumor},normal=${normal},mode=${mode},script=06e_call_SNVs_and_indels.varscan.sh,pipeline_dir=${pipeline_dir} ${pipeline_dir}/wait_for_file.sh
+                        qsub -v \
+file="varscan/pileups/${normal}.pileup",\
+sample=${tumor},\
+tumor=${tumor},\
+normal=${normal},\
+script=06e_call_SNVs_and_indels.varscan.sh,\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+ ${pipeline_dir}/wait_for_file.sh
                         # mv log and merge pileup logs
                         mv ${sample}.VarScan.pileup.${index}.log all_logfiles
                         cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log

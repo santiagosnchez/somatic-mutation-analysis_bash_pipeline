@@ -73,7 +73,7 @@ read_and_export_arguments(){
     export organism="human"
     export file_list="file_list.csv"
     export append=0
-    export reference="hg38"
+    export genome="hg38"
     export pipeline_dir="/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery"
     export skip_aln=0
     # required
@@ -91,7 +91,7 @@ read_and_export_arguments(){
             elif [[ "${args[$i]}" == "-f" || "${args[$i]}" == "--file_list" ]]; then
                 export file_list=${args[$(( i + 1 ))]}
             elif [[ "${args[$i]}" == "-r" || "${args[$i]}" == "--reference" ]]; then
-                export reference=${args[$(( i + 1 ))]}
+                export genome=${args[$(( i + 1 ))]}
             elif [[ "${args[$i]}" == "-p" || "${args[$i]}" == "--pipeline" ]]; then
                 export pipeline_dir=${args[$(( i + 1 ))]}
             elif [[ "${args[$i]}" == "-a" || "${args[$i]}" == "--append" ]]; then
@@ -106,14 +106,15 @@ read_and_export_arguments(){
     fi
 }
 
-# load parallel module
+# load modules
 module load parallel/20210322
+module load samtools/1.10
 
 # read all arguments
 read_and_export_arguments $* || exit 1
 
 # test required mode
-if [[ ${#mode} == 0 ]]; then
+if [[ ${#mode} == "" ]]; then
     echo -e "$help_message"
     echo "Error: -m/--mode is required. Select wes or wgs."
     exit 1
@@ -125,17 +126,23 @@ else
     exit 1
 fi
 
-# as if user wants to overwrite results
+# if user wants to overwrite results
 if [[ -e main.log && ${append} == 0 ]]; then
     echo -e "$help_message"
     echo -e "Error: It looks like the pipeline has already started. Run command with the -a flag to\nappend new samples (see examples)."
     exit 1
 fi
 
+# check tumors_and_normals.csv
+if [[ ! -e tumors_and_normals.csv ]]; then
+    current=`pwd -P`
+    echo "tumors_and_normals.csv file not found in working directory: $current"
+    exit 1
+fi
 
 # load reference path and other reference files
 # for details check script
-source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${reference} ${mode} || exit 1
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode} || exit 1
 
 # create tmp dir
 if [[ ! -e tmp ]]; then
@@ -147,28 +154,27 @@ if [[ "$append" == 0 ]]; then
     date > main.log
 fi
 
-# export file list var
-export file_list
-
-echo "01: submitting command:" | tee -a main.log
 # submit jobs in parallel
-# first dry run
-cat ${file_list} | parallel --tmpdir ./tmp --dry-run --colsep="," '
-01: wt=$(get_walltime {2} {3});
-rg=`get_read_group_info {2} {1}`;
-qsub -l walltime="${wt}":00:00 -v \
-wt="${wt}",\
-file_list=${file_list},\
-index={#},\
-sample={1},\
-forward={2},\
-reverse={3},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir} \
-${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
-# then submit
-echo "submitting ..." | tee -a main.log
-cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+echo -e "\n01: Running arguments:" | tee -a main.log
+echo "organism: ${organism}" | tee -a main.log
+echo "reference: ${genome}" | tee -a main.log
+echo "pipeline path: ${pipeline_dir}" | tee -a main.log
+echo "file list: ${file_list}" | tee -a main.log
+
+if [[ ${skip_aln} == 0 ]]; then
+    # first record arguments
+    cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+    wt=$(get_walltime {2} {3});
+    echo "sample: {1}";
+    echo "R1: {2}";
+    echo "R2: {3}";
+    echo "walltime: ${wt}";
+    echo "index: ${#}";
+    ' | tee -a main.log
+
+    # then submit
+    echo -e "\n01: Submitting jobs now ..." | tee -a main.log
+    cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
 wt=$(get_walltime {2} {3});
 rg=`get_read_group_info {2} {1}`;
 qsub -l walltime="${wt}":00:00 -v \
@@ -179,5 +185,65 @@ sample={1},\
 forward={2},\
 reverse={3},\
 mode=${mode},\
-pipeline_dir=${pipeline_dir} \
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
 ${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
+else
+    echo -e "\n01: Skipping alignment. Moving directly to variant calling."
+    # first check that file_list includes bam files
+    # first record arguments
+    # make bam dir
+    if [[ ! -e bam ]]; then
+        mkdir bam
+    fi
+    # make symlinks for all bams
+    cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+    if [[ {2} == *".bam" ]]; then
+      if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
+        if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
+          echo "bam {2} is sorted. Linking..."
+          ln -s {2} bam/{1}.bqsr.bam ;
+          if [[ -e {2.}.bai ]]; then
+            ln -s {2.}.bai bam/{1}.bqsr.bai ;
+          elif [[ -e {2}.bai ]];
+            ln -s {2}.bai bam/{1}.bqsr.bai ;
+          else
+            echo "bam index not found for {2}"
+          fi
+          wt=$(get_walltime {2});
+          echo "sample: {1}";
+          echo "bam: {2}";
+          echo "walltime: ${wt}";
+        else
+          echo "bam {2} is unsorted. Omitting..."
+        fi
+      else
+        echo "samtools quickcheck failed for bam {2}"
+      fi
+      ' | tee -a main.log
+
+    # then submit
+    echo -e "\n01: Submitting jobs now ..." | tee -a main.log
+    ready=$(ls bam | grep ".bam$" | sed 's/\..*//')
+    if [[ ${#ready} == 0 ]]; then
+      echo "bam files are not ready to run. Check working paths and files."
+      exit 1
+    else
+      for sample in "$ready"; do
+        TN=$(grep "${sample}," tumors_and_normals.csv)
+        if [[ ${#TN} -gt 0 ]]; then
+          tumor=$(echo $TN | sed 's/,.*//')
+          wt=$(get_walltime $(readlink -f bam/${tumor}.bqsr.bam))
+          qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
+        fi
+      done
+    fi
+fi

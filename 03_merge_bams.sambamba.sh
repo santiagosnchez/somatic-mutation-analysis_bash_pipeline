@@ -37,11 +37,7 @@ echo $PBS_JOBID
 
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # check all
 all_check=0
@@ -50,6 +46,10 @@ all_check=0
 if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
 
 # check for file integrity
 # submit previous step if currupt
@@ -57,7 +57,16 @@ for bam in aligned_bam/${sample}.*.sorted.bam; do
     if [[ $(samtools quickcheck $bam && echo 1) != 1 ]]; then
        echo "resubmitting previous step and increase time by 2hrs"
        wt=$(( wt + 2 ))
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},rg=${rg},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02b_align_bam_to_ref.bwa.sh
+       qsub -l walltime=${wt}:00:00 -v \
+wt=${wt},\
+sample=${sample},\
+forward=${forward},\
+reverse=${reverse},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/02b_align_bam_to_ref.bwa.sh
        all_check=1
     fi
 done
@@ -65,10 +74,10 @@ done
 # check if one if the files did
 # not pass the check
 if [[ "${all_check}" == 1 ]]; then
-   echo "resubmitting... "
+   echo "03: Resubmitting 02 with +2 walltime... "
    exit 0
 else
-# check if input files exist and run aligner
+    # check if input files exist and merge
    if [[ ! -e aligned_bam/${sample}.merged.bam ]]; then
        # check how many files
        if [[ $(ls aligned_bam/${sample}.*.sorted.bam | wc -l) == 1 ]]; then
@@ -83,9 +92,18 @@ else
        fi
    else
       if [[ $(samtools quickcheck aligned_bam/${sample}.merged.bam && echo 1) != 1 ]]; then
-          echo "resubmitting..."
+          echo "03: Resubmitting 03 ..."
           wt=$(( wt + 2 ))
-          qsub -l walltime=${wt}:00:00 -v sample=${sample},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+          qsub -l walltime=${wt}:00:00 -v \
+wt=${wt},\
+sample=${sample},\
+forward=${forward},\
+reverse=${reverse},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/03_merge_bams.sambamba.sh
       else
          ls &> /dev/null
       fi
@@ -94,11 +112,6 @@ fi
 
 # check finish
 check_finish=$?
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
 
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
@@ -112,9 +125,16 @@ if [[ "$check_finish" == 0 ]]; then
     wt=$(get_walltime aligned_bam/${sample}.merged.bam)
     # submit next job
     # can switch this to picards MarkDuplicate method
-    qsub -l walltime=${wt}:00:00 -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh
-    # mv logfile
-    mv ${sample}.sambamba-merge.log all_logfiles
+    qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh
     # log to main
     echo "03: bam file(s) for sample ${sample} have been merged." | tee -a main.log
+    # mv logfile
+    mv ${sample}.sambamba-merge.log all_logfiles
 fi

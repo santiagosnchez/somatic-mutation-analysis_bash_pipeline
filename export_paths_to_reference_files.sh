@@ -52,7 +52,7 @@ else
                 # path to WES intervals for running MuTect2
                 export bed30intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.30-bed-files/
             fi
-        if [[ ${2} == "hs37d5" ]]; then
+        elif [[ ${2} == "hs37d5" ]]; then
             # path to human reference genome assembly hs37d5
             export reference=${genomes}/${2}/gatk_bundle/Homo_sapiens_assembly38.fasta
             # path to vcf file with known SNPs from the 1000 genomes project
@@ -79,7 +79,51 @@ else
                 # path to WES intervals for running MuTect2
                 export bed30intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.30-bed-files/
             fi
-
+        # more refs
+        else
+            echo "Unknown or reference no databased: ${2}"
+            echo "See options using the -h flag."
+            return 1
+        fi
+    elif [[ ${1} == "mouse" ]]; then
+        if [[ ${2} == "mm38" ]]; then # need editing
+            # path to human reference genome assembly hs37d5
+            export reference=${genomes}/${2}/gatk_bundle/Homo_sapiens_assembly38.fasta
+            # path to vcf file with known SNPs from the 1000 genomes project
+            export knownsites_snps=${genomes}/${2}/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
+            # path to vcf file with known indels from the 1000 genomes project
+            export knownsites_indels=${genomes}/${2}/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
+            # path to gnomad resource
+            export gnomad_resource=${genomes}/${2}/gatk_bundle/af-only-gnomad.hg38.vcf.gz
+            # path to gatk's panel of normals vcf
+            export gatk_pon=${genomes}/${2}/gatk_bundle/1000g_pon.hg38.vcf.gz
+            # test mode
+            if [[ ${3} == "wes" ]]; then
+                # path to WES target intervals
+                export intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.interval_list
+                # path to WES tergets in bed format
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.bed
+                # path to WES intervals for running MuTect2
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.30-bed-files/
+            else
+                # path to WES target intervals
+                export intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.interval_list
+                # path to WES tergets in bed format
+                export intervals_bed=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.bed
+                # path to WES intervals for running MuTect2
+                export bed30intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.30-bed-files/
+            fi
+        else
+            echo "Unknown or reference no databased: ${2}"
+            echo "See options using the -h flag."
+            return 1
+        fi
+    else
+        echo "Unknown or organism not databased: ${1}"
+        echo "See options using the -h flag."
+        return 1
+    fi
+fi
 
 # reference independent locations:
 # path to snpEff jar file

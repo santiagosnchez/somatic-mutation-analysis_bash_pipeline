@@ -36,13 +36,14 @@ else
     dir=bam
 fi
 
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
+fi
+
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]]; then
     # double check files
@@ -107,11 +108,6 @@ fi
 # check if finished
 check_finish=$?
 
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
-
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
@@ -125,8 +121,16 @@ if [[ "$check_finish" == 0 ]]; then
             rm varscan/pileups/${normal}.pileup
         fi
     fi
+    # submit annotation
+    qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+tissue="Germline",\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
-    # submit annotation
-    qsub -v tumor=${tumor},normal=${normal},mode=${mode},tissue="Germline",pipeline_dir=${pipeline_dir} ${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
 fi

@@ -44,11 +44,7 @@ qstat -f $PBS_JOBID
 
 # load reference path and other reference files
 # for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
-fi
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # create dir for ubam
 if [[ ! -e aligned_bam ]]; then
@@ -76,8 +72,16 @@ if [[ -e "aligned_bam/${sample}.${index}.bam" ]]; then
     if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) != 1 ]]; then
        echo "resubmitting step and increase time by 2 hrs"
        wt=$(( wt + 2 ))
-       rm aligned_bam/${sample}.${lane}.bam
-       qsub -l walltime=${wt}:00:00 -v sample=${sample},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/02a_check_pairs.sh
+       rm aligned_bam/${sample}.${index}.bam
+       qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+forward=${forward},\
+reverse=${reverse},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/02a_check_pairs.sh
        exit 0
     else
        # check if bam is sorted
@@ -140,7 +144,16 @@ if [[ "$check_finish" == 0 ]]; then
     if [[ "$?" == 0 && "${expected_bams}" == "${found_sorted_bams}" ]]; then
         # submit next job
         # can switch this to picards MarkDuplicate method
-        qsub -l walltime=${wt}:00:00 -v sample=${sample},forward=${forward},reverse=${reverse},mode=${mode} ${pipeline_dir}/03_merge_bams.sambamba.sh
+        qsub -l walltime=${wt}:00:00 -v \
+wt=${wt},\
+sample=${sample},\
+forward=${forward},\
+reverse=${reverse},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
     # move logfile
     mv ${sample}.${index}.bwa.log all_logfiles

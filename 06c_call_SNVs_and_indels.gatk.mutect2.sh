@@ -32,18 +32,14 @@ else
     dir=bam
 fi
 
-# load reference path and other reference files
-# for details check script
-if [[ -z ${pipeline_dir} ]]; then
-    source /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery/export_paths_to_reference_files.sh
-else
-    source ${pipeline_dir}/export_paths_to_reference_files.sh
+# create log dir
+if [[ ! -e all_logfiles ]]; then
+    mkdir all_logfiles
 fi
 
-# change intervals to null if not WES
-if [[ "${mode}" != "wes" ]]; then
-    intervals=null
-fi
+# load reference path and other reference files
+# for details check script
+source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
 # run gatk's mutect2
@@ -55,6 +51,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" Mutect2 \
  -R ${reference} \
  -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.${index}.vcf \
  -germline-resource $gnomad_resource \
+ -pon ${gatk_pon} \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
  -L ${bed30intervals}/${bed}
  #  -bamout mutect2/${tumor}__${normal}.${index}.bam \
@@ -65,11 +62,6 @@ fi
 
 # check if finished
 check_finish=$?
-
-# create log dir
-if [[ ! -e all_logfiles ]]; then
-    mkdir all_logfiles
-fi
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
@@ -98,7 +90,14 @@ if [[ "$check_finish" == 0 ]]; then
             echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
             echo "06: Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
             # submit read orientation analysis
-            qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
+            qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             # move logfile
             mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
         else
@@ -141,7 +140,14 @@ if [[ "$check_finish" == 0 ]]; then
             echo "06: ${tumor}__${normal} Mutect2 variant calling completed." | tee -a main.log
             echo "06: Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
             # submit read orientation analysis
-            qsub -v tumor=${tumor},normal=${normal},mode=${mode} ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
+            qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             # move logfile
             mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
         fi
