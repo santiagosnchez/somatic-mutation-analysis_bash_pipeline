@@ -175,20 +175,26 @@ if [[ ${skip_aln} == 0 ]]; then
     # then submit
     echo -e "\n01: Submitting jobs now ..." | tee -a main.log
     cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
-wt=$(get_walltime {2} {3});
-rg=`get_read_group_info {2} {1}`;
-qsub -l walltime="${wt}":00:00 -v \
-wt="${wt}",\
-file_list=${file_list},\
-index={#},\
-sample={1},\
-forward={2},\
-reverse={3},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/02a_check_pairs.sh' | tee -a main.log
+if [[ -e {2} ]]; then
+  wt=$(get_walltime {2} {3});
+  rg=`get_read_group_info {2} {1}`;
+  qsub -l walltime="${wt}":00:00 -v \
+  wt="${wt}",\
+  file_list=${file_list},\
+  index={#},\
+  sample={1},\
+  forward={2},\
+  reverse={3},\
+  mode=${mode},\
+  pipeline_dir=${pipeline_dir},\
+  organism=${organism},\
+  genome=${genome} \
+  ${pipeline_dir}/02a_check_pairs.sh
+else
+  echo "File not found:"
+  echo {2}
+fi
+' | tee -a main.log
 else
     echo -e "\n01: Skipping alignment. Moving directly to variant calling."
     # first check that file_list includes bam files
