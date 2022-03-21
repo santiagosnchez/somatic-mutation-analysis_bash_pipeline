@@ -218,20 +218,23 @@ if [[ "$check_finish" == 0 ]]; then
         # log and fetch MMR genes in annotations
         echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
 
-        fetch_mmr_ann() {
+        # function to extrac rows that match MMR/tumor genes
+        fetch_mmr_ann(){
           skip_rows=2
           if [[ $(echo $1 | grep "funcotator" &> /dev/null && echo 1) == 1 ]]; then
             skip_rows=3
           fi
-          awk -v FS="," SR=$skip_rows '{
-          if (NR >= SR){
-            if ($10 ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
-              print $0
-            }
-          } else {
-           print $0
-         }}' $1
-        }
+          awk -v FS="," -v SR=$skip_rows \
+          '{
+            if (NR >= SR){
+              if ($10 ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
+                print $0
+              }
+            } else {
+             print $0
+           }
+          }' $1
+          }
 
         fetch_mmr_ann analyses/all_annotations_snpeff_somatic.csv > analyses/mmr_annotations_snpeff_somatic.csv
         fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
