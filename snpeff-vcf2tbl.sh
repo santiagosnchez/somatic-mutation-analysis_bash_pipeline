@@ -24,4 +24,4 @@ perl -ne '
        print join(",", @fields[0,1,3]) . "," . $_ . "\n";
     }
   }
-'
+' | sed "2,$ s/^/${2},${3},${4},/; 1 s/^/Tumor,Normal,Source,/1p" | sed '1d'

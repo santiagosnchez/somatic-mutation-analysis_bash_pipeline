@@ -42,25 +42,25 @@ fi
 # for details check script
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
-# log
-echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+# list of MMR genes:
+# MLH1 MSH2 MSH6 PMS2 POLD1 POLE IDH1 TP53 NF1
 
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes
 # germline on VarScan calls
 
-${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
- vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
- MLH1 \
- MSH2 \
- MSH6 \
- PMS2 \
- POLD1 \
- POLE \
- IDH1 \
- TP53 \
- NF1 \
- > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
+# ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+#  vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+#  MLH1 \
+#  MSH2 \
+#  MSH6 \
+#  PMS2 \
+#  POLD1 \
+#  POLE \
+#  IDH1 \
+#  TP53 \
+#  NF1 \
+#  > analyses/${tumor}__${normal}.germline_MMR_mutations.genes.csv
 # add IDH4
 
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
@@ -73,18 +73,18 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLE2 > analyses/${tumor}__${normal}.germline_POL_mutations.genes.csv
 #
 # # somatic on Mutect2
-${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
-  vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
-  MLH1 \
-  MSH2 \
-  MSH6 \
-  PMS2 \
-  POLD1 \
-  POLE \
-  IDH1 \
-  TP53 \
-  NF1 \
-  > analyses/${tumor}__${normal}.somatic_MMR_mutations.genes.csv
+# ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
+#   vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+#   MLH1 \
+#   MSH2 \
+#   MSH6 \
+#   PMS2 \
+#   POLD1 \
+#   POLE \
+#   IDH1 \
+#   TP53 \
+#   NF1 \
+#   > analyses/${tumor}__${normal}.somatic_MMR_mutations.genes.csv
 #
 # ${pipeline_dir}/get_gene_annotations_from_vcf.sh \
 # vcf/${tumor}__${normal}.mutect2.annotated-snpeff.${mode}.vcf.gz \
@@ -94,6 +94,65 @@ ${pipeline_dir}/get_gene_annotations_from_vcf-funcotator.sh \
 # POLD4 \
 # POLE \
 # POLE2 > analyses/${tumor}__${normal}.somatic_POL_mutations.genes.csv
+
+echo "10: Fetching all variant annoations." | tee -a main.log
+
+# get all annotations into csv
+# funcotator Somatic
+if [[ ! -e analyses/all_annotations_funcotator_somatic.csv ]]; then
+    ${pipeline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic \
+    > analyses/all_annotations_funcotator_somatic.csv
+else
+    ${pipeline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic | \
+    tail -n +3 \
+    >> analyses/all_annotations_funcotator_somatic.csv
+fi
+
+if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
+    ${pipeline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline \
+    > analyses/all_annotations_funcotator_germline.csv
+else
+    ${pipeline_dir}/funcotator-vcf2maf.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline | \
+    tail -n +3 \
+    >> analyses/all_annotations_funcotator_germline.csv
+fi
+
+# get all annotations into csv
+# snpeff Somatic
+if [[ ! -e analyses/all_annotations_snpeff_somatic.csv ]]; then
+    ${pipeline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic \
+    > analyses/all_annotations_snpeff_somatic.csv
+else
+    ${pipeline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Somatic | \
+    tail -n +2 \
+    >> analyses/all_annotations_snpeff_somatic.csv
+fi
+
+if [[ ! -e analyses/all_annotations_snpeff_germline.csv ]]; then
+    ${pipeline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline \
+    > analyses/all_annotations_snpeff_germline.csv
+else
+    ${pipeline_dir}/snpeff-vcf2tbl.sh \
+    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+    ${tumor} ${normal} Germline | \
+    tail -n +2 \
+    >> analyses/all_annotations_snpeff_germline.csv
+fi
+
 
 # log
 echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
@@ -133,7 +192,7 @@ echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
 Rscript ${pipeline_dir}/variant_analysis.nofigs.R ${mode} ${tumor}__${normal}
 
 # add to archive
-zip -ru ${tumor}__${normal}.analyses.zip analyses/${tumor}__${normal}.*
+# zip -ru ${tumor}__${normal}.analyses.zip analyses/${tumor}__${normal}.*
 
 # check if finished
 check_finish=$?
@@ -153,10 +212,48 @@ if [[ "$check_finish" == 0 ]]; then
     echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_days} days" | tee -a main.log
     # check if all samples finished
     finished=$( cat finished.csv | sort -u | wc -l )
+<<<<<<< HEAD
     started=$( cat tumors_and_normals.csv | grep -v "^#" | sort -u | wc -l )
+=======
+    started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
+>>>>>>> main
     if [[ "$finished" -eq "$started" ]]; then
+        # log and fetch MMR genes in annotations
+        echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+
+        # function to extrac rows that match MMR/tumor genes
+        fetch_mmr_ann(){
+          skip_rows=2
+          if [[ $(echo $1 | grep "funcotator" &> /dev/null && echo 1) == 1 ]]; then
+            skip_rows=3
+          fi
+          awk -v FS="," -v SR=$skip_rows \
+          '{
+            if (NR >= SR){
+              if ($10 ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
+                print $0
+              }
+            } else {
+             print $0
+           }
+          }' $1
+          }
+
+        fetch_mmr_ann analyses/all_annotations_snpeff_somatic.csv > analyses/mmr_annotations_snpeff_somatic.csv
+        fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
+        fetch_mmr_ann analyses/all_annotations_funcotator_somatic.csv > analyses/mmr_annotations_funcotator_somatic.csv
+        fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
+
+        # export to zip file
+
+        zip -r export_results.zip analyses/old_output* analyses/mmr_annotations_*
+
         # add tmb_and_coverage to archive
+<<<<<<< HEAD
         zip -ru all_samples.analyses.zip *.analyses.zip coverage_and_tmb.csv
+=======
+        #zip -ru analyses.zip analyses/coverage_and_tmb.csv
+>>>>>>> main
         # tidyup and clean working dir
         if [[ ! -e bam ]]; then
             mv BQSR bam
@@ -192,15 +289,24 @@ if [[ "$check_finish" == 0 ]]; then
             # read/write/excecute
             # dirs first
             echo "10: changing permissions" | tee -a main.log
+<<<<<<< HEAD
             find . -type d -user `whoami` -exec chmod 774 {} \;
             find . -type f -user `whoami` -exec chmod 664 {} \;
+=======
+            find . -type d -exec chmod 774 {} \;
+            find . -type f -exec chmod 664 {} \;
+>>>>>>> main
             # chmod 774 all_logfiles \
             #           analyses \
             #           bam \
             #           contamination \
             #           mutect2/f1r2 \
             #           vcf/snpEff
+<<<<<<< HEAD
             # files second
+=======
+            # # files second
+>>>>>>> main
             # chmod 664 all_logfiles/* \
             #           analyses/* \
             #           bam/* \
