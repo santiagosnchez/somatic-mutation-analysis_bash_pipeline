@@ -164,13 +164,18 @@ echo "file list: ${file_list}" | tee -a main.log
 if [[ ${skip_aln} == 0 ]]; then
     # first record arguments
     cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+  if [[ -e {2} ]]; then
     wt=$(get_walltime {2} {3});
     echo "sample: {1}";
     echo "R1: {2}";
     echo "R2: {3}";
     echo "walltime: ${wt}";
     echo "index: ${#}";
-    ' | tee -a main.log
+  else
+    echo "File not found:"
+    echo {2}
+  fi
+' | tee -a main.log
 
     # then submit
     echo -e "\n01: Submitting jobs now ..." | tee -a main.log
