@@ -212,11 +212,7 @@ if [[ "$check_finish" == 0 ]]; then
     echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_days} days" | tee -a main.log
     # check if all samples finished
     finished=$( cat finished.csv | sort -u | wc -l )
-<<<<<<< HEAD
     started=$( cat tumors_and_normals.csv | grep -v "^#" | sort -u | wc -l )
-=======
-    started=$( cat tumors_and_normals.csv | grep -v "^#" | wc -l )
->>>>>>> main
     if [[ "$finished" -eq "$started" ]]; then
         # log and fetch MMR genes in annotations
         echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
@@ -249,11 +245,7 @@ if [[ "$check_finish" == 0 ]]; then
         zip -r export_results.zip analyses/old_output* analyses/mmr_annotations_*
 
         # add tmb_and_coverage to archive
-<<<<<<< HEAD
-        zip -ru all_samples.analyses.zip *.analyses.zip coverage_and_tmb.csv
-=======
         #zip -ru analyses.zip analyses/coverage_and_tmb.csv
->>>>>>> main
         # tidyup and clean working dir
         if [[ ! -e bam ]]; then
             mv BQSR bam
@@ -289,24 +281,15 @@ if [[ "$check_finish" == 0 ]]; then
             # read/write/excecute
             # dirs first
             echo "10: changing permissions" | tee -a main.log
-<<<<<<< HEAD
             find . -type d -user `whoami` -exec chmod 774 {} \;
             find . -type f -user `whoami` -exec chmod 664 {} \;
-=======
-            find . -type d -exec chmod 774 {} \;
-            find . -type f -exec chmod 664 {} \;
->>>>>>> main
             # chmod 774 all_logfiles \
             #           analyses \
             #           bam \
             #           contamination \
             #           mutect2/f1r2 \
             #           vcf/snpEff
-<<<<<<< HEAD
             # files second
-=======
-            # # files second
->>>>>>> main
             # chmod 664 all_logfiles/* \
             #           analyses/* \
             #           bam/* \
