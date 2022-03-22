@@ -91,7 +91,7 @@ predict_TN file_list.csv > tumors_and_normals.csv
 # check file
 file tumors_and_normals.csv
 if [[ "$?" == 0 ]]; then
-    echo "Tumors_and_normals.csv is ready"
+    echo "tumors_and_normals.csv is ready"
 fi
 
 # check if T/N csv file is ready to go
