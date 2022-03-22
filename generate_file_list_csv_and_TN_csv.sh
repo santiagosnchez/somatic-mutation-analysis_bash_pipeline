@@ -57,7 +57,7 @@ fi
 # check arguments and execute
 if [[ ${input1} == "y" ]]; then
     if [[ -z $1 ]]; then
-        echo "provide path to files as argument list. Can use '*' wildcards"
+        echo "Provide path to files as argument list. Can use '*' wildcards"
         exit 1
     elif [[ "$#" -gt 1 ]]; then
         # sort csv naturally
@@ -82,7 +82,7 @@ echo "file_list.csv is ready"
 # check file
 grep "^,NA$" file_list.csv &> /dev/null
 if [[ "$?" == 0 ]]; then
-    echo "check file_list.csv; file not properly constructed"
+    echo "Check file_list.csv; file not properly constructed"
     exit 1
 fi
 
@@ -91,15 +91,15 @@ predict_TN file_list.csv > tumors_and_normals.csv
 # check file
 file tumors_and_normals.csv
 if [[ "$?" == 0 ]]; then
-    echo "tumors_and_normals.csv is ready"
+    echo "Tumors_and_normals.csv is ready"
 fi
 
 # check if T/N csv file is ready to go
 total_samples=$(cat file_list.csv | cut -d, -f1 | sort -u | wc -l)
-samples_in_TN=$(cat tumors_and_normals.csv | tr ',' '\n' | grep -v "^NA$" | wc -l)
+samples_in_TN=$(cat tumors_and_normals.csv | tr ',' '\n' | sed '/^NA$/d' | sort -u | wc -l)
 
 if [[ "${total_samples}" == "${samples_in_TN}" ]]; then
-    echo "ready to start pipeline"
+    echo "Files should be ready to start pipeline. But always double check."
 else
-    echo "revise/edit tumors_and_normals.csv manually before starting"
+    echo "Revise/edit tumors_and_normals.csv manually before starting"
 fi
