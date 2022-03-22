@@ -49,10 +49,14 @@ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
   -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
 
 # select passed variants
-$gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
- -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
- --exclude-filtered \
- -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+# $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
+#  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
+#  --exclude-filtered \
+#  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+
+# switch to bcftools for filtering (keeps header intact)
+bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
+ > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
 
 # compress and index
 index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
