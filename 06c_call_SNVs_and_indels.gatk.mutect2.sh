@@ -74,7 +74,7 @@ if [[ "$check_finish" == 0 ]]; then
         mutect_logfiles=$(ls all_logfiles/${tumor}__${normal}.mutect2.[1-9]*.log | wc -l)
         # try to wrap up in one go
         if [[ ! -e all_logfiles/${tumor}__${normal}.mutect2.log && "${mutect_logfiles}" == 29 ]]; then
-            cat $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | sort -V) > all_logfiles/${tumor}__${normal}.mutect2.log
+            cat $(ls ${tumor}__${normal}.mutect2.[0-9]*.log all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | sort -V) > all_logfiles/${tumor}__${normal}.mutect2.log
             rm $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log )
             # gather vcffiles
             # generate list of files with their own -I flag
@@ -99,7 +99,7 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             # move logfile
-            mv ${tumor}__${normal}.mutect2.${index}.log all_logfiles
+            rm ${tumor}__${normal}.mutect2.${index}.log
         else
             # log to main
             echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
