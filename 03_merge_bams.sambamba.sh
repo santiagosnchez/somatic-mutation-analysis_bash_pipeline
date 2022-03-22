@@ -132,7 +132,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/04c_markduplicates.sambamba.markdup.sh
+${pipeline_dir}/04_markduplicates.sambamba.markdup.sh
     # log to main
     echo "03: bam file(s) for sample ${sample} have been merged." | tee -a main.log
     # mv logfile
