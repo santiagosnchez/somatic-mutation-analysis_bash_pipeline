@@ -22,10 +22,10 @@ generate_csv_from_filepath(){
 export -f generate_csv_from_filepath
 
 predict_TN(){
-    patients=(`cat $1 | cut -d, -f1 | grep "M[DM]R*[0-9]*[TB][0-9]*" | sed 's/[TB][0-9]*//' | sort -u`)
+    patients=(`cat $1 | cut -d, -f1 | grep "M[DM]*R*[0-9]*[TB][0-9]*" | sed -E 's/M[DM]*R*0*|[TB][0-9]*//g' | sort -u`)
     for patient in ${patients[@]}; do
-        for tumor in $(cat $1 | cut -d, -f1 | grep -o "${patient}T[0-9]*" | uniq); do
-            normals=(`cat $1 | cut -d, -f1 | grep -o "${patient}B[0-9]*" | uniq`)
+        for tumor in $(cat $1 | cut -d, -f1 | grep -o "M[DM]*R*0*${patient}T[0-9]*" | uniq); do
+            normals=(`cat $1 | cut -d, -f1 | grep -o "M[DM]*R*0*${patient}B[0-9]*" | uniq`)
             if [[ "${#normals[@]}" == 1 ]]; then
                 echo "${tumor},${normals[0]}"
             elif [[ "${#normals[@]}" -gt 1 ]]; then
