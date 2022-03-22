@@ -65,7 +65,7 @@ if [[ -e ${dir}/${sample}.bqsr.bam ]]; then
         rm ${dir}/${sample}.bqsr.*
         echo "05: Resubmitting 05 and increasing time by 2 hrs (${sample})" | tee -a main.log
         wt=$(( wt + 2 ))
-        qsub -l walltime=${wt}:00:00 -v
+        qsub -l walltime=${wt}:00:00 -v \
 sample=${sample},\
 wt=${wt},\
 mode=${mode},\
@@ -117,7 +117,7 @@ if [[ "$check_finish" == 0 ]]; then
     ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp "qsub -v \
 sample=${sample},\
 bed={},\
-index={#},
+index={#},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
