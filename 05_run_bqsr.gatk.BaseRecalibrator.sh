@@ -122,7 +122,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06e_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
+${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
     # check if file exists and continue
     if [[ -e tumors_and_normals.csv ]]; then
         cat tumors_and_normals.csv | grep "^${sample},"
