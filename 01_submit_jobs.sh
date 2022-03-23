@@ -151,8 +151,12 @@ fi
 
 # print date
 if [[ "$append" == 0 ]]; then
+    # add date to first line
     date > main.log
 fi
+
+# add last commit version of pipeline
+cd $pipeline_dir && (git log | head -3 | tee -a main.log) && cd -
 
 # submit jobs in parallel
 echo -e "\n01: Running arguments:" | tee -a main.log
