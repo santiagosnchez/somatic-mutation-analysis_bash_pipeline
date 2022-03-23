@@ -220,13 +220,15 @@ if [[ "$check_finish" == 0 ]]; then
         # function to extrac rows that match MMR/tumor genes
         fetch_mmr_ann(){
           skip_rows=2
+          col=10
           if [[ $(echo $1 | grep "funcotator" &> /dev/null && echo 1) == 1 ]]; then
             skip_rows=3
+            col=4
           fi
-          awk -v FS="," -v SR=$skip_rows \
+          awk -v FS="," -v SR=$skip_rows -v COL=${col} \
           '{
             if (NR >= SR){
-              if ($10 ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
+              if ($COL ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
                 print $0
               }
             } else {
