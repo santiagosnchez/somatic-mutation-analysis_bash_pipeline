@@ -21,7 +21,7 @@ perl -ne '
     @fmt = split /:/, $fields[8];
     @tgt = split /:/, $fields[10];
     %fmt_gt_map = {};
-    foreach (0 .. (scalar(@fmt)-1)){ $fmt_gt_map{$fmt[$_]} = $tgt[$_] }
-    print join(",", @maf) . "," . $fmt_gt_map["AF"] . "\n";
+    foreach (0 .. (scalar(@fmt)-1)){ $fmt_gt_map{$fmt[$_]} = $tgt[$_] };
+    print join(",", @maf) . "," . $fmt_gt_map{"AF"} . "\n";
   }
 ' | sed "3,$ s/^/${2},${3},${4},/; 2,2 s/^/Tumor,Normal,Source,/1p" | sed '2d'

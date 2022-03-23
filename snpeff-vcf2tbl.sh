@@ -21,11 +21,11 @@ perl -ne '
     @fmt = split /:/, $fields[8];
     @tgt = split /:/, $fields[10];
     %fmt_gt_map = {};
-    foreach (0 .. (scalar(@fmt)-1)){ $fmt_gt_map{$fmt[$_]} = $tgt[$_] }
+    foreach (0 .. (scalar(@fmt)-1)){ $fmt_gt_map{$fmt[$_]} = $tgt[$_] };
     @annsubfields = split(/,/, $annfieldsmap{"ANN"});
     foreach (@annsubfields){
        $_ =~ s/\|/,/g;
-       print join(",", @fields[0,1,3]) . "," . $_ . "," . $fmt_gt_map["AF"] . "\n";
+       print join(",", @fields[0,1,3]) . "," . $_ . "," . $fmt_gt_map{"AF"} . "\n";
     }
 
   }
