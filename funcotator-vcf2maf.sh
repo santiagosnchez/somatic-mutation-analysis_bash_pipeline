@@ -12,7 +12,7 @@ perl -ne '
       @heads = split /\|/, $1;
       map { $_ =~ s/Gencode_\d+_//; substr($_, 0, 1) = uc substr($_, 0, 1) } @heads;
       $heads[0] = "Hugo_Symbol";
-      print join(",", @heads) . ",TumorAlleleFrequency" "\n";
+      print join(",", @heads) . ",TumorAlleleFrequency" . "\n";
     }
   } else {
     @fields = split /\t/, $_;
