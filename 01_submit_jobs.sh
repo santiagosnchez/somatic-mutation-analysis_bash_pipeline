@@ -177,8 +177,9 @@ if [[ ${skip_aln} == 0 ]]; then
   fi
 ' | tee -a main.log
 
+    njobs=$(cat ${file_list} | wc -l)
     # then submit
-    echo -e "\n01: Submitting jobs now ..." | tee -a main.log
+    echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
     cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
 if [[ -e {2} ]]; then
   wt=$(get_walltime {2} {3});
@@ -234,8 +235,9 @@ else
       fi
       ' | tee -a main.log
 
+    njobs=$(cat ${file_list} | wc -l)
     # then submit
-    echo -e "\n01: Submitting jobs now ..." | tee -a main.log
+    echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
     ready=$(ls bam | grep ".bam$" | sed 's/\..*//')
     if [[ ${#ready} == 0 ]]; then
       echo "bam files are not ready to run. Check working paths and files."
