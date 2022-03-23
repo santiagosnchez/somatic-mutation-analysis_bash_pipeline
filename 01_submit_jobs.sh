@@ -113,6 +113,12 @@ module load samtools/1.10
 # read all arguments
 read_and_export_arguments $* || exit 1
 
+# print date
+if [[ "$append" == 0 ]]; then
+    # add date to first line
+    date | tee main.log
+fi
+
 # test required mode
 if [[ ${#mode} == "" ]]; then
     echo -e "$help_message"
@@ -149,13 +155,8 @@ if [[ ! -e tmp ]]; then
     mkdir tmp
 fi
 
-# print date
-if [[ "$append" == 0 ]]; then
-    # add date to first line
-    date > main.log
-fi
-
 # add last commit version of pipeline
+echo -e "\nLast git commit version:"
 cd $pipeline_dir && (git log | head -3 | tee -a main.log) && cd -
 
 # submit jobs in parallel
@@ -262,5 +263,13 @@ genome=${genome} \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
         fi
       done
+    fi
+fi
+
+if [[ "$?" != 0 ]]; then
+    how_far_away=$(cat main.log | grep -o "^[0-9][0-9]: " | sort -u | wc -l)
+    if [[ ${how_far_away} == 1 ]]; then
+        echo "01: Deleting log and reverting back to starting conditions"
+        rm -rf main.log ./tmp
     fi
 fi
