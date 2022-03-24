@@ -133,15 +133,15 @@ if [[ ${#mode} == "" ]]; then
     exit 1
 elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
     if [[ "$dry_run" == 0 ]]; then
-        # print date and mode
-        date
-        echo "\n01: Running as mode: ${mode}"
-    else
         if [[ "$append" == 0 ]]; then
             # add date and mode to main.log
             date | tee main.log
         fi
         echo "\n01: Running as mode: ${mode}" | tee main.log
+    else
+        # print date and mode
+        date
+        echo "\n01: Running as mode: ${mode}"
     fi
 else
     echo -e "$help_message"
