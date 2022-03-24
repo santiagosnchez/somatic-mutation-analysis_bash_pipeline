@@ -132,7 +132,11 @@ if [[ ${fresh_start} == 1 ]]; then
     echo -n "[y|n]? : "
     read -r response
     if [[ "${response}" == "y" || "${response}" == "Y" || "${response}" == "yes" || "${response}" == "YES" ]]; then
+        if [[ $(qstat -u `whoami` | wc -l) > 0 ]]; then
+            echo "stoping pipeline first..."
+            ${pipeline_dir}/stop_pipeline
         rm -rf $(ls | grep -v "\.csv\|\.txt")
+        echo "01: Cleared."
     else
         exit 0
     fi
