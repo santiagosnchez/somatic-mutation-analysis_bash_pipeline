@@ -113,6 +113,13 @@ module load samtools/1.10
 # read all arguments
 read_and_export_arguments $* || exit 1
 
+# if user wants to overwrite results
+if [[ -e main.log && ${append} == 0 ]]; then
+    echo -e "$help_message"
+    echo -e "Error: It looks like the pipeline has already started. Run command with the -a flag to\nappend new samples (see examples)."
+    exit 1
+fi
+
 # print date
 if [[ "$append" == 0 ]]; then
     # add date to first line
@@ -129,13 +136,6 @@ elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
 else
     echo -e "$help_message"
     echo -e "Error: -m/--mode can only be \"wes\" or \"wgs\" (all lowercase)."
-    exit 1
-fi
-
-# if user wants to overwrite results
-if [[ -e main.log && ${append} == 0 ]]; then
-    echo -e "$help_message"
-    echo -e "Error: It looks like the pipeline has already started. Run command with the -a flag to\nappend new samples (see examples)."
     exit 1
 fi
 
