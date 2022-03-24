@@ -47,6 +47,9 @@ Optional arguments:
                                   Useful for testing new or old versions.
                                   Default: /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery
 
+--dry-run, -d           BOOL      Indicates if starting variables should be printed to screen only.
+                                  Without submitting any jobs.
+
 --help, -h              BOOL      Print this help message.
 
 Example commands:
@@ -76,6 +79,7 @@ read_and_export_arguments(){
     export genome="hg38"
     export pipeline_dir="/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery"
     export skip_aln=0
+    export dry_run=0
     # required
     export mode=""
     # loop through arguments if there are any
@@ -98,6 +102,8 @@ read_and_export_arguments(){
                 export append=1
             elif [[ "${args[$i]}" == "-s" || "${args[$i]}" == "--skip-alignment" ]]; then
                 export skip_aln=1
+            elif [[ "${args[$i]}" == "-d" || "${args[$i]}" == "--dry-run" ]]; then
+                export dry_run=1
             fi
         done
         return 0
@@ -123,7 +129,11 @@ fi
 # print date
 if [[ "$append" == 0 ]]; then
     # add date to first line
-    date | tee main.log
+    if [[ "$dry_run" == 0 ]]; then
+        date | tee main.log
+    else
+        date
+    fi
 fi
 
 # test required mode
@@ -132,7 +142,11 @@ if [[ ${#mode} == "" ]]; then
     echo "Error: -m/--mode is required. Select wes or wgs."
     exit 1
 elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
-    echo "Running as mode: ${mode}"
+    if [[ "$dry_run" == 0 ]]; then
+        echo "Running as mode: ${mode}" | tee main.log
+    else
+        echo "Running as mode: ${mode}"
+    fi
 else
     echo -e "$help_message"
     echo -e "Error: -m/--mode can only be \"wes\" or \"wgs\" (all lowercase)."
@@ -151,46 +165,79 @@ fi
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode} || exit 1
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ "$dry_run" == 0 ]]; then
+    if [[ ! -e tmp ]]; then
+        mkdir tmp
+    fi
 fi
 
 # add last commit version of pipeline
-echo -e "\nLast git commit version:" | tee -a main.log
-cd $pipeline_dir && (git log | head -3) | tee -a $current/main.log
-cd -
+if [[ "$dry_run" == 0 ]]; then
+    echo -e "\nLast git commit version:" | tee -a main.log
+    cd $pipeline_dir && (git log | head -3) | tee -a $current/main.log
+    cd -
+else
+    echo -e "\nLast git commit version:"
+    cd $pipeline_dir && (git log | head -3)
+    cd -
+fi
 
 # submit jobs in parallel
-echo -e "\n01: Running arguments:" | tee -a main.log
-echo "organism: ${organism}" | tee -a main.log
-echo "reference: ${genome}" | tee -a main.log
-echo "pipeline path: ${pipeline_dir}" | tee -a main.log
-echo "file list: ${file_list}" | tee -a main.log
+if [[ "$dry_run" == 0 ]]; then
+    echo -e "\n01: Running arguments:" | tee -a main.log
+    echo "organism: ${organism}" | tee -a main.log
+    echo "reference: ${genome}" | tee -a main.log
+    echo "pipeline path: ${pipeline_dir}" | tee -a main.log
+    echo "file list: ${file_list}" | tee -a main.log
+else
+    echo -e "\n01: Running arguments:"
+    echo "organism: ${organism}"
+    echo "reference: ${genome}"
+    echo "pipeline path: ${pipeline_dir}"
+    echo "file list: ${file_list}"
+fi
 
 if [[ ${skip_aln} == 0 ]]; then
     # first record arguments
-    cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
-  if [[ -e {2} ]]; then
-    wt=$(get_walltime {2} {3});
-    echo "sample: {1}";
-    echo "R1: {2}";
-    echo "R2: {3}";
-    echo "walltime: ${wt}";
-    echo "index: {#}";
-  else
-    echo "File not found:";
-    echo {2};
-  fi
-' | tee -a main.log
+    if [[ "$dry_run" == 0 ]]; then
+        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+      if [[ -e {2} ]]; then
+        wt=$(get_walltime {2} {3});
+        echo "sample: {1}";
+        echo "R1: {2}";
+        echo "R2: {3}";
+        echo "walltime: ${wt}";
+        echo "index: {#}";
+      else
+        echo "File not found:";
+        echo {2};
+      fi
+    ' | tee -a main.log
+    else
+        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+      if [[ -e {2} ]]; then
+        wt=$(get_walltime {2} {3});
+        echo "sample: {1}";
+        echo "R1: {2}";
+        echo "R2: {3}";
+        echo "walltime: ${wt}";
+        echo "index: {#}";
+      else
+        echo "File not found:";
+        echo {2};
+      fi
+    '
+    fi
 
     njobs=$(cat ${file_list} | wc -l)
     # then submit
-    echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
-    cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
-if [[ -e {2} ]]; then
-  wt=$(get_walltime {2} {3});
-  rg=`get_read_group_info {2} {1}`;
-  qsub -l walltime="${wt}":00:00 -v \
+    if [[ "$dry_run" == 0 ]]; then
+        echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
+        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+    if [[ -e {2} ]]; then
+      wt=$(get_walltime {2} {3});
+      rg=`get_read_group_info {2} {1}`;
+      qsub -l walltime="${wt}":00:00 -v \
 wt="${wt}",\
 file_list=${file_list},\
 index={#},\
@@ -202,59 +249,63 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/02a_check_pairs.sh
-else
-  echo "File not found:"
-  echo {2}
-fi
-' | tee -a main.log
-else
-    echo -e "\n01: Skipping alignment. Moving directly to variant calling."
-    # first check that file_list includes bam files
-    # first record arguments
-    # make bam dir
-    if [[ ! -e bam ]]; then
-        mkdir bam
-    fi
-    # make symlinks for all bams
-    cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
-    if [[ {2} == *".bam" ]]; then
-      if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
-        if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
-          echo "bam {2} is sorted. Linking..."
-          ln -s {2} bam/{1}.bqsr.bam ;
-          if [[ -e {2.}.bai ]]; then
-            ln -s {2.}.bai bam/{1}.bqsr.bai ;
-          elif [[ -e {2}.bai ]];
-            ln -s {2}.bai bam/{1}.bqsr.bai ;
-          else
-            echo "bam index not found for {2}"
-          fi
-          wt=$(get_walltime {2});
-          echo "sample: {1}";
-          echo "bam: {2}";
-          echo "walltime: ${wt}";
-        else
-          echo "bam {2} is unsorted. Omitting..."
-        fi
-      else
-        echo "samtools quickcheck failed for bam {2}"
-      fi
-      ' | tee -a main.log
-
-    njobs=$(cat ${file_list} | wc -l)
-    # then submit
-    echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
-    ready=$(ls bam | grep ".bam$" | sed 's/\..*//')
-    if [[ ${#ready} == 0 ]]; then
-      echo "bam files are not ready to run. Check working paths and files."
-      exit 1
     else
-      for sample in "$ready"; do
-        TN=$(grep "${sample}," tumors_and_normals.csv)
-        if [[ ${#TN} -gt 0 ]]; then
-          tumor=$(echo $TN | sed 's/,.*//')
-          wt=$(get_walltime $(readlink -f bam/${tumor}.bqsr.bam))
-          qsub -l walltime=${wt}:00:00 -v \
+      echo "File not found:"
+      echo {2}
+    fi
+    ' | tee -a main.log
+    else
+        echo -e "\n01: Submitting ${njobs} jobs now ..."
+    fi
+else
+    if [[ ${dry_run} == 0 ]]; then
+        echo -e "\n01: Skipping alignment. Moving directly to variant calling." |  tee -a main.log
+        # first check that file_list includes bam files
+        # first record arguments
+        # make bam dir
+        if [[ ! -e bam ]]; then
+            mkdir bam
+        fi
+        # make symlinks for all bams
+        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+        if [[ {2} == *".bam" ]]; then
+          if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
+            if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
+              echo "bam {2} is sorted. Linking..."
+              ln -s {2} bam/{1}.bqsr.bam ;
+              if [[ -e {2.}.bai ]]; then
+                ln -s {2.}.bai bam/{1}.bqsr.bai ;
+              elif [[ -e {2}.bai ]];
+                ln -s {2}.bai bam/{1}.bqsr.bai ;
+              else
+                echo "bam index not found for {2}"
+              fi
+              wt=$(get_walltime {2});
+              echo "sample: {1}";
+              echo "bam: {2}";
+              echo "walltime: ${wt}";
+            else
+              echo "bam {2} is unsorted. Omitting..."
+            fi
+          else
+            echo "samtools quickcheck failed for bam {2}"
+          fi
+          ' | tee -a main.log
+
+        njobs=$(cat ${file_list} | wc -l)
+        # then submit
+        echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
+        ready=$(ls bam | grep ".bam$" | sed 's/\..*//')
+        if [[ ${#ready} == 0 ]]; then
+          echo "bam files are not ready to run. Check working paths and files."
+          exit 1
+        else
+          for sample in "$ready"; do
+            TN=$(grep "${sample}," tumors_and_normals.csv)
+            if [[ ${#TN} -gt 0 ]]; then
+              tumor=$(echo $TN | sed 's/,.*//')
+              wt=$(get_walltime $(readlink -f bam/${tumor}.bqsr.bam))
+              qsub -l walltime=${wt}:00:00 -v \
 sample=${sample},\
 wt=${wt},\
 mode=${mode},\
@@ -262,10 +313,45 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
+            fi
+          done
         fi
-      done
-    fi
+    else
+      echo -e "\n01: Skipping alignment. Moving directly to variant calling."
+      # first check that file_list includes bam files
+      # first record arguments
+      # make symlinks for all bams
+      cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+      if [[ {2} == *".bam" ]]; then
+        if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
+          if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
+            echo "bam {2} is sorted. Linking..."
+            if [[ -e {2.}.bai ]]; then
+              echo "bam {2} is indexed as {2.}.bai"
+            elif [[ -e {2}.bai ]];
+              echo "bam {2} is indexed as {2}.bai""
+            else
+              echo "bam index not found for {2}"
+            fi
+            wt=$(get_walltime {2});
+            echo "sample: {1}";
+            echo "bam: {2}";
+            echo "walltime: ${wt}";
+          else
+            echo "bam {2} is unsorted. Omitting..."
+          fi
+        else
+          echo "samtools quickcheck failed for bam {2}"
+        fi
+        '
+
+      njobs=$(cat ${file_list} | wc -l)
+      # then submit
+      echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
 fi
+
+# debugging
+echo $?
 
 if [[ "$?" != 0 ]]; then
     how_far_away=$(cat main.log | grep -o "^[0-9][0-9]: " | sort -u | wc -l)
