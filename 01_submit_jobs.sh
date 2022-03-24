@@ -50,6 +50,9 @@ Optional arguments:
 --dry-run, -d           BOOL      Indicates if starting variables should be printed to screen only.
                                   Without submitting any jobs.
 
+--fresh-start, -e       BOOL      Clears the working directory completely except for csv/text files.
+                                  <<TAKE CAUTION>> using this argument.
+
 --help, -h              BOOL      Print this help message.
 
 Example commands:
@@ -80,6 +83,7 @@ read_and_export_arguments(){
     export pipeline_dir="/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery"
     export skip_aln=0
     export dry_run=0
+    export fresh_start=0
     # required
     export mode=""
     # loop through arguments if there are any
@@ -104,6 +108,8 @@ read_and_export_arguments(){
                 export skip_aln=1
             elif [[ "${args[$i]}" == "-d" || "${args[$i]}" == "--dry-run" ]]; then
                 export dry_run=1
+            elif [[ "${args[$i]}" == "-e" || "${args[$i]}" == "--fresh-start" ]]; then
+                export fresh_start=1
             fi
         done
         return 0
@@ -118,6 +124,19 @@ module load samtools/1.10
 
 # read all arguments
 read_and_export_arguments $* || exit 1
+
+# check if user wants a fresh start
+if [[ ${fresh_start} == 1 ]]; then
+    echo "Are you sure you want to delete these files? : "
+    file * | grep -v "\.csv:"
+    echo -n "[y|n]? : "
+    read -r response
+    if [[ "${response}" == "y" || "${response}" == "Y" || "${response}" == "yes" || "${response}" == "YES" ]]; then
+        rm -rf $(ls * | grep -v "\.csv:")
+    else
+        exit 0
+    fi
+fi
 
 # if user wants to overwrite results
 if [[ -e main.log && ${append} == 0 ]]; then
