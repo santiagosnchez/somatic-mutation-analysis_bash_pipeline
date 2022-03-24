@@ -161,7 +161,7 @@ elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
             # add date and mode to main.log
             date | tee main.log
         fi
-        echo -e "\n01: Running as mode: ${mode}" | tee main.log
+        echo -e "\n01: Running as mode: ${mode}" | tee -a main.log
     else
         # print date and mode
         date
