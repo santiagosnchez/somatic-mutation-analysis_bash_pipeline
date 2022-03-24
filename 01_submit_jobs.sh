@@ -165,10 +165,8 @@ fi
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode} || exit 1
 
 # create .tmp dir (hidden)
-if [[ "$dry_run" == 0 ]]; then
-    if [[ ! -e ./.tmp ]]; then
-        mkdir ./.tmp
-    fi
+if [[ ! -e ./.tmp ]]; then
+    mkdir ./.tmp
 fi
 
 # add last commit version of pipeline
