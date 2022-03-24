@@ -143,9 +143,9 @@ if [[ ${#mode} == "" ]]; then
     exit 1
 elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
     if [[ "$dry_run" == 0 ]]; then
-        echo "Running as mode: ${mode}" | tee main.log
+        echo "\n01: Running as mode: ${mode}" | tee main.log
     else
-        echo "Running as mode: ${mode}"
+        echo "\n01: Running as mode: ${mode}"
     fi
 else
     echo -e "$help_message"
@@ -347,7 +347,8 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
 
       njobs=$(cat ${file_list} | wc -l)
       # then submit
-      echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
+      echo -e "\n01: Submitting ${njobs} jobs now ..."
+    fi
 fi
 
 # debugging
