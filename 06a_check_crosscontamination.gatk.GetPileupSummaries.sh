@@ -27,8 +27,8 @@ else
 fi
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # create log dir
@@ -41,13 +41,13 @@ fi
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 # run gatk's GetPileupSummaries
-$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
 -I ${dir}/${tumor}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${intervals} \
 -O contamination/${tumor}.getpileupsummaries.table
 
-$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" GetPileupSummaries \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
 -I ${dir}/${normal}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${intervals} \

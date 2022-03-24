@@ -21,8 +21,8 @@ if [[ ! -e varscan ]]; then
 fi
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # set bam dir

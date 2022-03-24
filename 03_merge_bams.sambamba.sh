@@ -42,9 +42,9 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 # check all
 all_check=0
 
-# create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+# create .tmp dir
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 # create log dir
 if [[ ! -e all_logfiles ]]; then
@@ -118,8 +118,8 @@ if [[ "$check_finish" == 0 ]]; then
     # delete scattered bams
     rm aligned_bam/${sample}.*.sorted.bam*
     # delete temporary files
-    if [[ -e tmp/${sample}_file_list.csv ]]; then
-        rm tmp/${sample}_file_list.csv
+    if [[ -e .tmp/${sample}_file_list.csv ]]; then
+        rm .tmp/${sample}_file_list.csv
     fi
     # get new walltime
     wt=$(get_walltime aligned_bam/${sample}.merged.bam)

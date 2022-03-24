@@ -20,8 +20,8 @@ if [[ ! -e vcf/snpEff ]]; then
 fi
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # create log dir
@@ -43,17 +43,17 @@ if [[ "${tissue}" == "Somatic" ]]; then
     # what caller
     caller="mutect2"
     # make temporary header file with pedigree
-    echo "##PEDIGREE=<Derived=${tumor},Original=${normal}>" > ${tumor}__${normal}.tmp.vcf.header.txt
+    echo "##PEDIGREE=<Derived=${tumor},Original=${normal}>" > ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt
 
     # normalize variants, reduce complex alleles and add header line
     bcftools annotate \
-     -h ${tumor}__${normal}.tmp.vcf.header.txt \
+     -h ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt \
      -Oz -o mutect2/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz \
      ${caller}/${tumor}__${normal}.${caller}.normalized.${mode}.vcf.gz
 
     # delete tmp header file
     if [[ "$?" == 0 ]]; then
-        rm ${tumor}__${normal}.tmp.vcf.header.txt
+        rm ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt
     fi
 
     # run snpEff on mutect2 vcf

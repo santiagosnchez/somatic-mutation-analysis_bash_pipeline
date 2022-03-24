@@ -18,8 +18,8 @@ cd $PBS_O_WORKDIR
 echo $PBS_JOBID
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # create log dir
@@ -33,7 +33,7 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 
 if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table && -e contamination/${tumor}__${normal}.tumorsegmentation.table ]]; then
 # run gatk's FilterMutectCalls
-$gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
+$gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
  -R $reference \
  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
  --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
@@ -41,7 +41,7 @@ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
  --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
  -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
  # skipping read orientation filtering due to high numbers of false negatives
- $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
+ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
   -R $reference \
   -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
   --contamination-table contamination/${tumor}__${normal}.calculatecontamination.table \
@@ -49,7 +49,7 @@ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" FilterMutectCalls \
   -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
 
 # select passed variants
-# $gatk_path/gatk --java-options "-Djava.io.tmpdir=./tmp" SelectVariants \
+# $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" SelectVariants \
 #  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
 #  --exclude-filtered \
 #  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf

@@ -164,10 +164,10 @@ fi
 # for details check script
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode} || exit 1
 
-# create tmp dir
+# create .tmp dir (hidden)
 if [[ "$dry_run" == 0 ]]; then
-    if [[ ! -e tmp ]]; then
-        mkdir tmp
+    if [[ ! -e ./.tmp ]]; then
+        mkdir ./.tmp
     fi
 fi
 
@@ -200,7 +200,7 @@ fi
 if [[ ${skip_aln} == 0 ]]; then
     # first record arguments
     if [[ "$dry_run" == 0 ]]; then
-        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+        cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
       if [[ -e {2} ]]; then
         wt=$(get_walltime {2} {3});
         echo "sample: {1}";
@@ -214,7 +214,7 @@ if [[ ${skip_aln} == 0 ]]; then
       fi
     ' | tee -a main.log
     else
-        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+        cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
       if [[ -e {2} ]]; then
         wt=$(get_walltime {2} {3});
         echo "sample: {1}";
@@ -233,7 +233,7 @@ if [[ ${skip_aln} == 0 ]]; then
     # then submit
     if [[ "$dry_run" == 0 ]]; then
         echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
-        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+        cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
     if [[ -e {2} ]]; then
       wt=$(get_walltime {2} {3});
       rg=`get_read_group_info {2} {1}`;
@@ -267,7 +267,7 @@ else
             mkdir bam
         fi
         # make symlinks for all bams
-        cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+        cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
         if [[ {2} == *".bam" ]]; then
           if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
             if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
@@ -321,7 +321,7 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
       # first check that file_list includes bam files
       # first record arguments
       # make symlinks for all bams
-      cat ${file_list} | parallel --tmpdir ./tmp --colsep="," '
+      cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
       if [[ {2} == *".bam" ]]; then
         if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
           if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
@@ -358,6 +358,6 @@ if [[ "$?" != 0 ]]; then
     how_far_away=$(cat main.log | grep -o "^[0-9][0-9]: " | sort -u | wc -l)
     if [[ ${how_far_away} == 1 ]]; then
         echo "01: Deleting log and reverting back to starting conditions"
-        rm -rf main.log ./tmp
+        rm -rf main.log ./.tmp
     fi
 fi

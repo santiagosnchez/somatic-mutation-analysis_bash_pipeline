@@ -21,8 +21,8 @@ if [[ ! -e mutect2 ]]; then
 fi
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # set bam dir
@@ -43,7 +43,7 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 
 if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
 # run gatk's mutect2
-$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./tmp" Mutect2 \
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
  -I ${dir}/${normal}.bqsr.bam \
  -tumor ${tumor} \

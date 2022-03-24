@@ -22,8 +22,8 @@ if [[ ! -e analyses ]]; then
 fi
 
 # create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # set bam dir
@@ -261,9 +261,9 @@ if [[ "$check_finish" == 0 ]]; then
         # delete all other vcf files except filtered and unfiltered VCFs
         rm $(ls mutect2/*vcf* | grep -v "filtered")
         # bgzip and tabix all vcf files
-        ls mutect2/*.vcf | parallel --tmpdir ./tmp "index-vcf {}"
+        ls mutect2/*.vcf | parallel --tmpdir ./.tmp "index-vcf {}"
         # delete directories with bam data
-        rm -rf preprocessed_bam aligned_bam tmp
+        rm -rf preprocessed_bam aligned_bam .tmp
         if [[ -e unmapped_bam ]]; then
             rm -rf unmapped_bam
         fi

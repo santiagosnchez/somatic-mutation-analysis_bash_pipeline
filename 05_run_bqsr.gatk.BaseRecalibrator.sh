@@ -31,9 +31,9 @@ else
     dir=bam
 fi
 
-# create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+# create .tmp dir
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 # create log dir
 if [[ ! -e all_logfiles ]]; then
@@ -78,7 +78,7 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
 else
 
 # run gatl's BaseRecalibrator
-$gatk_path/gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Djava.io.tmpdir=./tmp" BaseRecalibrator \
+$gatk_path/gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Djava.io.tmpdir=./.tmp" BaseRecalibrator \
  -R $reference \
  -L $intervals \
  --known-sites $knownsites_snps \
@@ -87,7 +87,7 @@ $gatk_path/gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads
  -O ${sample}.baserecalibrator.txt
 
 # use samtools to increase the compression level in the read-corrected output bam
-$gatk_path/gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Dsamjdk.compression_level=6 -Djava.io.tmpdir=./tmp" ApplyBQSR \
+$gatk_path/gatk --java-options "-Xmx10G -XX:+UseParallelGC -XX:ParallelGCThreads=12 -Dsamjdk.compression_level=6 -Djava.io.tmpdir=./.tmp" ApplyBQSR \
  --bqsr ${sample}.baserecalibrator.txt \
  -I preprocessed_bam/${sample}.markdup.bam \
  -O ${dir}/${sample}.bqsr.bam \
@@ -114,7 +114,7 @@ if [[ "$check_finish" == 0 ]]; then
     echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
     # submit varscan
     echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
-    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp "qsub -v \
+    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
 sample=${sample},\
 bed={},\
 index={#},\
@@ -157,7 +157,7 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
                     # save a dry run of commands
-                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp --dry-run "qsub -v \
+                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
 normal=${normal},\
 tumor=${tumor},\
 bed={},\
@@ -168,7 +168,7 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
                     # submit mutect2 jobs on 30 intervals
-                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./tmp "qsub -v \
+                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
 normal=${normal},\
 tumor=${tumor},\
 bed={},\

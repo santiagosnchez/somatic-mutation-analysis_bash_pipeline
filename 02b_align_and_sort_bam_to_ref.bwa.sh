@@ -51,9 +51,9 @@ if [[ ! -e aligned_bam ]]; then
     mkdir aligned_bam
 fi
 
-# create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+# create .tmp dir
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # create log dir
@@ -87,7 +87,7 @@ ${pipeline_dir}/02a_check_pairs.sh
        # check if bam is sorted
        if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.sorted.bam && echo 1) != 1 ]]; then
            sambamba sort \
-            --tmpdir=./tmp \
+            --tmpdir=./.tmp \
             -m 5GB \
             -t 10 \
             -o aligned_bam/${sample}.${index}.sorted.bam \
@@ -111,7 +111,7 @@ else
    # sort file
    if [[ $(samtools quickcheck aligned_bam/${sample}.${index}.bam && echo 1) == 1 ]]; then
        sambamba sort \
-         --tmpdir=./tmp \
+         --tmpdir=./.tmp \
          -m 5GB \
          -t 10 \
          -o aligned_bam/${sample}.${index}.sorted.bam \
@@ -127,12 +127,12 @@ fi
 
 # if finished successfuly, submit next job
 if [[ "$check_finish" == 0 ]]; then
-    # delete tmp files
+    # delete .tmp files
     if [[ $( echo ${forward} | grep -c "^tmp\/" ) == 1 ]]; then
         if [[ "${#reverse}" -gt 0 ]]; then
-            rm "./tmp/${forward}" "./tmp/${reverse}"
+            rm "./.tmp/${forward}" "./.tmp/${reverse}"
         else
-            rm "./tmp/${forward}"
+            rm "./.tmp/${forward}"
         fi
     fi
     # calculate the number of bam files to merge

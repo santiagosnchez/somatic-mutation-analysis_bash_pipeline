@@ -21,9 +21,9 @@ if [[ ! -e all_logfiles ]]; then
     mkdir all_logfiles
 fi
 
-# create tmp dir
-if [[ ! -e tmp ]]; then
-    mkdir tmp
+# create .tmp dir (hidden) if it does not exist
+if [[ ! -e .tmp ]]; then
+    mkdir .tmp
 fi
 
 # get walltime if not set
@@ -43,20 +43,20 @@ if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
        # get total singletons
        total_single=$(cat ${sample}.${index}.checkpairs.log | grep "Single: " | sed 's/.*: //')
        if [[ "${total_single}" -gt 0 ]]; then
-          new_forward="tmp/${sample}.${index}.1.fastq.gz"
-          new_reverse="tmp/${sample}.${index}.2.fastq.gz"
-          singletons="tmp/${sample}.${index}.S.fastq.gz"
-          # make tmp file_list file
-          echo "${sample},${new_forward},${new_reverse}" >> tmp/${sample}_file_list.csv
-          echo "${sample},${singletons}," >> tmp/${sample}_file_list.csv
+          new_forward=".tmp/${sample}.${index}.1.fastq.gz"
+          new_reverse=".tmp/${sample}.${index}.2.fastq.gz"
+          singletons=".tmp/${sample}.${index}.S.fastq.gz"
+          # make .tmp file_list file
+          echo "${sample},${new_forward},${new_reverse}" >> .tmp/${sample}_file_list.csv
+          echo "${sample},${singletons}," >> .tmp/${sample}_file_list.csv
           # make sure it's not duplicating
-          cat tmp/${sample}_file_list.csv | sort -u > tmp/${sample}_file_list2.csv && mv tmp/${sample}_file_list2.csv tmp/${sample}_file_list.csv
+          cat .tmp/${sample}_file_list.csv | sort -u > .tmp/${sample}_file_list2.csv && mv .tmp/${sample}_file_list2.csv .tmp/${sample}_file_list.csv
           # calculate new walltime and read group
           wt=$(get_walltime $new_forward $new_reverse)
           # submit new jobs
           qsub -l walltime="${wt}":00:00 -v \
 wt="${wt}",\
-file_list="tmp/${sample}_file_list.csv",\
+file_list=".tmp/${sample}_file_list.csv",\
 index=${index},\
 sample=${sample},\
 forward=${new_forward},\
@@ -70,7 +70,7 @@ ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
           wt=$(get_walltime $singletons)
           qsub -l walltime="${wt}":00:00 -v \
 wt="${wt}",\
-file_list="tmp/${sample}_file_list.csv",\
+file_list=".tmp/${sample}_file_list.csv",\
 index="${index}s",\
 sample=${sample},\
 forward=${singletons},\
@@ -80,10 +80,10 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       else
-          # delete tmp files
-          new_forward="tmp/${sample}.${index}.1.fastq.gz"
-          new_reverse="tmp/${sample}.${index}.2.fastq.gz"
-          singletons="tmp/${sample}.${index}.S.fastq.gz"
+          # delete .tmp files
+          new_forward=".tmp/${sample}.${index}.1.fastq.gz"
+          new_reverse=".tmp/${sample}.${index}.2.fastq.gz"
+          singletons=".tmp/${sample}.${index}.S.fastq.gz"
           rm $new_forward $new_reverse $singletons
           # proceed normally
           qsub -l walltime="${wt}":00:00 -v \
