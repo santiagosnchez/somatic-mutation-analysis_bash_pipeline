@@ -135,6 +135,7 @@ if [[ ${fresh_start} == 1 ]]; then
         if [[ $(qstat -u `whoami` | wc -l) > 0 ]]; then
             echo "stoping pipeline first..."
             ${pipeline_dir}/stop_pipeline
+        fi
         rm -rf $(ls | grep -v "\.csv\|\.txt")
         echo "01: Cleared."
     else
