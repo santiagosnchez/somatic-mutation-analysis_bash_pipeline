@@ -140,8 +140,8 @@ else
 fi
 
 # check tumors_and_normals.csv
+current=`pwd -P`
 if [[ ! -e tumors_and_normals.csv ]]; then
-    current=`pwd -P`
     echo "tumors_and_normals.csv file not found in working directory: $current"
     exit 1
 fi
@@ -156,8 +156,9 @@ if [[ ! -e tmp ]]; then
 fi
 
 # add last commit version of pipeline
-# echo -e "\nLast git commit version:" | tee -a main.log
-# cd $pipeline_dir && (git log | head -3) && cd - | tee -a main.log
+echo -e "\nLast git commit version:" | tee -a main.log
+cd $pipeline_dir && (git log | head -3) | tee -a $current/main.log
+cd -
 
 # submit jobs in parallel
 echo -e "\n01: Running arguments:" | tee -a main.log

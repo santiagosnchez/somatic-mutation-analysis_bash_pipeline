@@ -277,7 +277,7 @@ if [[ "$check_finish" == 0 ]]; then
             # get date pipeline started
             total_time_in_days=$( how_long main.log )
             # final log
-            echo -e "10: \npipeline took ${total_time_in_days} days for batch to complete" | tee -a main.log
+            echo -e "\n10: pipeline took ${total_time_in_days} days for batch to complete" | tee -a main.log
             # change/adjust permisions
             # this configuration allows the main user and the users in the tabori group to
             # read/write/excecute
