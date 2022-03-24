@@ -132,7 +132,7 @@ if [[ ${fresh_start} == 1 ]]; then
     echo -n "[y|n]? : "
     read -r response
     if [[ "${response}" == "y" || "${response}" == "Y" || "${response}" == "yes" || "${response}" == "YES" ]]; then
-        rm -rf $(ls * | grep -v "\.csv:")
+        rm -rf $(ls | grep -v "\.csv:")
     else
         exit 0
     fi
