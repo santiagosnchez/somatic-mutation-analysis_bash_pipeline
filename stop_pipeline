@@ -1,0 +1,18 @@
+#!/bin/bash
+
+module load parallel/20210322
+
+quit_job(){
+   job=$1
+   qstat ${job} &> /dev/null || (echo "cleared: ${job}" && (ls | grep "${RANDOM}") ) && \
+   (qstat ${job} | tail -1 | grep -o " [RQH] " &> /dev/null && \
+   ( qdel ${job} && echo "stopped: ${job}" ) || echo "completed: ${job}")
+}
+export -f quit_job
+
+if [[ -e main.log ]]; then
+   cat $(find . all_logfiles -maxdepth 1 -type f -name "*.log") | grep "^[1-9][0-9]*$" | sort -u | parallel quit_job {}
+else
+   echo "Is this a working directory?"
+   pwd -P
+fi
