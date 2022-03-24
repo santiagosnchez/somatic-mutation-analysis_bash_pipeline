@@ -156,8 +156,8 @@ if [[ ! -e tmp ]]; then
 fi
 
 # add last commit version of pipeline
-echo -e "\nLast git commit version:" | tee -a main.log
-cd $pipeline_dir && (git log | head -3) && cd - | tee -a main.log
+# echo -e "\nLast git commit version:" | tee -a main.log
+# cd $pipeline_dir && (git log | head -3) && cd - | tee -a main.log
 
 # submit jobs in parallel
 echo -e "\n01: Running arguments:" | tee -a main.log
