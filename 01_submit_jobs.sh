@@ -128,7 +128,7 @@ read_and_export_arguments $* || exit 1
 # check if user wants a fresh start
 if [[ ${fresh_start} == 1 ]]; then
     echo "Are you sure you want to delete these files? : "
-    file * | grep -v "\.csv:|\.txt:"
+    file * | grep -v "\.csv:\|\.txt:"
     echo -n "[y|n]? : "
     read -r response
     if [[ "${response}" == "y" || "${response}" == "Y" || "${response}" == "yes" || "${response}" == "YES" ]]; then
