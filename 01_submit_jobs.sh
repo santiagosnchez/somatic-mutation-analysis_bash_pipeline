@@ -345,9 +345,6 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
     fi
 fi
 
-# debugging
-echo $?
-
 if [[ "$?" != 0 ]]; then
     how_far_away=$(cat main.log | grep -o "^[0-9][0-9]: " | sort -u | wc -l)
     if [[ ${how_far_away} == 1 ]]; then
