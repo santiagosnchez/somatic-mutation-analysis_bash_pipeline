@@ -350,7 +350,7 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
             if [[ -e {2.}.bai ]]; then
               echo "bam {2} is indexed as {2.}.bai"
             elif [[ -e {2}.bai ]]; then
-              echo "bam {2} is indexed as {2}.bai""
+              echo "bam {2} is indexed as {2}.bai"
             else
               echo "bam index not found for {2}"
             fi
@@ -367,7 +367,7 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
       else
           echo "{2} not a bam file."
       fi
-        '
+      '
 
       njobs=$(cat ${file_list} | wc -l)
       # then submit
