@@ -322,10 +322,9 @@ else
           exit 1
         else
           for sample in $ready; do
-            TN=$(grep "${sample}," tumors_and_normals.csv)
+            TN=$(grep "^${sample},\|,${sample}$" tumors_and_normals.csv)
             if [[ ${#TN} -gt 0 ]]; then
-              tumor=$(echo $TN | sed 's/,.*//')
-              wt=$(get_walltime $(readlink -f bam/${tumor}.bqsr.bam))
+              wt=$(get_walltime $(readlink -f bam/${sample}.bqsr.bam))
               qsub -l walltime=${wt}:00:00 -v \
 sample=${sample},\
 wt=${wt},\
