@@ -287,7 +287,7 @@ else
         # make symlinks for all bams
         cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
         if [[ {2} == *".bam" ]]; then
-          if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
+          if [[ $(samtools quickcheck {2} && echo 1) == 1 ]]; then
             if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
               echo "bam {2} is sorted. Linking..."
               ln -s {2} bam/{1}.bqsr.bam ;
@@ -341,7 +341,7 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
       # make symlinks for all bams
       cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
       if [[ {2} == *".bam" ]]; then
-        if [[ $(samtools quickcheck {2}) && echo 1) == 1 ]]; then
+        if [[ $(samtools quickcheck {2} && echo 1) == 1 ]]; then
           if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
             echo "bam {2} is sorted. Linking..."
             if [[ -e {2.}.bai ]]; then
