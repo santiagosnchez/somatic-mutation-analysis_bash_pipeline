@@ -285,16 +285,19 @@ else
             mkdir bam
         fi
         # make symlinks for all bams
-        cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
+        cat ${file_list} | parallel --plus --tmpdir ./.tmp --colsep="," '
         if [[ {2} == *".bam" ]]; then
           if [[ $(samtools quickcheck {2} && echo 1) == 1 ]]; then
             if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
-              echo "bam {2} is sorted. Linking..."
+              echo -e -n "bam {2/} is sorted.\nLinking as "
               ln -s {2} bam/{1}.bqsr.bam ;
+              echo "bam/{1}.bqsr.bam";
               if [[ -e {2.}.bai ]]; then
                 ln -s {2.}.bai bam/{1}.bqsr.bai ;
+                echo "bam/{1}.bqsr.bam";
               elif [[ -e {2}.bai ]]; then
                 ln -s {2}.bai bam/{1}.bqsr.bai ;
+                echo "bam/{1}.bqsr.bam";
               else
                 echo "bam index not found for {2}"
               fi
@@ -341,17 +344,17 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
       # first check that file_list includes bam files
       # first record arguments
       # make symlinks for all bams
-      cat ${file_list} | parallel --tmpdir ./.tmp --colsep="," '
+      cat ${file_list} | parallel --plus --tmpdir ./.tmp --colsep="," '
       if [[ {2} == *".bam" ]]; then
         if [[ $(samtools quickcheck {2} && echo 1) == 1 ]]; then
           if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
-            echo "bam {2} is sorted. Linking..."
+            echo "bam {2/} is sorted. Linking..."
             if [[ -e {2.}.bai ]]; then
-              echo "bam {2} is indexed as {2.}.bai"
+              echo "bam {2/} is indexed as {2./}.bai"
             elif [[ -e {2}.bai ]]; then
-              echo "bam {2} is indexed as {2}.bai"
+              echo "bam {2/} is indexed as {2/}.bai"
             else
-              echo "bam index not found for {2}"
+              echo "bam index not found for {2/}"
             fi
             wt=$(get_walltime {2});
             echo "sample: {1}";
