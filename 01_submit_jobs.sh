@@ -372,6 +372,14 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
       njobs=$(cat ${file_list} | wc -l)
       # then submit
       echo -e "\n01: Submitting ${njobs} jobs now ..."
+      echo "qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log"
     fi
 fi
 
