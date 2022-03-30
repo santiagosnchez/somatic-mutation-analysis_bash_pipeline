@@ -321,7 +321,7 @@ else
           echo "bam files are not ready to run. Check working paths and files."
           exit 1
         else
-          for sample in "$ready"; do
+          for sample in $ready; do
             TN=$(grep "${sample}," tumors_and_normals.csv)
             if [[ ${#TN} -gt 0 ]]; then
               tumor=$(echo $TN | sed 's/,.*//')
@@ -372,14 +372,6 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
       njobs=$(cat ${file_list} | wc -l)
       # then submit
       echo -e "\n01: Submitting ${njobs} jobs now ..."
-      echo "qsub -l walltime=${wt}:00:00 -v \
-sample=${sample},\
-wt=${wt},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log"
     fi
 fi
 
