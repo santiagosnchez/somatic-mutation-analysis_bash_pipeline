@@ -244,7 +244,7 @@ if [[ "$check_finish" == 0 ]]; then
 
         # export to zip file
         today=$(data -I)
-        zip -r export_results_${today}.zip analyses/old_output* analyses/mmr_annotations_*
+        zip -r export_results.${today}.zip analyses/old_output* analyses/mmr_annotations_*
 
         # add tmb_and_coverage to archive
         #zip -ru analyses.zip analyses/coverage_and_tmb.csv
