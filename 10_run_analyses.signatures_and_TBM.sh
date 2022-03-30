@@ -243,7 +243,7 @@ if [[ "$check_finish" == 0 ]]; then
         fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
 
         # export to zip file
-        today=$(data -I)
+        today=$(date -I)
         zip -r export_results.${today}.zip analyses/old_output* analyses/mmr_annotations_*
 
         # add tmb_and_coverage to archive
