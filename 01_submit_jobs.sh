@@ -308,7 +308,10 @@ else
           else
             echo "samtools quickcheck failed for bam {2}"
           fi
-          ' | tee -a main.log
+        else
+            echo "{2} not a bam file."
+        fi
+        ' | tee -a main.log
 
         njobs=$(cat ${file_list} | wc -l)
         # then submit
@@ -361,6 +364,9 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
         else
           echo "samtools quickcheck failed for bam {2}"
         fi
+      else
+          echo "{2} not a bam file."
+      fi
         '
 
       njobs=$(cat ${file_list} | wc -l)
