@@ -293,7 +293,7 @@ else
               ln -s {2} bam/{1}.bqsr.bam ;
               if [[ -e {2.}.bai ]]; then
                 ln -s {2.}.bai bam/{1}.bqsr.bai ;
-              elif [[ -e {2}.bai ]];
+              elif [[ -e {2}.bai ]]; then
                 ln -s {2}.bai bam/{1}.bqsr.bai ;
               else
                 echo "bam index not found for {2}"
@@ -349,7 +349,7 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
             echo "bam {2} is sorted. Linking..."
             if [[ -e {2.}.bai ]]; then
               echo "bam {2} is indexed as {2.}.bai"
-            elif [[ -e {2}.bai ]];
+            elif [[ -e {2}.bai ]]; then
               echo "bam {2} is indexed as {2}.bai""
             else
               echo "bam index not found for {2}"
