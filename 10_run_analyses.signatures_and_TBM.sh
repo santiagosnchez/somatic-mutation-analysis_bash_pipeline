@@ -285,25 +285,6 @@ if [[ "$check_finish" == 0 ]]; then
             echo "10: changing permissions" | tee -a main.log
             find . -type d -user `whoami` -exec chmod 774 {} \;
             find . -type f -user `whoami` -exec chmod 664 {} \;
-            # chmod 774 all_logfiles \
-            #           analyses \
-            #           bam \
-            #           contamination \
-            #           mutect2/f1r2 \
-            #           vcf/snpEff
-            # files second
-            # chmod 664 all_logfiles/* \
-            #           analyses/* \
-            #           bam/* \
-            #           contamination/* \
-            #           mutect2/*vcf* \
-            #           mutect2/f1r2/* \
-            #           vcf/*vcf* \
-            #           vcf/*maf* \
-            #           vcf/snpEff/* \
-            #           varscan/*vcf* \
-            #           ${tumor}__${normal}.analyses.log
-            #
         fi
     fi
 
