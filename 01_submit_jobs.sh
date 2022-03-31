@@ -186,9 +186,9 @@ if [[ "${aln_only}" == 1 && ${skip_aln} == 1 ]]; then
     exit 1
 elif [[ "${aln_only}" == 1 ]]; then
     if [[ "$dry_run" == 0 ]]; then
-        echo -e "\n01: Doing alignment only up to BQSR.\n" | tee -a main.log
+        echo -e "\n01: Doing alignment only up to BQSR." | tee -a main.log
     else
-        echo -e "\n01: Doing alignment only up to BQSR.\n"
+        echo -e "\n01: Doing alignment only up to BQSR."
     fi
 fi
 
