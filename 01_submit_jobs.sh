@@ -189,6 +189,7 @@ elif [[ "${aln_only}" == 1 ]]; then
         echo -e "\n01: Doing alignment only up to BQSR.\n" | tee -a main.log
     else
         echo -e "\n01: Doing alignment only up to BQSR.\n"
+    fi
 fi
 
 # check tumors_and_normals.csv
