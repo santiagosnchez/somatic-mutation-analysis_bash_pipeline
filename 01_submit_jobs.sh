@@ -7,6 +7,13 @@ die(){
 }
 export -f die
 
+# random 10 alphanumeric
+rand(){
+    alphanum=$(head /dev/urandom | tr -dc '[:alnum:]' | fold -10 | head -1)
+    echo $alphanum
+}
+export -f rand
+
 help_message="
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -313,14 +320,14 @@ else
         mkdir bam
         export dir=bam
     fi
-    bams=$(ls ${dir}/*.bqsr.bam)
-    if [[ ${#bams} -gt 0 ]]; then
+    bams=$(ls ${dir}/*.bqsr.bam 2> /dev/null || echo "")
+    if [[ ${#bams[@]} -gt 0 ]]; then
         if [[ "$dry_run" == 0 ]]; then
             echo -e "\n01: bam dir is not empty. Overriding ${file_list}." | tee -a main.log
         else
             echo -e "\n01: bam dir is not empty. Overriding ${file_list}."
         fi
-        file_list=""
+        file_list=`rand`
     fi
     # make symlinks for all bams if bam dir not empty
     if [[ ${dry_run} == 0 ]]; then
