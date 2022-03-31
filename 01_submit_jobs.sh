@@ -305,23 +305,22 @@ else
     # first check that file_list includes bam files
     # first record arguments
     # make bam dir
-    if [[ ! -e bam ]]; then
-        mkdir bam
+    if [[ -e BQSR ]]; then
+        export dir=BQSR
+    elif [[ -e bam ]]; then
+        export dir=bam
     else
-        if [[ -e BQSR ]]; then
-            export dir=BQSR
+        mkdir bam
+        export dir=bam
+    fi
+    bams=$(ls ${dir}/*.bqsr.bam)
+    if [[ ${#bams} -gt 0 ]]; then
+        if [[ "$dry_run" == 0 ]]; then
+            echo -e "\n01: bam dir is not empty. Overriding ${file_list}." | tee -a main.log
         else
-            export dir=bam
+            echo -e "\n01: bam dir is not empty. Overriding ${file_list}."
         fi
-        bams=$(ls ${dir}/*.bqsr.bam)
-        if [[ ${#bams} -gt 0 ]]; then
-            if [[ "$dry_run" == 0 ]]; then
-                echo -e "\n01: bam dir is not empty. Overriding ${file_list}." | tee -a main.log
-            else
-                echo -e "\n01: bam dir is not empty. Overriding ${file_list}."
-            fi
-            file_list=""
-        fi
+        file_list=""
     fi
     # make symlinks for all bams if bam dir not empty
     if [[ ${dry_run} == 0 ]]; then
