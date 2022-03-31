@@ -71,7 +71,8 @@ wt=${wt},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
         exit 0
     fi
@@ -112,126 +113,136 @@ if [[ "$check_finish" == 0 ]]; then
     # next round of jobs are submitted manually or not
     # log to main
     echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
-    # submit varscan
-    echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
-    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
-sample=${sample},\
-bed={},\
-index={#},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
-    # check if file exists and continue
-    if [[ -e tumors_and_normals.csv ]]; then
-        cat tumors_and_normals.csv | grep "^${sample},"
-        if [[ "$?" == 0 ]]; then
-            for line in `cat tumors_and_normals.csv | grep "^${sample},"`; do
-                # first element is tumor, second is normal
-                tumor=$(echo $line | sed 's/,.*//')
-                normal=$(echo $line | sed 's/^.*,//')
-                # do all file existance and integrity checks
-                check_tumor=$(samtools quickcheck ${dir}/${tumor}.bqsr.bam && echo 1)
-                check_normal=$(samtools quickcheck ${dir}/${normal}.bqsr.bam && echo 1)
-                if [[ "${check_normal}" == 1 && "${check_tumor}" == 1 ]]; then
-                    # submit all mutect2 jobs
-                    export normal
-                    export tumor
-                    # start crosscontamination analyses
-                    first_jobid=$(qsub -v \
-normal=${normal},\
-tumor=${tumor},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh)
-                    # submit second crosscheck as dependency
-                    qsub -W depend=afterok:${first_jobid} -v \
-normal=${normal},\
-tumor=${tumor},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
-                    # save a dry run of commands
-                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
-normal=${normal},\
-tumor=${tumor},\
-bed={},\
-index={#},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
-                    # submit mutect2 jobs on 30 intervals
-                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
-normal=${normal},\
-tumor=${tumor},\
-bed={},\
-index={#},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
-                    # submit varscan
-                    #qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
-                    # move logfiles
-                    if [[ "$?" == 0 ]]; then
-                        mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
-                        # log to main
-                        echo "05: Mutect2 has started successfully for ${tumor}__${normal}." | tee -a main.log
+    if [[ ${aln_only} == 0 ]]; then
+        # submit varscan
+        echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
+        ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
+    sample=${sample},\
+    bed={},\
+    index={#},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
+        # check if file exists and continue
+        if [[ -e tumors_and_normals.csv ]]; then
+            cat tumors_and_normals.csv | grep "^${sample},"
+            if [[ "$?" == 0 ]]; then
+                for line in `cat tumors_and_normals.csv | grep "^${sample},"`; do
+                    # first element is tumor, second is normal
+                    tumor=$(echo $line | sed 's/,.*//')
+                    normal=$(echo $line | sed 's/^.*,//')
+                    # do all file existance and integrity checks
+                    check_tumor=$(samtools quickcheck ${dir}/${tumor}.bqsr.bam && echo 1)
+                    check_normal=$(samtools quickcheck ${dir}/${normal}.bqsr.bam && echo 1)
+                    if [[ "${check_normal}" == 1 && "${check_tumor}" == 1 ]]; then
+                        # submit all mutect2 jobs
+                        export normal
+                        export tumor
+                        # start crosscontamination analyses
+                        first_jobid=$(qsub -v \
+    normal=${normal},\
+    tumor=${tumor},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh)
+                        # submit second crosscheck as dependency
+                        qsub -W depend=afterok:${first_jobid} -v \
+    normal=${normal},\
+    tumor=${tumor},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
+                        # save a dry run of commands
+                        ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
+    normal=${normal},\
+    tumor=${tumor},\
+    bed={},\
+    index={#},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
+                        # submit mutect2 jobs on 30 intervals
+                        ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
+    normal=${normal},\
+    tumor=${tumor},\
+    bed={},\
+    index={#},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
+                        # submit varscan
+                        #qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
+                        # move logfiles
+                        if [[ "$?" == 0 ]]; then
+                            mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
+                            # log to main
+                            echo "05: Mutect2 has started successfully for ${tumor}__${normal}." | tee -a main.log
+                        fi
+                    elif [[ "${check_normal}" != 1 && "${check_tumor}" == 1 ]]; then
+                        # resubmit with dependency
+                        if [[ -e ${normal}.BQSR.log ]]; then
+                            # get jobid from first line of log
+                            running_jobid=$( head -1 ${normal}.BQSR.log | sed 's/Job Id: //' )
+                            # wait until BQSR finishes
+                            echo "05: ${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
+                            qsub -W depend=afterok:${running_jobid} -v \
+    sample=${tumor},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
+                            exit 0
+                        elif [[ -e all_logfiles/${normal}.BQSR.log ]]; then
+                            qsub -l walltime=1:00:00 -v \
+    sample=${sample},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
+                        else
+                            # wait for the BQSR script to start
+                            echo "05: ${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
+                            qsub -v \
+    file="${normal}.BQSR.log",\
+    sample=${sample},\
+    script=05_run_bqsr.gatk.BaseRecalibrator.sh,\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/wait_for_file.sh
+                            exit 0
+                        fi
                     fi
-                elif [[ "${check_normal}" != 1 && "${check_tumor}" == 1 ]]; then
-                    # resubmit with dependency
-                    if [[ -e ${normal}.BQSR.log ]]; then
-                        # get jobid from first line of log
-                        running_jobid=$( head -1 ${normal}.BQSR.log | sed 's/Job Id: //' )
-                        # wait until BQSR finishes
-                        echo "05: ${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
-                        qsub -W depend=afterok:${running_jobid} -v \
-sample=${tumor},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
-                        exit 0
-                    elif [[ -e all_logfiles/${normal}.BQSR.log ]]; then
-                        qsub -l walltime=1:00:00 -v \
-sample=${sample},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
-                    else
-                        # wait for the BQSR script to start
-                        echo "05: ${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
-                        qsub -v \
-file="${normal}.BQSR.log",\
-sample=${sample},\
-script=05_run_bqsr.gatk.BaseRecalibrator.sh,\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/wait_for_file.sh
-                        exit 0
-                    fi
-                fi
-            done
+                done
+            else
+                echo "05: sample $sample not in tumor column (1st)" | tee -a main.log
+                mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
+                exit 0
+            fi
         else
-            echo "05: sample $sample not in tumor column (1st)" | tee -a main.log
-            mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
-            exit 0
+            echo -e "05: could not find \"tumors_and_normals.csv\" file" | tee -a main.log
+            exit 1
         fi
     else
-        echo -e "05: could not find \"tumors_and_normals.csv\" file" | tee -a main.log
-        exit 1
+        echo "05: cleaning up..." | tee -a main.log
+        if [[ $(samtools quickcheck ${dir}/${sample}.bqsr.bam && echo 1) == 1 ]]; then
+            rm aligned_bam/${sample}.merged.ba*
+            rm preprocessed_bam/${sample}.markdup.ba*
+        fi
+        echo "05: alignment-only mode finished for ${sample}." | tee -a main.log
+        mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
     fi
 fi

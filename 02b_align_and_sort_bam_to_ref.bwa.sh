@@ -80,7 +80,8 @@ reverse=${reverse},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02a_check_pairs.sh
        exit 0
     else
@@ -152,7 +153,8 @@ reverse=${reverse},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
     # move logfile

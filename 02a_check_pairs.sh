@@ -64,7 +64,8 @@ reverse=${new_reverse},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
           # for singletons
           wt=$(get_walltime $singletons)
@@ -77,7 +78,8 @@ forward=${singletons},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       else
           # delete .tmp files
@@ -96,7 +98,8 @@ reverse=${reverse},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
       fi
    else
@@ -114,7 +117,8 @@ forward=${forward},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
 fi
 

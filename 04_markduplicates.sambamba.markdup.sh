@@ -85,7 +85,8 @@ wt=${wt},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/03_merge_bams.sambamba.sh
         exit 0
     fi
@@ -110,7 +111,8 @@ wt=${wt},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
      # log to main
      echo "04: duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log

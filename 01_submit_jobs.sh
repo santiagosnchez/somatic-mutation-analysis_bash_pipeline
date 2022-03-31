@@ -43,6 +43,9 @@ Optional arguments:
                                   variant calling.
                                   Default: false
 
+--alignment-only, -l    BOOL      Just do alignment up to BQSR. Skip variant calling and onwards.
+                                  Default: false
+
 --pipeline, -p          STR       Specify a different source location for pipeline scripts.
                                   Useful for testing new or old versions.
                                   Default: /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery
@@ -82,6 +85,7 @@ read_and_export_arguments(){
     export genome="hg38"
     export pipeline_dir="/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery"
     export skip_aln=0
+    export aln_only=0
     export dry_run=0
     export fresh_start=0
     # required
@@ -106,6 +110,8 @@ read_and_export_arguments(){
                 export append=1
             elif [[ "${args[$i]}" == "-s" || "${args[$i]}" == "--skip-alignment" ]]; then
                 export skip_aln=1
+            elif [[ "${args[$i]}" == "-l" || "${args[$i]}" == "--alignment-only" ]]; then
+                export aln_only=1
             elif [[ "${args[$i]}" == "-d" || "${args[$i]}" == "--dry-run" ]]; then
                 export dry_run=1
             elif [[ "${args[$i]}" == "-e" || "${args[$i]}" == "--fresh-start" ]]; then
@@ -171,6 +177,18 @@ else
     echo -e "$help_message"
     echo -e "Error: -m/--mode can only be \"wes\" or \"wgs\" (all lowercase)."
     exit 1
+fi
+
+# check for incompatible arguments
+if [[ "${aln_only}" == 1 && ${skip_aln} == 1 ]]; then
+    echo -e "$help_message"
+    echo -e "Error: --skip-alignment [-s] and --alignment-only [-l] are incompatible arguments."
+    exit 1
+elif [[ "${aln_only}" == 1 ]]; then
+    if [[ "$dry_run" == 0 ]]; then
+        echo -e "\n01: Doing alignment only up to BQSR.\n" | tee -a main.log
+    else
+        echo -e "\n01: Doing alignment only up to BQSR.\n"
 fi
 
 # check tumors_and_normals.csv
@@ -265,7 +283,8 @@ reverse={3},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02a_check_pairs.sh
     else
       echo "File not found:"
@@ -334,7 +353,8 @@ wt=${wt},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=0 \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
             fi
           done

@@ -65,7 +65,8 @@ reverse=${reverse},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/02b_align_bam_to_ref.bwa.sh
        all_check=1
     fi
@@ -102,7 +103,8 @@ reverse=${reverse},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/03_merge_bams.sambamba.sh
       else
          ls &> /dev/null
@@ -131,7 +133,8 @@ wt=${wt},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
-genome=${genome} \
+genome=${genome},\
+aln_only=${aln_only} \
 ${pipeline_dir}/04_markduplicates.sambamba.markdup.sh
     # log to main
     echo "03: bam file(s) for sample ${sample} have been merged." | tee -a main.log
