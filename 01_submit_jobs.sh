@@ -377,7 +377,7 @@ else
         njobs=$(ls $dir/*.bam | wc -l)
         # then submit
         echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
-        ready=$(ls bam | grep ".bam$" | sed 's/\..*//')
+        ready=$(ls $dir | grep ".bam$" | sed 's/\..*//')
         if [[ ${#ready} == 0 ]]; then
           echo "bam files are not ready to run. Check working paths and files."
           exit 1
@@ -385,7 +385,7 @@ else
           for sample in $ready; do
             TN=$(grep "^${sample},\|,${sample}$" tumors_and_normals.csv)
             if [[ ${#TN} -gt 0 ]]; then
-              wt=$(get_walltime $(readlink -f bam/${sample}.bqsr.bam))
+              wt=$(get_walltime $(readlink -f $dir/${sample}.bqsr.bam))
               qsub -l walltime=${wt}:00:00 -v \
 sample=${sample},\
 wt=${wt},\
