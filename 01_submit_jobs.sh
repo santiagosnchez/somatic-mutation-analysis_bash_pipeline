@@ -190,6 +190,12 @@ elif [[ "${aln_only}" == 1 ]]; then
     else
         echo -e "\n01: Doing alignment only up to BQSR."
     fi
+elif [[ "${skip_aln}" == 1 ]]; then
+    if [[ "$dry_run" == 0 ]]; then
+        echo -e "\n01: Skipping alignment step." | tee -a main.log
+    else
+        echo -e "\n01: Skipping alignment step."
+    fi
 fi
 
 # check tumors_and_normals.csv
@@ -296,17 +302,33 @@ ${pipeline_dir}/02a_check_pairs.sh
         echo -e "\n01: Submitting ${njobs} jobs now ..."
     fi
 else
-    if [[ ${dry_run} == 0 ]]; then
-        echo -e "\n01: Skipping alignment. Moving directly to variant calling." |  tee -a main.log
-        # first check that file_list includes bam files
-        # first record arguments
-        # make bam dir
-        if [[ ! -e bam ]]; then
-            mkdir bam
+    # first check that file_list includes bam files
+    # first record arguments
+    # make bam dir
+    if [[ ! -e bam ]]; then
+        mkdir bam
+    else
+        if [[ -e BQSR ]]; then
+            export dir=BQSR
+        else
+            export dir=bam
         fi
-        # make symlinks for all bams
-        cat ${file_list} | parallel --plus --tmpdir ./.tmp --colsep="," '
-        if [[ {2} == *".bam" ]]; then
+        bams=$(ls ${dir}/*.bqsr.bam)
+        if [[ ${#bams} -gt 0 ]]; then
+            if [[ "$dry_run" == 0 ]]; then
+                echo -e "\n01: bam dir is not empty. Overriding ${file_list}." | tee -a main.log
+            else
+                echo -e "\n01: bam dir is not empty. Overriding ${file_list}."
+            fi
+            file_list=""
+        fi
+    fi
+    # make symlinks for all bams if bam dir not empty
+    if [[ ${dry_run} == 0 ]]; then
+        cat ${file_list} 2> /dev/null || for bam in $bams; do
+            echo $bam | perl -ne '$_ =~ m/\/(.*?)\.bqsr\.bam/; print "$1,$_"';
+        done | parallel --plus --tmpdir ./.tmp --colsep="," '
+        if [[ {2} == *".bam" && {2} != ${dir}/{1}.bqsr.bam ]]; then
           if [[ $(samtools quickcheck {2} && echo 1) == 1 ]]; then
             if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
               echo -e -n "bam {2/} is sorted.\nLinking as "
@@ -332,11 +354,21 @@ else
             echo "samtools quickcheck failed for bam {2}"
           fi
         else
-            echo "{2} not a bam file."
+            if [[ {2} == ${dir}/{1}.bqsr.bam ]]; then
+                if [[ -e {2.}.bai ]]; then
+                    echo "bam {2} is indexed."
+                elif [[ -e {2}.bai ]]; then
+                    echo "bam {2} is indexed."
+                else
+                    echo "bam {2} is not indexed."
+                fi
+            else
+                echo "{2} not a bam file."
+            fi
         fi
         ' | tee -a main.log
 
-        njobs=$(cat ${file_list} | wc -l)
+        njobs=$(ls $dir/*.bam | wc -l)
         # then submit
         echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
         ready=$(ls bam | grep ".bam$" | sed 's/\..*//')
@@ -361,12 +393,13 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
           done
         fi
     else
-      echo -e "\n01: Skipping alignment. Moving directly to variant calling."
       # first check that file_list includes bam files
       # first record arguments
       # make symlinks for all bams
-      cat ${file_list} | parallel --plus --tmpdir ./.tmp --colsep="," '
-      if [[ {2} == *".bam" ]]; then
+      cat ${file_list} 2> /dev/null || for bam in $bams; do
+          echo $bam | perl -ne '$_ =~ m/\/(.*?)\.bqsr\.bam/; print "$1,$_"';
+      done | parallel --plus --tmpdir ./.tmp --colsep="," '
+      if [[ {2} == *".bam" && {2} != ${dir}/{1}.bqsr.bam ]]; then
         if [[ $(samtools quickcheck {2} && echo 1) == 1 ]]; then
           if [[ $(samtools view -H {2} | grep "SO:coordinate" &> /dev/null && echo 1) == 1 ]]; then
             echo "bam {2/} is sorted. Linking..."
@@ -388,11 +421,21 @@ ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
           echo "samtools quickcheck failed for bam {2}"
         fi
       else
-          echo "{2} not a bam file."
+        if [[ {2} == ${dir}/{1}.bqsr.bam ]]; then
+            if [[ -e {2.}.bai ]]; then
+                echo "bam {2} is indexed."
+            elif [[ -e {2}.bai ]]; then
+                echo "bam {2} is indexed."
+            else
+                echo "bam {2} is not indexed."
+            fi
+        else
+            echo "{2} not a bam file."
+        fi
       fi
       '
 
-      njobs=$(cat ${file_list} | wc -l)
+      njobs=$(ls $dir/*.bam | wc -l)
       # then submit
       echo -e "\n01: Submitting ${njobs} jobs now ..."
     fi
