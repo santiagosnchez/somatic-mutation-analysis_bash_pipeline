@@ -79,6 +79,17 @@ Example commands:
 # add/append more samples to already started WES analysis
 01_submit_jobs -m wes -f file_list.more_samples.csv -a
 
+# run WES in \"alignment-only\" mode
+01_submit_jobs -m wes --alignment-only
+
+# run WES in \"variant-calling-only\" mode, i.e, --skip-alignment
+# for a new analysis (i.e., bams are specified in the file_list.csv file)
+01_submit_jobs -m wes --skip-alignment
+
+# run WES in \"variant-calling-only\" mode, i.e, --skip-alignment
+# from a previous run (i.e, bams are in either \"bam\" or \"BQSR\" directories)
+01_submit_jobs -m wes --skip-alignment
+
 "
 export help_message
 
