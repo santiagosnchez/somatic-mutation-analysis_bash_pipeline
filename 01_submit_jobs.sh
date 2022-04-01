@@ -123,7 +123,7 @@ read_and_export_arguments(){
                 export dry_run=1
             elif [[ "${args[$i]}" == "-e" || "${args[$i]}" == "--fresh-start" ]]; then
                 export fresh_start=1
-            else
+            elif [[ "${args[$i]}" == "-"* ]]; then
                 echo "$help_message"
                 die "Error: argument ${args[$i]} was not recognized." && return 1
             fi
