@@ -283,7 +283,7 @@ if [[ "$check_finish" == 0 ]]; then
             # read/write/excecute
             # dirs first
             echo "10: changing permissions" | tee -a main.log
-            find . -type d -user `whoami` -exec chmod 774 {} \;
+            find . -type d -user `whoami` -exec chmod 775 {} \;
             find . -type f -user `whoami` -exec chmod 664 {} \;
         fi
     fi
