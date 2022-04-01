@@ -88,7 +88,7 @@ Example commands:
 
 # run WES in \"variant-calling-only\" mode, i.e, --skip-alignment
 # from a previous run (i.e, bams are in either \"bam\" or \"BQSR\" directories)
-01_submit_jobs -m wes --skip-alignment
+01_submit_jobs -m wes -a --skip-alignment
 
 "
 export help_message
