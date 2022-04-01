@@ -40,6 +40,13 @@ if [[ ! -e all_logfiles ]]; then
     mkdir all_logfiles
 fi
 
+# debug
+echo "alignment-only mode: ${aln_only}"
+# if aln_only variable is not set, do full analysis.
+if [[ -z $aln_only ]]; then
+    aln_only=0
+fi
+
 # load reference path and other reference files
 # for details check script
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
