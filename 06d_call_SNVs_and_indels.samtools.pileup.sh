@@ -104,7 +104,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
- ${pipeline_dir}/wait_for_file.sh
+${pipeline_dir}/wait_for_file.sh
                             # mv log and merge pileup logs
                             mv ${sample}.VarScan.pileup.${index}.log all_logfiles
                             cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
