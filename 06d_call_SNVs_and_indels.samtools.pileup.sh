@@ -64,68 +64,73 @@ if [[ "$check_finish" == 0 ]]; then
         pileups=$(ls all_logfiles/${sample}.VarScan.pileup.*.log | wc -l)
         if [[ "${pileups}" == 29 || "${pileups}" == 30 ]]; then
             cat $(ls varscan/pileups/${sample}.*.pileup | sort -V) > varscan/pileups/${sample}.pileup
-            rm varscan/pileups/${sample}.*.pileup
-            # check if both tumor and normal pileups are found
-            cat tumors_and_normals.csv | grep "^${sample},"
-            if [[ "$?" == 0 ]]; then
-                for line in `cat tumors_and_normals.csv | grep "^${sample},"`; do
-                    # first element is tumor, second is normal
-                    tumor=$(echo $line | sed 's/,.*//')
-                    normal=$(echo $line | sed 's/^.*,//')
-                    if [[ -e varscan/pileups/${tumor}.pileup && -e varscan/pileups/${normal}.pileup ]]; then
-                        # log
-                        echo "06: all pileup finished for tumor ${tumor} and normal ${normal}." | tee -a main.log
-                        # submit calling step
-                        qsub -v \
-tumor=${tumor},\
-normal=${normal},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
-                        # mv log and merge pileup logs
-                        mv ${sample}.VarScan.pileup.${index}.log all_logfiles
-                        cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
-                        # delete
-                        rm all_logfiles/${sample}.VarScan.pileup.*.log
-                    elif [[ -e varscan/pileups/${tumor}.pileup && ! -e varscan/pileups/${normal}.pileup ]]; then
-                        # log
-                        echo "06: waiting for normal ${normal} pileup to finish." | tee -a main.log
-                        # wait for file
-                        qsub -v \
-file="varscan/pileups/${normal}.pileup",\
-sample=${tumor},\
-tumor=${tumor},\
-normal=${normal},\
-script=06e_call_SNVs_and_indels.varscan.sh,\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
- ${pipeline_dir}/wait_for_file.sh
-                        # mv log and merge pileup logs
-                        mv ${sample}.VarScan.pileup.${index}.log all_logfiles
-                        cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
-                        # delete
-                        rm all_logfiles/${sample}.VarScan.pileup.*.log
-                    fi
-                done
-            else
-                # if sample is normal, just tidyup
-                normal=$(grep ",${sample}$" tumors_and_normals.csv &> /dev/null && echo ${sample})
-                if [[ ${sample} == ${normal} ]]; then
-                    echo "06: all pileup finished for normal ${normal}." | tee -a main.log
-                    # mv log and merge pileup logs
-                    mv ${sample}.VarScan.pileup.${index}.log all_logfiles
-                    cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
-                    # delete
-                    rm all_logfiles/${sample}.VarScan.pileup.*.log
-                    echo "06: pileup finished for normal sample ${normal}." | tee -a main.log
+            if [[ $? == 0 ]]; then
+                rm varscan/pileups/${sample}.*.pileup
+                # check if both tumor and normal pileups are found
+                cat tumors_and_normals.csv | grep "^${sample},"
+                if [[ "$?" == 0 ]]; then
+                    for line in `cat tumors_and_normals.csv | grep "^${sample},"`; do
+                        # first element is tumor, second is normal
+                        tumor=$(echo $line | sed 's/,.*//')
+                        normal=$(echo $line | sed 's/^.*,//')
+                        if [[ -e varscan/pileups/${tumor}.pileup && -e varscan/pileups/${normal}.pileup ]]; then
+                            # log
+                            echo "06: all pileup finished for tumor ${tumor} and normal ${normal}." | tee -a main.log
+                            # submit calling step
+                            qsub -v \
+    tumor=${tumor},\
+    normal=${normal},\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+    ${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
+                            # mv log and merge pileup logs
+                            mv ${sample}.VarScan.pileup.${index}.log all_logfiles
+                            cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
+                            # delete
+                            rm all_logfiles/${sample}.VarScan.pileup.*.log
+                        elif [[ -e varscan/pileups/${tumor}.pileup && ! -e varscan/pileups/${normal}.pileup ]]; then
+                            # log
+                            echo "06: waiting for normal ${normal} pileup to finish." | tee -a main.log
+                            # wait for file
+                            qsub -v \
+    file="varscan/pileups/${normal}.pileup",\
+    sample=${tumor},\
+    tumor=${tumor},\
+    normal=${normal},\
+    script=06e_call_SNVs_and_indels.varscan.sh,\
+    mode=${mode},\
+    pipeline_dir=${pipeline_dir},\
+    organism=${organism},\
+    genome=${genome} \
+     ${pipeline_dir}/wait_for_file.sh
+                            # mv log and merge pileup logs
+                            mv ${sample}.VarScan.pileup.${index}.log all_logfiles
+                            cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
+                            # delete
+                            rm all_logfiles/${sample}.VarScan.pileup.*.log
+                        fi
+                    done
                 else
-                    echo "06: sample ${sample} is not in the tumors_and_normals.csv file."
-                    exit 1
+                    # if sample is normal, just tidyup
+                    normal=$(grep ",${sample}$" tumors_and_normals.csv &> /dev/null && echo ${sample})
+                    if [[ ${sample} == ${normal} ]]; then
+                        echo "06: all pileup finished for normal ${normal}." | tee -a main.log
+                        # mv log and merge pileup logs
+                        mv ${sample}.VarScan.pileup.${index}.log all_logfiles
+                        cat $(ls all_logfiles/${sample}.VarScan.pileup.*.log | sort -V) > all_logfiles/${sample}.VarScan.pileup.log
+                        # delete
+                        rm all_logfiles/${sample}.VarScan.pileup.*.log
+                        echo "06: pileup finished for normal sample ${normal}." | tee -a main.log
+                    else
+                        echo "06: sample ${sample} is not in the tumors_and_normals.csv file."
+                        exit 1
+                    fi
                 fi
+            else
+                echo "06: error merging pileups ${sample}." | tee -a main.log
+                exit 1
             fi
         else
             echo "06: pileup finished for ${sample} interval ${index}." | tee -a main.log
