@@ -16,6 +16,9 @@ module load parallel/20210322
 # set working dir
 cd $PBS_O_WORKDIR
 
+# print jobid to 1st line
+echo $PBS_JOBID
+
 # create output dirs
 if [[ ! -e analyses ]]; then
     mkdir analyses
