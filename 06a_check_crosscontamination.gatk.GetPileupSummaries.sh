@@ -44,13 +44,13 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
 -I ${dir}/${tumor}.bqsr.bam \
 -V ${gnomad_resource} \
--L ${intervals} \
+-L ${knownsites_snps} \
 -O contamination/${tumor}.getpileupsummaries.table
 
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
 -I ${dir}/${normal}.bqsr.bam \
 -V ${gnomad_resource} \
--L ${intervals} \
+-L ${knownsites_snps} \
 -O contamination/${normal}.getpileupsummaries.table
 
 # check if finished
