@@ -53,6 +53,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -germline-resource $gnomad_resource \
  -pon ${gatk_pon} \
  --genotype-germline-sites true \
+ --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
  -L ${bed30intervals}/${bed}
  #  -bamout mutect2/${tumor}__${normal}.${index}.bam \
