@@ -12,11 +12,11 @@ if [[ -z $1 ]]; then
     # path to WES tergets in bed format
     export intervals_bed=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.bed
     # path to vcf file with known SNPs from the 1000 genomes project
-    export knownsites_snps=${genomes}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
+    export knownsites_snps=${genomes}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz
     # same but biallelic only
     export knownsites_snps_biallelic=${genomes}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.biallelic.hg38.vcf.gz
     # path to vcf file with known indels from the 1000 genomes project
-    export knownsites_indels=${genomes}/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
+    export knownsites_indels=${genomes}/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
     # path to WES intervals for running MuTect2
     export bed30intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.30-bed-files/
     # path to gnomad resource
@@ -31,11 +31,11 @@ else
             # path to human reference genome assembly v38
             export reference=${genomes}/${2}/gatk_bundle/Homo_sapiens_assembly38.fasta
             # path to vcf file with known SNPs from the 1000 genomes project
-            export knownsites_snps=${genomes}/${2}/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf
+            export knownsites_snps=${genomes}/${2}/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz
             # same but biallelic only
             export knownsites_snps_biallelic=${genomes}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.biallelic.hg38.vcf.gz
             # path to vcf file with known indels from the 1000 genomes project
-            export knownsites_indels=${genomes}/${2}/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf
+            export knownsites_indels=${genomes}/${2}/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
             # path to gnomad resource
             export gnomad_resource=${genomes}/${2}/gatk_bundle/af-only-gnomad.hg38.vcf.gz
             # path to gatk's panel of normals vcf
