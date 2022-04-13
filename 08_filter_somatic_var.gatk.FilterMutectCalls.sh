@@ -62,12 +62,7 @@ index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
 bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 
-# switch to bcftools for filtering (keeps header intact)
-bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf \
- > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
-
-# compress and index
-index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+# selection done later
 
 else
     # resubmit until file is available with dependency
@@ -100,12 +95,7 @@ else
         bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
         index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 
-        # switch to bcftools for filtering (keeps header intact)
-        bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf \
-         > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
-
-        # compress and index
-        index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+        # selection done later
 
     else
         if [[ -e ${tumor}__${normal}.CalculateContamination.log ]]; then
@@ -144,7 +134,7 @@ check_finish=$?
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
-    echo "08: FilterMutectCalls completed for ${tumor}__${normal}." | tee -a main.log
+    echo "08: FilterMutectCalls completed for ${tumor}__${normal}. Submitting VCF annotation SnpEff and Funcotator" | tee -a main.log
     # next round of jobs are submitted manually or not
     # annotate VCF file
     qsub -v \
