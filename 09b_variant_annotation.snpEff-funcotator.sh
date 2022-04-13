@@ -166,5 +166,5 @@ genome=${genome} \
 ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
     fi
     # move logfile
-    mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles
+    mv ${tumor}__${normal}.annotation-snpeff-funcotator.${tissue}.log all_logfiles
 fi
