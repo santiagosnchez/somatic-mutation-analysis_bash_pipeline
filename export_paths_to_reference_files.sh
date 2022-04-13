@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# add a bin directory and additional default locations
+export PATH="/hpf/largeprojects/tabori/shared/bin:${PATH}"
+export PERL5LIB="/hpf/largeprojects/tabori/shared/software/perl5/lib/perl5:${PERL5LIB}"
+
 resources_dir=/hpf/largeprojects/tabori/shared/resources
 genomes=${resources_dir}/reference_genomes
 
