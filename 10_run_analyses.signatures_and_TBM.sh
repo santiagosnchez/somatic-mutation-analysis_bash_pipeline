@@ -227,7 +227,11 @@ if [[ "$check_finish" == 0 ]]; then
     started=$( cat tumors_and_normals.csv | grep -v "^#" | sort -u | wc -l )
     if [[ "$finished" -eq "$started" ]]; then
         # log and fetch MMR genes in annotations
-        echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+        if [[ ${normal} == "PON" ]]; then
+            echo "10: Fetching somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+        else
+            echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+        fi
 
         # function to extrac rows that match MMR/tumor genes
         fetch_mmr_ann(){
@@ -258,7 +262,7 @@ if [[ "$check_finish" == 0 ]]; then
 
         # export to zip file
         today=$(date -I)
-        zip -r export_results.${today}.zip analyses/old_output* analyses/mmr_annotations_*
+        zip -r export_results.${today}.zip annovar/*_multianno.txt analyses/old_output* analyses/mmr_annotations_*
 
         # add tmb_and_coverage to archive
         #zip -ru analyses.zip analyses/coverage_and_tmb.csv
@@ -299,6 +303,7 @@ if [[ "$check_finish" == 0 ]]; then
             echo "10: changing permissions" | tee -a main.log
             find . -type d -user `whoami` -exec chmod 775 {} \;
             find . -type f -user `whoami` -exec chmod 664 {} \;
+            echo "@@@@ All done. See you next time! @@@@"
         fi
     fi
 
