@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1,vmem=10g,mem=10g,walltime=5:00:00
-#PBS -e ${tumor}__${normal}.annotation.${tissue}.log
+#PBS -e ${tumor}__${normal}.annotation-snpeff-funcotator.${tissue}.log
 #PBS -j eo
 # scheduler settings
 
@@ -42,13 +42,6 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 #     exit 0
 # fi
 
-# switch to bcftools for filtering (keeps header intact)
-bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf \
- > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
-
-# compress and index
-index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
-
 
 if [[ "${tissue}" == "Somatic" ]]; then
     # what caller
@@ -65,12 +58,18 @@ if [[ "${tissue}" == "Somatic" ]]; then
     # delete tmp header file
     if [[ "$?" == 0 ]]; then
         rm ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt
+        # index tmp
+        index-vcf ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf
         # replace prev vcf
-        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf
-        rm ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
-        # compress and index
-        index-vcf ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf
+        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz \
+           ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
+        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz.tbi \
+           ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz.tbi
     fi
+
+    # run annotators on selected only
+    bcftools view -f PASS ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz > ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf
+    index-vcf ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf
 
     # run snpEff on mutect2 vcf
     java -jar $snpeff_jar \
@@ -81,7 +80,7 @@ if [[ "${tissue}" == "Somatic" ]]; then
      -cancer \
      -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
      -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
-     ${caller}/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz > \
+     ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz > \
      vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
 
      # run gatk's funcotator on somatic mutations
@@ -135,7 +134,7 @@ if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "09: ${tissue} annotation with SnpEff and Funcotator completed for ${tumor}__${normal}." | tee -a main.log
     # run analyses
-    if [[ "${tissue}" == "Somatic" && -e "all_logfiles/${tumor}__${normal}.annotation.Germline.log" ]]; then
+    if [[ "${tissue}" == "Somatic" && -e "${tumor}__${normal}.annotation-snpeff-funcotator.Germline.log" ]]; then
         # submit last step
         qsub -v \
 normal=${normal},\
@@ -145,7 +144,17 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
-    elif [[ "${tissue}" == "Germline" && -e "all_logfiles/${tumor}__${normal}.annotation.Somatic.log" ]]; then
+    elif [[ "${tissue}" == "Somatic" && "${normal}" == "PON" ]]; then
+        # submit last step
+        qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
+    elif [[ "${tissue}" == "Germline" && -e "all_logfiles/${tumor}__${normal}.annotation-snpeff-funcotator.Somatic.log" ]]; then
         # submit last step
         qsub -v \
 normal=${normal},\

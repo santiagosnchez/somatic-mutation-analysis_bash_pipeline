@@ -115,17 +115,20 @@ else
     >> analyses/all_annotations_funcotator_somatic.csv
 fi
 
-if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
-    ${pipeline_dir}/funcotator-vcf2maf.sh \
-    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
-    ${tumor} ${normal} Germline \
-    > analyses/all_annotations_funcotator_germline.csv
-else
-    ${pipeline_dir}/funcotator-vcf2maf.sh \
-    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
-    ${tumor} ${normal} Germline | \
-    tail -n +3 \
-    >> analyses/all_annotations_funcotator_germline.csv
+# check if tumor-only mode
+if [[ "${normal}" != "PON" ]]; then
+    if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
+        ${pipeline_dir}/funcotator-vcf2maf.sh \
+        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+        ${tumor} ${normal} Germline \
+        > analyses/all_annotations_funcotator_germline.csv
+    else
+        ${pipeline_dir}/funcotator-vcf2maf.sh \
+        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+        ${tumor} ${normal} Germline | \
+        tail -n +3 \
+        >> analyses/all_annotations_funcotator_germline.csv
+    fi
 fi
 
 # get all annotations into csv
@@ -143,19 +146,21 @@ else
     >> analyses/all_annotations_snpeff_somatic.csv
 fi
 
-if [[ ! -e analyses/all_annotations_snpeff_germline.csv ]]; then
-    ${pipeline_dir}/snpeff-vcf2tbl.sh \
-    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
-    ${tumor} ${normal} Germline \
-    > analyses/all_annotations_snpeff_germline.csv
-else
-    ${pipeline_dir}/snpeff-vcf2tbl.sh \
-    vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
-    ${tumor} ${normal} Germline | \
-    tail -n +2 \
-    >> analyses/all_annotations_snpeff_germline.csv
+# check if tumor-only mode
+if [[ "${normal}" != "PON" ]]; then
+    if [[ ! -e analyses/all_annotations_snpeff_germline.csv ]]; then
+        ${pipeline_dir}/snpeff-vcf2tbl.sh \
+        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+        ${tumor} ${normal} Germline \
+        > analyses/all_annotations_snpeff_germline.csv
+    else
+        ${pipeline_dir}/snpeff-vcf2tbl.sh \
+        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+        ${tumor} ${normal} Germline | \
+        tail -n +2 \
+        >> analyses/all_annotations_snpeff_germline.csv
+    fi
 fi
-
 
 # log
 echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
@@ -165,7 +170,11 @@ if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
     echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
 fi
 
-coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
+if [[ "${normal}" != "PON" ]]; then
+    coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
+else
+    coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam | awk '$3 >= 4' | wc -l)
+fi
 # expected coverage
 expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { print count }')
 
@@ -241,9 +250,11 @@ if [[ "$check_finish" == 0 ]]; then
           }
 
         fetch_mmr_ann analyses/all_annotations_snpeff_somatic.csv > analyses/mmr_annotations_snpeff_somatic.csv
-        fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
         fetch_mmr_ann analyses/all_annotations_funcotator_somatic.csv > analyses/mmr_annotations_funcotator_somatic.csv
-        fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
+        if [[ "${normal}" != "PON" ]]
+            fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
+            fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
+        fi
 
         # export to zip file
         today=$(date -I)
@@ -291,7 +302,7 @@ if [[ "$check_finish" == 0 ]]; then
         fi
     fi
 
-    # # run mutational signature analysis
+    # run mutational signature analysis
     # Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode} ${tumor}__${normal}.
 
     # last move logfile to dir

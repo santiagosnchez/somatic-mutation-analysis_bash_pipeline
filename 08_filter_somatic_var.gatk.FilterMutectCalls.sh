@@ -134,6 +134,17 @@ check_finish=$?
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
+    echo "08: FilterMutectCalls completed for ${tumor}__${normal}. Submitting VCF annotation Annovar" | tee -a main.log
+    qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+tissue="Somatic",\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/09a_variant_annotation.annovar.sh
+    # log to main
     echo "08: FilterMutectCalls completed for ${tumor}__${normal}. Submitting VCF annotation SnpEff and Funcotator" | tee -a main.log
     # next round of jobs are submitted manually or not
     # annotate VCF file
@@ -145,18 +156,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
-    # log to main
-    echo "08: FilterMutectCalls completed for ${tumor}__${normal}. Submitting VCF annotation Annovar" | tee -a main.log
-    qsub -v \
-tumor=${tumor},\
-normal=${normal},\
-tissue="Somatic",\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/09a_variant_annotation.annovar.sh
+${pipeline_dir}/09b_variant_annotation.snpEff-funcotator.sh
     # move log
     mv ${tumor}__${normal}.FilterMutectCalls.log all_logfiles
 fi

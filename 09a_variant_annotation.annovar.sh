@@ -37,14 +37,14 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 # check that mutect2annovar.pl script is available
 mutect2annovar.pl --help &> /dev/null
 if [[ "$?" != 1 ]]; then # exits at 1 instead of 0 when calling --help
-    echo "09: mutect2annovar.pl was not found in path or perl module not found."
+    echo "09: mutect2annovar.pl was not found in path or perl module not found." | tee -a main.log
     exit 1
 fi
 
 # check that mutect2annovar.pl script is available
 table_annovar.pl --help &> /dev/null
 if [[ "$?" != 1 ]]; then # exits at 1 instead of 0 when calling --help
-    echo "09: table_annovar.pl was not found in path."
+    echo "09: table_annovar.pl was not found in path." | tee -a main.log
     exit 1
 fi
 
@@ -57,14 +57,9 @@ fi
 if [[ "${tissue}" == "Somatic" ]]; then
     # what caller
     caller="mutect2"
-    # extract SNPs
-    # do on all variants
-    # bcftools view -v snps -Oz \
-    #   ${caller}/${tumor}__${normal}.${caller}.filtered.${mode}.vcf.gz > \
-    #   annovar/${tumor}__${normal}.${caller}.snv.${tissue}.filtered.${mode}.vcf.gz
     # make annovar table
     mutect2annovar.pl \
-      --vcf mutect2/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz \
+      --vcf ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz \
       --output annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}.mutect2annovar_tbl.txt \
       --filter false \
       --header false \
@@ -73,8 +68,10 @@ if [[ "${tissue}" == "Somatic" ]]; then
     # run annovar
     # fetch the file name of the bedfile (for both WGS and WES)
     bedfile=$(echo ${intervals_bed} | rev | cut -d/ -f1 | rev)
-    # make a symlink
-    ln -sf ${intervals_bed} $annovar_db/${bedfile}
+    # make a symlink not ready
+    if [[ ! -e $annovar_db/${bedfile} ]]; then
+        ln -s ${intervals_bed} $annovar_db/${bedfile}
+    fi
     # run annovar script
     table_annovar.pl \
       annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}.mutect2annovar_tbl.txt \
@@ -104,32 +101,7 @@ check_finish=$?
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
-    # bgzip and tabix vcf
-    ls vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated*.vcf | parallel index-vcf {}
-    # log to main
-    echo "09: ${tissue} annotation with SnpEff and Funcotator completed for ${tumor}__${normal}." | tee -a main.log
-    # run analyses
-    if [[ "${tissue}" == "Somatic" && -e "all_logfiles/${tumor}__${normal}.annotation.Germline.log" ]]; then
-        # submit last step
-        qsub -v \
-normal=${normal},\
-tumor=${tumor},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
-    elif [[ "${tissue}" == "Germline" && -e "all_logfiles/${tumor}__${normal}.annotation.Somatic.log" ]]; then
-        # submit last step
-        qsub -v \
-normal=${normal},\
-tumor=${tumor},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
-    fi
+    echo "09: Annovar finished for ${tumor}__${normal}." | tee -a main.log
     # move logfile
-    mv ${tumor}__${normal}.annotation.${tissue}.log all_logfiles
+    mv ${tumor}__${normal}.annovar.${tissue}.log all_logfiles
 fi
