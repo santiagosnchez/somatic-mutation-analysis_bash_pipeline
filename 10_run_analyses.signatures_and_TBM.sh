@@ -251,7 +251,7 @@ if [[ "$check_finish" == 0 ]]; then
 
         fetch_mmr_ann analyses/all_annotations_snpeff_somatic.csv > analyses/mmr_annotations_snpeff_somatic.csv
         fetch_mmr_ann analyses/all_annotations_funcotator_somatic.csv > analyses/mmr_annotations_funcotator_somatic.csv
-        if [[ "${normal}" != "PON" ]]
+        if [[ "${normal}" != "PON" ]]; then
             fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
             fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
         fi
