@@ -4,6 +4,7 @@
 export PATH="/hpf/largeprojects/tabori/shared/bin:${PATH}"
 export PERL5LIB="/hpf/largeprojects/tabori/shared/software/perl5/lib/perl5:${PERL5LIB}"
 
+# base dirs
 resources_dir=/hpf/largeprojects/tabori/shared/resources
 genomes=${resources_dir}/reference_genomes
 
@@ -145,6 +146,9 @@ export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
 # funcotator data resources
 export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
 export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
+# path to annovar database
+export annovar_db=${resources_dir}/humandb
+
 
 # functions
 
