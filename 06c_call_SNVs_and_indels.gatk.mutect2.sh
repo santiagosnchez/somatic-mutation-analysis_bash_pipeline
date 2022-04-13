@@ -42,6 +42,18 @@ fi
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
 if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
+  if [[ "${normal}" == "PON" ]]; then
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
+ -I ${dir}/${tumor}.bqsr.bam \
+ -tumor ${tumor} \
+ -R ${reference} \
+ -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.${index}.vcf \
+ -germline-resource $gnomad_resource \
+ -pon ${gatk_pon} \
+ --max-mnp-distance 0 \
+ --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
+ -L ${bed30intervals}/${bed}
+  else
 # run gatk's mutect2
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
@@ -52,14 +64,15 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.${index}.vcf \
  -germline-resource $gnomad_resource \
  -pon ${gatk_pon} \
- --genotype-germline-sites true \
  --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
  -L ${bed30intervals}/${bed}
  #  -bamout mutect2/${tumor}__${normal}.${index}.bam \
  #  --create-output-bam-index \
+  fi
 else
- ls &> /dev/null
+    # force $? == 0
+    ls &> /dev/null
 fi
 
 # check if finished

@@ -132,6 +132,15 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
+        # submit GetPileupSummaries
+        echo "05: submitting GetPileupSummaries for CalculateContamination ${sample}." | tee -a main.log
+        sample_pid_gps=$(qsub -v \
+sample=${sample},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh | tee -a main.log)
         # check if file exists and continue
         if [[ -e tumors_and_normals.csv ]]; then
             cat tumors_and_normals.csv | grep "^${sample},"
@@ -139,25 +148,25 @@ ${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
                 for line in `cat tumors_and_normals.csv | grep "^${sample},"`; do
                     # first element is tumor, second is normal
                     tumor=$(echo $line | sed 's/,.*//')
-                    normal=$(echo $line | sed 's/^.*,//')
                     # do all file existance and integrity checks
                     check_tumor=$(samtools quickcheck ${dir}/${tumor}.bqsr.bam && echo 1)
-                    check_normal=$(samtools quickcheck ${dir}/${normal}.bqsr.bam && echo 1)
+                    check_normal=2
+                    if [[ "${normal}" == "" || "${normal}" == "NA" || "${normal}" == "PON" || "${normal}" == "pon" ]]; then
+                        normal="PON"
+                    else
+                        check_normal=$(samtools quickcheck ${dir}/${normal}.bqsr.bam && echo 1)
+                    fi
+                    # check if both bams are ready
                     if [[ "${check_normal}" == 1 && "${check_tumor}" == 1 ]]; then
                         # submit all mutect2 jobs
                         export normal
                         export tumor
-                        # start crosscontamination analyses
-                        first_jobid=$(qsub -v \
-normal=${normal},\
-tumor=${tumor},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh)
-                        # submit second crosscheck as dependency
-                        qsub -W depend=afterok:${first_jobid} -v \
+                        # get pids of tumor and normal
+                        tumor_pid_gps=$sample_pid_gps
+                        if [[ -e ${normal}.GetPileupSummaries.log ]]; then
+                            normal_pid_gps=$( head -1 ${normal}.GetPileupSummaries.log )
+                            # submit second crosscheck as dependency for both normal and tumor
+                            qsub -W depend=afterok:${tumor_pid_gps}:${normal_pid_gps} -v \
 normal=${normal},\
 tumor=${tumor},\
 mode=${mode},\
@@ -165,7 +174,19 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
-                        # save a dry run of commands
+                        # if GPS finished already submit as only tumor dependency
+                        elif [[ -e all_logfiles/${normal}.GetPileupSummaries.log ]]; then
+                            qsub -W depend=afterok:${tumor_pid_gps} -v \
+normal=${normal},\
+tumor=${tumor},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
+                        fi
+                        # submit Mutect2 scattered runs
+                        # save a dry run of commands first
                         ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
 normal=${normal},\
 tumor=${tumor},\
@@ -187,42 +208,45 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
-                        # submit varscan
-                        #qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06d_call_SNVs_and_indels.varscan.sh
-                        # move logfiles
-                        if [[ "$?" == 0 ]]; then
-                            mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
-                            # log to main
-                            echo "05: Mutect2 has started successfully for ${tumor}__${normal}." | tee -a main.log
-                        fi
-                    elif [[ "${check_normal}" != 1 && "${check_tumor}" == 1 ]]; then
-                        # resubmit with dependency
-                        if [[ -e ${normal}.BQSR.log ]]; then
-                            # get jobid from first line of log
-                            running_jobid=$( head -1 ${normal}.BQSR.log | sed 's/Job Id: //' )
-                            # wait until BQSR finishes
-                            echo "05: ${tumor} (tumor) waiting for BQSR ${normal} (normal) to finish: ${running_jobid}" | tee -a main.log
-                            qsub -W depend=afterok:${running_jobid} -v \
-sample=${tumor},\
+                    # if no normal (i.e., normal is PON)
+                    elif [[ "${normal}" == "PON" ]]; then
+                        # submit dependency job for GPS in tumor only
+                        qsub -W depend=afterok:${sample_pid_gps} -v \
+normal=${normal},\
+tumor=${tumor},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
-                            exit 0
-                        elif [[ -e all_logfiles/${normal}.BQSR.log ]]; then
-                            qsub -l walltime=1:00:00 -v \
-sample=${sample},\
+${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
+                        # dry run before submitting mutect2 runs
+                        ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+bed={},\
+index={#},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
-                        else
-                            # wait for the BQSR script to start
-                            echo "05: ${tumor} (tumor) waiting for ${normal} (normal) BQSR to start." | tee -a main.log
-                            qsub -v \
-file="${normal}.BQSR.log",\
+${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
+                        # submit mutect2 jobs on 30 intervals
+                        ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+bed={},\
+index={#},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
+                    else
+                        # GPS has not started for normal, wait for file
+                        # wait for the BQSR script to finish
+                        echo "05: ${sample} (tumor) waiting for ${normal} (normal) GPS to start / BQSR to finish." | tee -a main.log
+                        qsub -v \
+file="${normal}.GetPileupSummaries.log",\
 sample=${sample},\
 script=05_run_bqsr.gatk.BaseRecalibrator.sh,\
 mode=${mode},\
@@ -230,8 +254,14 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/wait_for_file.sh
-                            exit 0
-                        fi
+                        exit 0
+                    fi
+                    # if no errors move logfile
+                    if [[ "$?" == 0 ]]; then
+                        mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
+                        # log to main
+                        echo "05: Mutect2 has started successfully for ${tumor}__${normal}." | tee -a main.log
+                        exit 0
                     fi
                 done
             else

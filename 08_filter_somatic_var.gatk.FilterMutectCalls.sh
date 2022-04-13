@@ -54,32 +54,67 @@ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
 #  --exclude-filtered \
 #  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
 
+# compress and index
+index-vcf mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
+index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+
+# normalize vcf file, compress, and tabix
+bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
+index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
+
 # switch to bcftools for filtering (keeps header intact)
-bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
+bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf \
  > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
 
 # compress and index
 index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
-index-vcf mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
-
-# normalize vcf file, compress, and tabix
-bcftools norm -m- -f ${reference} -Oz mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.normalized.${mode}.vcf.gz
-tabix mutect2/${tumor}__${normal}.mutect2.normalized.${mode}.vcf.gz
 
 else
     # resubmit until file is available with dependency
     # first get the job id if the GetPileupSummaries command
-    if [[ -e ${tumor}__${normal}.GetPileupSummaries.log ]]; then
-        getpileupsum_job=$(head -1 ${tumor}__${normal}.GetPileupSummaries.log | sed 's/Job Id: //' )
-    elif [[ -e all_logfiles/${tumor}__${normal}.GetPileupSummaries.log ]]; then
-        getpileupsum_job=$(head -1 all_logfiles/${tumor}__${normal}.GetPileupSummaries.log | sed 's/Job Id: //' )
-    fi
-    # then search for the second job id for CalculateContamination
-    running_jobid=$(qstat -f -u `whoami` ${getpileupsum_job} | grep "beforeok" | sed 's/.*://')
-    #running_jobid=$( head -1 ${tumor}__${normal}.CalculateContamination.log  )
-    # log
-    echo "08: Waiting for Calculate Contamination to finish for ${tumor}__${normal}: ${running_jobid}" | tee -a main.log
-    qsub -W depend=afterok:${running_jobid} -v \
+    if [[ ${normal} == "PON" ]]; then
+        # filter without calc contamination
+        # run gatk's FilterMutectCalls
+        $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
+         -R $reference \
+         -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
+         --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
+         -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
+         # skipping read orientation filtering due to high numbers of false negatives
+         $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
+          -R $reference \
+          -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
+          -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+
+        # select passed variants
+        # $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" SelectVariants \
+        #  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
+        #  --exclude-filtered \
+        #  -O mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+
+        # compress and index
+        index-vcf mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
+        index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+
+        # normalize vcf file, compress, and tabix
+        bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
+        index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
+
+        # switch to bcftools for filtering (keeps header intact)
+        bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf \
+         > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+
+        # compress and index
+        index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+
+    else
+        if [[ -e ${tumor}__${normal}.CalculateContamination.log ]]; then
+            # get job ids
+            jobid_cc=$(head -1 ${tumor}__${normal}.CalculateContamination.log | sed 's/Job Id: //' )
+            # resubmit as dependency job
+            # log
+            echo "08: Waiting for Calculate Contamination to finish for ${tumor}__${normal}: ${jobid_cc}" | tee -a main.log
+            qsub -W depend=afterok:${jobid_cc} -v \
 tumor=${tumor},\
 normal=${normal},\
 mode=${mode},\
@@ -87,7 +122,20 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
-    exit 0
+        # wait for file
+        else
+            echo "08: Waiting for Calculate Contamination to start for ${tumor} and ${normal}" | tee -a main.log
+            qsub -v \
+file="all_logfiles/${tumor}__${normal}.CalculateContamination.log",\
+sample=${sample},\
+script=08_filter_somatic_var.gatk.FilterMutectCalls.sh,\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/wait_for_file.sh
+        fi
+    fi
 fi
 
 # check if finished

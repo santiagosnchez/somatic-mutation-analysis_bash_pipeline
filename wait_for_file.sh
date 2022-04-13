@@ -1,5 +1,5 @@
 #PBS -l nodes=1:ppn=1,vmem=2g,mem=2g,walltime=6:00:00
-#PBS -e ${sample}.waitforfile.log
+#PBS -e ${sample}.waitforfile__${file//\//_}__.log
 #PBS -j eo
 # scheduler settings
 
@@ -58,7 +58,9 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/${script}
   fi
-  mv ${sample}.waitforfile.log all_logfiles
+  # replace / for _ in file path
+  mv ${sample}.waitforfile__${file//\//_}__.log all_logfiles
+# if not, keep waiting
 else
   if [[ -z $tumor ]]; then
     qsub -v \

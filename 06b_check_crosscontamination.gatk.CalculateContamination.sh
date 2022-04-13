@@ -40,12 +40,17 @@ fi
 # for details check script
 source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
 
+if [[ "${normal}" == "PON" ]]; then
+    echo "06: No CalculateContamination. Tumor-only mode." | tee -a main.log
+    check_finish=0
+else
 # run gatk's CalculateContamination
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" CalculateContamination \
  -I contamination/${tumor}.getpileupsummaries.table \
  -matched contamination/${normal}.getpileupsummaries.table \
  -O contamination/${tumor}__${normal}.calculatecontamination.table \
  --tumor-segmentation contamination/${tumor}__${normal}.tumorsegmentation.table
+fi
 
 # check if finished
 check_finish=$?

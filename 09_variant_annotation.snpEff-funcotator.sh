@@ -42,6 +42,14 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 #     exit 0
 # fi
 
+# switch to bcftools for filtering (keeps header intact)
+bcftools view -f PASS mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf \
+ > mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+
+# compress and index
+index-vcf mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf
+
+
 if [[ "${tissue}" == "Somatic" ]]; then
     # what caller
     caller="mutect2"
@@ -51,12 +59,17 @@ if [[ "${tissue}" == "Somatic" ]]; then
     # normalize variants, reduce complex alleles and add header line
     bcftools annotate \
      -h ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt \
-     -Oz -o mutect2/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz \
-     ${caller}/${tumor}__${normal}.${caller}.normalized.${mode}.vcf.gz
+     -o ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf \
+     ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
 
     # delete tmp header file
     if [[ "$?" == 0 ]]; then
         rm ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt
+        # replace prev vcf
+        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf
+        rm ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
+        # compress and index
+        index-vcf ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf
     fi
 
     # run snpEff on mutect2 vcf

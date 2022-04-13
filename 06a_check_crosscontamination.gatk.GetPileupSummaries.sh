@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=10:00:00
-#PBS -e ${tumor}__${normal}.GetPileupSummaries.log
+#PBS -e ${sample}.GetPileupSummaries.log
 #PBS -j eo
 # scheduler settings
 
@@ -42,16 +42,10 @@ source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} 
 
 # run gatk's GetPileupSummaries
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
--I ${dir}/${tumor}.bqsr.bam \
+-I ${dir}/${sample}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${knownsites_snps_biallelic} \
--O contamination/${tumor}.getpileupsummaries.table
-
-$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
--I ${dir}/${normal}.bqsr.bam \
--V ${gnomad_resource} \
--L ${knownsites_snps_biallelic} \
--O contamination/${normal}.getpileupsummaries.table
+-O contamination/${sample}.getpileupsummaries.table
 
 # check if finished
 check_finish=$?
@@ -59,9 +53,9 @@ check_finish=$?
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # move logfile
-    mv ${tumor}__${normal}.GetPileupSummaries.log all_logfiles
+    mv ${sample}.GetPileupSummaries.log all_logfiles
     # log to main
-    echo "06: ${tumor}__${normal} Pileup summaries completed." | tee -a main.log
+    echo "06a: ${sample} GATK Pileup summaries completed." | tee -a main.log
     # next round of jobs are submitted manually or not
     # submitted as dependency job
     #qsub -v normal=${normal},tumor=${tumor},mode=${mode} ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
