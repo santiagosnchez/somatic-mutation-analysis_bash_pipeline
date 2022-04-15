@@ -148,6 +148,7 @@ ${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh | tee -a
                 for line in `cat tumors_and_normals.csv | grep "^${sample},"`; do
                     # first element is tumor, second is normal
                     tumor=$(echo $line | sed 's/,.*//')
+                    normal=$(echo $line | sed 's/^.*,//')
                     # do all file existance and integrity checks
                     check_tumor=$(samtools quickcheck ${dir}/${tumor}.bqsr.bam && echo 1)
                     check_normal=2
@@ -261,12 +262,14 @@ ${pipeline_dir}/wait_for_file.sh
                         mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
                         # log to main
                         echo "05: Mutect2 has started successfully for ${tumor}__${normal}." | tee -a main.log
-                        exit 0
-                    fi
+
+
                 done
             else
                 echo "05: sample $sample not in tumor column (1st)" | tee -a main.log
-                mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
+                if [[ -e ${sample}.BQSR.log ]]; then
+                    mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
+                fi
                 exit 0
             fi
         else
