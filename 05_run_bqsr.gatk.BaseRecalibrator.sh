@@ -262,8 +262,7 @@ ${pipeline_dir}/wait_for_file.sh
                         mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
                         # log to main
                         echo "05: Mutect2 has started successfully for ${tumor}__${normal}." | tee -a main.log
-
-
+                    fi
                 done
             else
                 echo "05: sample $sample not in tumor column (1st)" | tee -a main.log
