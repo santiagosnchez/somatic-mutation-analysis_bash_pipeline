@@ -130,7 +130,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/09_variant_annotation.snpEff-funcotator.sh
+${pipeline_dir}/09b_variant_annotation.snpEff-funcotator.sh
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
 fi
