@@ -133,14 +133,19 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
         # submit GetPileupSummaries
-        echo "05: submitting GetPileupSummaries for CalculateContamination ${sample}." | tee -a main.log
-        sample_pid_gps=$(qsub -v \
+        if [[ ! -e contamination/${sample}.getpileupsummaries.table ]]; then
+            echo "05: submitting GetPileupSummaries for CalculateContamination ${sample}." | tee -a main.log
+            sample_pid_gps=$(qsub -v \
 sample=${sample},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh | tee -a main.log)
+${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh)
+            echo "05: GPS jobid for ${sample}: ${sample_pid_gps}" | tee -a main.log
+        else
+            echo "05: GetPileupSummaries table found for ${sample}: contamination/${sample}.getpileupsummaries.table" | tee -a main.log
+        fi
         # check if file exists and continue
         if [[ -e tumors_and_normals.csv ]]; then
             cat tumors_and_normals.csv | grep "^${sample},"
@@ -162,12 +167,29 @@ ${pipeline_dir}/06a_check_crosscontamination.gatk.GetPileupSummaries.sh | tee -a
                         # submit all mutect2 jobs
                         export normal
                         export tumor
+
+                        # find if CalculateContamination or GetPileupSummaries is needed
+
+                        if [[ -e contamination/${tumor}__${normal}.calculatecontamination.table ]]; then
+                            echo "05: CalculateContamination table found for ${sample}: contamination/${sample}.calculatecontamination.table" | tee -a main.log
+                        elif [[ -e contamination/${tumor}.getpileupsummaries.table && -e contamination/${normal}.getpileupsummaries.table ]]; then
+                            echo "05: GetPileupSummaries table found for ${tumor}: contamination/${tumor}.getpileupsummaries.table" | tee -a main.log
+                            echo "05: GetPileupSummaries table found for ${normal}: contamination/${normal}.getpileupsummaries.table" | tee -a main.log
+                            # submit CalculateContamination
+                            qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh | tee -a main.log
+                            echo "05: Submitting CalculateContamination step" | tee -a main.log
                         # get pids of tumor and normal
-                        tumor_pid_gps=$sample_pid_gps
-                        if [[ -e ${normal}.GetPileupSummaries.log ]]; then
+                        elif [[ -e ${normal}.GetPileupSummaries.log && -e contamination/${tumor}.getpileupsummaries.table ]]; then
                             normal_pid_gps=$( head -1 ${normal}.GetPileupSummaries.log )
                             # submit second crosscheck as dependency for both normal and tumor
-                            qsub -W depend=afterok:${tumor_pid_gps}:${normal_pid_gps} -v \
+                            qsub -W depend=afterok:${normal_pid_gps} -v \
 normal=${normal},\
 tumor=${tumor},\
 mode=${mode},\
@@ -175,9 +197,10 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
+                            echo "05: submitting dependency on normal:${normal} GPS for CalculateContamination ${sample}." | tee -a main.log
                         # if GPS finished already submit as only tumor dependency
-                        elif [[ -e all_logfiles/${normal}.GetPileupSummaries.log ]]; then
-                            qsub -W depend=afterok:${tumor_pid_gps} -v \
+                        elif [[ -e contamination/${normal}.getpileupsummaries.table ]]; then
+                            qsub -W depend=afterok:${sample_pid_gps} -v \
 normal=${normal},\
 tumor=${tumor},\
 mode=${mode},\
@@ -185,7 +208,24 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
+                            echo "05: submitting dependency on tumor:${tumor} GPS for CalculateContamination ${sample}." | tee -a main.log
+
+                         else
+                            # get jobid info from main.log
+                            tumor_pid_gps=$(cat main.log | grep -a -o " ${tumor}: .*$" | grep -o "[0-9]*")
+                            normal_pid_gps=$(cat main.log | grep -a -o " ${normal}: .*$" | grep -o "[0-9]*")
+                            # submit job dep
+                            qsub -W depend=afterok:${tumor_pid_gps}:${tumor_pid_gps} -v \
+normal=${normal},\
+tumor=${tumor},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
+                            echo "05: Submitting CalculateContamination step with dependency on both tumor:${tumor} and normal:${normal} GPS." | tee -a main.log
                         fi
+
                         # submit Mutect2 scattered runs
                         # save a dry run of commands first
                         ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
