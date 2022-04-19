@@ -112,18 +112,22 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
+            exit 0
         # wait for file
         else
             echo "08: Waiting for Calculate Contamination to start for ${tumor} and ${normal}" | tee -a main.log
             qsub -v \
 file="all_logfiles/${tumor}__${normal}.CalculateContamination.log",\
 sample=${sample},\
+tumor=${tumor},\
+normal=${normal},\
 script=08_filter_somatic_var.gatk.FilterMutectCalls.sh,\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/wait_for_file.sh
+            exit 0
         fi
     fi
 fi
