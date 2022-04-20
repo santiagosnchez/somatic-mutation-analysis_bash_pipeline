@@ -244,7 +244,7 @@ ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh)
                                 echo "05: ${sample} (tumor) waiting for ${normal} (normal) GPS to start / BQSR to finish." | tee -a main.log
                                 qsub -v \
 file="${normal}.GetPileupSummaries.log",\
-sample=${sample},\
+sample=${tumor},\
 script=05_run_bqsr.gatk.BaseRecalibrator.sh,\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
@@ -260,7 +260,7 @@ ${pipeline_dir}/wait_for_file.sh
                             echo "05: ${sample} (tumor) waiting for ${normal} (normal) GPS to start / BQSR to finish." | tee -a main.log
                             qsub -v \
 file="${normal}.GetPileupSummaries.log",\
-sample=${sample},\
+sample=${tumor},\
 script=05_run_bqsr.gatk.BaseRecalibrator.sh,\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
