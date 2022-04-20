@@ -214,7 +214,7 @@ ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
                              # get jobid info from log
                              normal_bqsr_log=$((find . -maxdepth 1 -type f -name "${normal}.BQSR.log" && find all_logfiles -maxdepth 2 -type f -name "${normal}.BQSR.log") | head -1)
                              normal_pid_gps=$(cat ${normal_bqsr_log} | grep -a -o "05: GPS jobid for ${normal}: .*$" | grep -o "[0-9]*$")
-                             if [[ -e contamination/${tumor}.getpileupsummaries.table ]]; then
+                             if [[ -e contamination/${tumor}.getpileupsummaries.table && ${#normal_pid_gps} -gt 2 ]]; then
                                 # submit job dep
                                 qsub -W depend=afterok:${normal_pid_gps} -v \
 normal=${normal},\
@@ -225,7 +225,7 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh
                                 echo "05: submitting dependency on normal:${normal} GPS for CalculateContamination ${sample}." | tee -a main.log
-                            else
+                            elif [[ ${#normal_pid_gps} -gt 2 ]]; then
                                 # submit job dep
                                 jobid_cc=$(qsub -W depend=afterok:${normal_pid_gps}:${sample_pid_gps} -v \
 normal=${normal},\
@@ -237,6 +237,21 @@ genome=${genome} \
 ${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh)
                                 echo "05: Submitting CalculateContamination step with dependency on both tumor:${tumor} and normal:${normal} GPS." | tee -a main.log
                                 echo "05: Job id for CalculateContamination in ${tumor}__${normal} is: $jobid_cc"
+                            else
+                                # wait for BQSR to start CalculateContamination
+                                # GPS has not started for normal, wait for file
+                                # wait for the BQSR script to finish
+                                echo "05: ${sample} (tumor) waiting for ${normal} (normal) GPS to start / BQSR to finish." | tee -a main.log
+                                qsub -v \
+file="${normal}.GetPileupSummaries.log",\
+sample=${sample},\
+script=05_run_bqsr.gatk.BaseRecalibrator.sh,\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/wait_for_file.sh
+                                exit 0
                             fi
                         else
                             # wait for BQSR to start CalculateContamination
