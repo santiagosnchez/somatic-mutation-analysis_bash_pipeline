@@ -63,7 +63,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
     # tumor first
     if [[ ! -e contamination/${tumor}.getpileupsummaries.table ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
- -I ${dir}/${sample}.bqsr.bam \
+ -I ${dir}/${tumor}.bqsr.bam \
  -V ${gnomad_resource} \
  -L $bed30intervals/${bed} \
  -O contamination/${tumor}.getpileupsummaries.${index}.table
@@ -72,7 +72,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummar
     # then normal
     if [[ ! -e contamination/${normal}.getpileupsummaries.table ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
- -I ${dir}/${sample}.bqsr.bam \
+ -I ${dir}/${tumor}.bqsr.bam \
  -V ${gnomad_resource} \
  -L $bed30intervals/${bed} \
  -O contamination/${normal}.getpileupsummaries.${index}.table
