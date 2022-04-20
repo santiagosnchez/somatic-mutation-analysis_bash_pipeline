@@ -44,12 +44,16 @@ if [[ "${normal}" == "PON" ]]; then
     echo "06: No CalculateContamination. Tumor-only mode." | tee -a main.log
     check_finish=0
 else
+  if [[ ! -e contamination/${tumor}__${normal}.calculatecontamination.table ]]; then
 # run gatk's CalculateContamination
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" CalculateContamination \
  -I contamination/${tumor}.getpileupsummaries.table \
  -matched contamination/${normal}.getpileupsummaries.table \
  -O contamination/${tumor}__${normal}.calculatecontamination.table \
  --tumor-segmentation contamination/${tumor}__${normal}.tumorsegmentation.table
+  else
+    echo "06: CalculateContamination table found for ${tumor}__${normal}" | tee -a main.log
+    check_finish=0
 fi
 
 # check if finished
@@ -57,9 +61,8 @@ check_finish=$?
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
+    # log to main
+    echo "06: ${tumor}__${normal} CalculateContamination completed." | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.CalculateContamination.log all_logfiles
-    # log to main
-    echo "06: ${tumor}__${normal} Calculate Contamination completed." | tee -a main.log
-    # next round of jobs are submitted manually or not
 fi

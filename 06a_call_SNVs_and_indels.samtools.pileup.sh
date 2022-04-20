@@ -88,7 +88,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06e_call_SNVs_and_indels.varscan.sh
+${pipeline_dir}/06b_call_SNVs_and_indels.varscan.sh
                             elif [[ -e varscan/pileups/${tumor}.pileup && ! -e varscan/pileups/${normal}.pileup ]]; then
                                 # log
                                 echo "06: waiting for normal ${normal} pileup to finish." | tee -a main.log
@@ -98,7 +98,7 @@ file="varscan/pileups/${normal}.pileup",\
 sample=${tumor},\
 tumor=${tumor},\
 normal=${normal},\
-script=06e_call_SNVs_and_indels.varscan.sh,\
+script=06b_call_SNVs_and_indels.varscan.sh,\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\

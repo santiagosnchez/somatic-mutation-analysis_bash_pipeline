@@ -162,7 +162,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06b_check_crosscontamination.gatk.CalculateContamination.sh | tee -a main.log
+${pipeline_dir}/06c_check_crosscontamination.gatk.CalculateContamination.sh | tee -a main.log
             # move logfile
             rm ${tumor}__${normal}.mutect2.${index}.log
         else

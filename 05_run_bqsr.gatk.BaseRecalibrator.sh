@@ -63,7 +63,15 @@ if [[ -e ${dir}/${sample}.bqsr.bam ]]; then
             #fi
             mv ${sample}.BQSR.log all_logfiles
             # submit next job
-            qsub -v sample=${sample},wt=${wt},mode=${mode} ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
+            qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome},\
+aln_only=${aln_only} \
+${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
             exit 0
         else
             ls &> /dev/null
@@ -131,7 +139,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06d_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
+${pipeline_dir}/06a_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
 
         # check if file exists and continue
         if [[ -e tumors_and_normals.csv ]]; then
@@ -166,7 +174,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
                         # submit mutect2 jobs on 30 intervals
                         ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
 normal=${normal},\
@@ -177,7 +185,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
                     # if no normal (i.e., normal is PON)
                     elif [[ "${normal}" == "PON" ]]; then
                         # dry run before submitting mutect2 runs
@@ -190,7 +198,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
                         # submit mutect2 jobs on 30 intervals
                         ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
 normal=${normal},\
@@ -201,7 +209,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06c_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
                     else
                         # wait for the BQSR script to finish
                         echo "05: ${sample} (tumor) waiting for ${normal} (normal) BQSR to finish." | tee -a main.log
