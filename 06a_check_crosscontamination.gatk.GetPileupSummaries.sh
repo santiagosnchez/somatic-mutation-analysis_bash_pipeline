@@ -45,7 +45,8 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummar
 -I ${dir}/${sample}.bqsr.bam \
 -V ${gnomad_resource} \
 -L ${knownsites_snps_biallelic} \
--O contamination/${sample}.getpileupsummaries.table
+-L ${bed30intervals}/${bed} \
+-O contamination/${sample}.getpileupsummaries.${index}.table
 
 # check if finished
 check_finish=$?

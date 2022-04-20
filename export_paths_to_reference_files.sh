@@ -12,6 +12,8 @@ genomes=${resources_dir}/reference_genomes
 if [[ -z $1 ]]; then
     # path to human reference genome assembly v38
     export reference=${genomes}/hg38/gatk_bundle/Homo_sapiens_assembly38.fasta
+    # path to reference dict
+    export reference_dict=${genomes}/hg38/gatk_bundle/Homo_sapiens_assembly38.dict
     # path to WES target intervals
     export intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.interval_list
     # path to WES tergets in bed format
@@ -35,6 +37,8 @@ else
         if [[ ${2} == "hg38" ]]; then
             # path to human reference genome assembly v38
             export reference=${genomes}/${2}/gatk_bundle/Homo_sapiens_assembly38.fasta
+            # path to reference dict
+            export reference_dict=${genomes}/${2}/gatk_bundle/Homo_sapiens_assembly38.dict
             # path to vcf file with known SNPs from the 1000 genomes project
             export knownsites_snps=${genomes}/${2}/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz
             # same but biallelic only
