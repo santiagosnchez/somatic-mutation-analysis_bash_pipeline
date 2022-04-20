@@ -142,9 +142,9 @@ ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             if [[ ${normal} != "PON" ]]; then
                 # gather GPS tables merged
                 gpsfiles_tumor=$(ls contamination/${tumor}.getpileupsummaries.*.table | sort -V | sed 's/^/-I /')
-                $gatk_path/gatk GatherPileupSummaries ${gpsfiles_tumor} -O ${tumor}.getpileupsummaries.table --sequence-dictionary ${reference_dict}
+                $gatk_path/gatk GatherPileupSummaries ${gpsfiles_tumor} -O contamination/${tumor}.getpileupsummaries.table --sequence-dictionary ${reference_dict}
                 gpsfiles_normal=$(ls contamination/${normal}.getpileupsummaries.*.table | sort -V | sed 's/^/-I /')
-                $gatk_path/gatk GatherPileupSummaries ${gpsfiles_tumor} -O ${tumor}.getpileupsummaries.table --sequence-dictionary ${reference_dict}
+                $gatk_path/gatk GatherPileupSummaries ${gpsfiles_tumor} -O contamination/${tumor}.getpileupsummaries.table --sequence-dictionary ${reference_dict}
                 if [[ "$?" == 0 ]]; then
                     rm contamination/${tumor}.getpileupsummaries.[1-9]*.table
                     rm contamination/${normal}.getpileupsummaries.[1-9]*.table
