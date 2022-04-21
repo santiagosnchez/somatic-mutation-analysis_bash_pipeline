@@ -54,6 +54,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" CalculateContam
   else
     echo "06: CalculateContamination table found for ${tumor}__${normal}" | tee -a main.log
     check_finish=0
+  fi
 fi
 
 # check if finished
