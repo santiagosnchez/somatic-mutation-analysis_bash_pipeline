@@ -15,9 +15,9 @@ if [[ -z $1 ]]; then
     # path to reference dict
     export reference_dict=${genomes}/hg38/gatk_bundle/Homo_sapiens_assembly38.dict
     # path to WES target intervals
-    export intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.interval_list
+    export intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.hg38.interval_list
     # path to WES tergets in bed format
-    export intervals_bed=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.bed
+    export intervals_bed=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.hg38.bed
     # path to vcf file with known SNPs from the 1000 genomes project
     export knownsites_snps=${genomes}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz
     # same but biallelic only
@@ -25,7 +25,7 @@ if [[ -z $1 ]]; then
     # path to vcf file with known indels from the 1000 genomes project
     export knownsites_indels=${genomes}/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
     # path to WES intervals for running MuTect2
-    export bed30intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.30-bed-files/
+    export bed30intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.hg38.30-bed-files/
     # path to gnomad resource
     export gnomad_resource=${genomes}/hg38/gatk_bundle/af-only-gnomad.hg38.vcf.gz
     # path to gatk's panel of normals vcf
@@ -52,11 +52,11 @@ else
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
-                export intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.interval_list
+                export intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.interval_list
                 # path to WES tergets in bed format
-                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.bed
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.bed
                 # path to WES intervals for running MuTect2
-                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.edited.LiftOverToHg38.30-bed-files/
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.30-bed-files/
             else
                 # path to WES target intervals
                 export intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.interval_list
