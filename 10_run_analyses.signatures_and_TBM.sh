@@ -43,7 +43,7 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
+source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 # list of MMR genes:
 # MLH1 MSH2 MSH6 PMS2 POLD1 POLE IDH1 TP53 NF1

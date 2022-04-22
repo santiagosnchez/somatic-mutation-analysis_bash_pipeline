@@ -43,7 +43,7 @@ qstat -f $PBS_JOBID >> ${sample}.sambamba.markdup.log
 
 # load reference path and other reference files
 # for details check script
-source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
+source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 # create dir for preprocessed bam files
 if [[ ! -e preprocessed_bam ]]; then

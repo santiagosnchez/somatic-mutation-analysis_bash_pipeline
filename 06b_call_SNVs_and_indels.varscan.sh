@@ -43,7 +43,7 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
+source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]]; then
     # double check files

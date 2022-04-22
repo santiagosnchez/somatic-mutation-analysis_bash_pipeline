@@ -38,7 +38,7 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
+source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 if [[ "${normal}" == "PON" ]]; then
     echo "06: No CalculateContamination. Tumor-only mode." | tee -a main.log
