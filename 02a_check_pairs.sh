@@ -38,7 +38,7 @@ source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} $
 # check length of file names and run script
 if [[ ${#forward} -gt 0 && ${#reverse} -gt 0 ]]; then
    # run script
-   ${pipeline_dir}/fetch_fwd_rev_sing.pl ${forward} ${reverse} ${index} ${sample} | tee -a main.log
+   ${pipeline_dir}/scripts/fetch_fwd_rev_sing.pl ${forward} ${reverse} ${index} ${sample} | tee -a main.log
    if [[ "$?" == 0 ]]; then
        # get total singletons
        total_single=$(cat ${sample}.${index}.checkpairs.log | grep "Single: " | sed 's/.*: //')
