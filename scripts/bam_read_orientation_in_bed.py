@@ -45,7 +45,7 @@ chrom   start    end    gene     F1R2     F2R1    log2(F1R2+1/F2R1+1)
 """
 
 # progess args
-if len(sys.argv) != 3 or len(sys.argv) != 4:
+if not (len(sys.argv) == 3 or len(sys.argv) == 4):
     print(message)
     sys.exit(1)
 elif any([ a == '-h' or a == '--help' for a in sys.argv ]):
