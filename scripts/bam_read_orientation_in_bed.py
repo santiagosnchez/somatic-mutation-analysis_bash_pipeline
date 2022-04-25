@@ -98,7 +98,7 @@ for interval in bed:
     if sample:
         # only targets with at least 50 reads
         if sum([counter['f1r2'], counter['f2r1']]) >= 50:
-            log2ratio_all.append(log_dif)
+            log2ratio_all.append(log2ratio)
         sum_counts = (counter['f1r2']+sum_counts[0], counter['f2r1']+sum_counts[1])
         print(ch, st, en, ge, counter['f1r2'], counter['f2r1'], log2ratio, sep="\t", file=out_all)
     else:
