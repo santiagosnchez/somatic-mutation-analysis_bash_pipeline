@@ -106,8 +106,8 @@ for interval in bed:
 
 if sample:
     # get stats
-    mean_log2ratio_all = sum(log_dif)/len(log_dif)
-    var_log2ratio_all = sum([ (mean_log2ratio_all - x)**2 for x in log_dif ])/len(log_dif)
+    mean_log2ratio_all = sum(log2ratio_all)/len(log2ratio_all)
+    var_log2ratio_all = sum([ (mean_log2ratio_all - x)**2 for x in log2ratio_all ])/len(log2ratio_all)
     std_log2ratio_all = math.sqrt(var_log2ratio_all)
     total_log2_ratio = math.log2(sum_counts[0]/sum_counts[1])
     # header
