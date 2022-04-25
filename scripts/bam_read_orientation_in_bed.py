@@ -94,7 +94,7 @@ for interval in bed:
     # count
     for read in bam.fetch(ch, int(st), int(en)):
         counter = count_reads(read, counter)
-    log2ratio = math.log2(counter['f1r2']+1/counter['f2r1']+1)
+    log2ratio = math.log2((counter['f1r2']+1)/(counter['f2r1']+1))
     if sample:
         # only targets with at least 50 reads
         if sum([counter['f1r2'], counter['f2r1']]) >= 50:
