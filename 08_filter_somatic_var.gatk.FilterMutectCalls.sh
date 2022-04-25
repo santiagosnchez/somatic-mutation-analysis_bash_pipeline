@@ -67,7 +67,7 @@ index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 else
     # resubmit until file is available with dependency
     # first get the job id if the GetPileupSummaries command
-    if [[ ${normal} == "PON" ]]; then
+    if [[ ${normal} == "PON" || "${gnomad_resource}" == "none" ]]; then
         # filter without calc contamination
         # run gatk's FilterMutectCalls
         $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \

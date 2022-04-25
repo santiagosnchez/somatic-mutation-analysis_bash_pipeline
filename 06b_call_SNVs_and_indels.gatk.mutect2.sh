@@ -58,6 +58,16 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
  -L ${bed30intervals}/${bed}
+  elif [[ ${gnomad_resource} == 'none' ]]; then
+$gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
+ -I ${dir}/${tumor}.bqsr.bam \
+ -tumor ${tumor} \
+ -R ${reference} \
+ -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.${index}.vcf \
+ -pon ${gatk_pon} \
+ --max-mnp-distance 0 \
+ --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
+ -L ${bed30intervals}/${bed}
   else
 # submit GetPileupSummaries for normal and tumor
     # tumor first

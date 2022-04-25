@@ -128,6 +128,16 @@ if [[ "$check_finish" == 0 ]]; then
     # next round of jobs are submitted manually or not
     # log to main
     echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
+    # echo submit read orientation counts
+    echo "05: Submitting read orientation counts for ${sample}." | tee -a main.log
+    qsub -v \
+sample=${sample},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06d_calc_f1r2.read_orientation.sh
+
     if [[ ${aln_only} == 0 ]]; then
         # submit varscan
         echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log

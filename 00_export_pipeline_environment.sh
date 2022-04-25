@@ -135,7 +135,7 @@ else
             # path to vcf file with known indels from the 1000 genomes project
             export knownsites_indels=${genomes}/${2}/ucsc/mgp.v5.indels.pass.mm10.vcf.gz
             # path to gnomad resource
-            export gnomad_resource=${genomes}/${2}/ucsc/dbsnp_v150.snps-biallelic.mm10.vcf.gz
+            export gnomad_resource=none
             # path to gatk's panel of normals vcf
             export gatk_pon=none
             # test mode
