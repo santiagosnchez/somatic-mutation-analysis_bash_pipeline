@@ -58,6 +58,7 @@ bedfile = sys.argv[2]
 sample = None
 if len(sys.argv) == 4:
     sample  = sys.argv[3]
+    sample_base = sample.split('/')[-1]
     out_all = open(sample + ".read_orientation.target_count.tsv", "w")
     out_sum = open(sample + ".read_orientation.summary.tsv", "w")
     # for summary stats
@@ -111,6 +112,6 @@ if sample:
     std_log2ratio_all = math.sqrt(var_log2ratio_all)
     total_log2_ratio = math.log2(sum_counts[0]/sum_counts[1])
     # header
-    print("total_F1R1","total_F2R1","total_log2_ratio","mean_log2_ratio_F1R2_over_F2R1_50plus","std_log2_ratio_F1R2_over_F2R1_50plus", sep="\t", file=out_sum)
+    print("sample","total_F1R1","total_F2R1","total_log2_ratio","mean_log2_ratio_F1R2_over_F2R1_50plus","std_log2_ratio_F1R2_over_F2R1_50plus", sep="\t", file=out_sum)
     # print data
-    print(sum_counts[0], sum_counts[1], total_log2_ratio, mean_log2ratio_all, std_log2ratio_all, sep="\t", file=out_sum)
+    print(sample_base, sum_counts[0], sum_counts[1], total_log2_ratio, mean_log2ratio_all, std_log2ratio_all, sep="\t", file=out_sum)
