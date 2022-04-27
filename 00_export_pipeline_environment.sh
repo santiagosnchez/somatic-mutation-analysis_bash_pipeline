@@ -135,9 +135,9 @@ else
             # path to vcf file with known indels from the 1000 genomes project
             export knownsites_indels=${genomes}/${2}/ucsc/mgp.v5.indels.pass.mm10.vcf.gz
             # path to gnomad resource
-            export gnomad_resource=none
+            export gnomad_resource=null
             # path to gatk's panel of normals vcf
-            export gatk_pon=none
+            export gatk_pon=null
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
