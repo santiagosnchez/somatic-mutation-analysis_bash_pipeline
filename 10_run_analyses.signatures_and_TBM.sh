@@ -273,6 +273,10 @@ if [[ "$check_finish" == 0 ]]; then
             mv BQSR/* bam
             rm -rf BQSR
         fi
+        #
+        if [[ -e varscan/pileups ]]; then
+          rm -rf varscan/pileups
+        fi
         # move stats to all_logfiles
         mv mutect2/*.filteringStats.tsv all_logfiles
         #mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles

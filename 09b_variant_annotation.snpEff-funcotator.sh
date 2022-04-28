@@ -74,7 +74,7 @@ if [[ "${tissue}" == "Somatic" ]]; then
     # run snpEff on mutect2 vcf
     java -jar $snpeff_jar \
      -dataDir $snpeff_datadir \
-     hg38 \
+     ${genome} \
      -v \
      -canon \
      -cancer \
@@ -87,7 +87,7 @@ if [[ "${tissue}" == "Somatic" ]]; then
      $gatk_path/gatk Funcotator \
       --variant ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz \
       --reference $reference \
-      --ref-version hg38 \
+      --ref-version ${genome} \
       --data-sources-path $funcotator_databases_s \
       --transcript-selection-mode CANONICAL \
       --output vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator.${mode}.vcf \
@@ -99,7 +99,7 @@ elif [[ "${tissue}" == "Germline" ]]; then
     # run snpEff on Varscan Germline calls
     java -jar $snpeff_jar \
      -dataDir $snpeff_datadir \
-     hg38 \
+     ${genome} \
      -v \
      -canon \
      -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
@@ -111,7 +111,7 @@ elif [[ "${tissue}" == "Germline" ]]; then
     $gatk_path/gatk Funcotator \
      --variant ${caller}/${tumor}__${normal}.${caller}.all.${tissue}.hc.${mode}.vcf.gz \
      --reference $reference \
-     --ref-version hg38 \
+     --ref-version ${genome} \
      --data-sources-path $funcotator_databases_g \
      --transcript-selection-mode CANONICAL \
      --output vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator.${mode}.vcf \
