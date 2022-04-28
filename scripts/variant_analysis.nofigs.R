@@ -42,7 +42,7 @@ current_dir=getwd()
 ##################
 
 # vector of filtered vcf files
-somaticvcfpath <- paste0(current_dir, "/vcf/", args[2], ".mutect2.all.Somatic.annotated-funcotator.",args[1],".vcf.gz")
+somaticvcfpath <- paste0("mutect2/", args[2], ".mutect2.selected.",args[1],".vcf.gz")
 
 # make/read vcf as maf
 maf.som <- read_vcf(somaticvcfpath)

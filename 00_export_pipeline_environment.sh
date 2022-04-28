@@ -31,6 +31,20 @@ if [[ -z $1 ]]; then
     export gnomad_resource=${genomes}/hg38/gatk_bundle/af-only-gnomad.hg38.vcf.gz
     # path to gatk's panel of normals vcf
     export gatk_pon=${genomes}/hg38/gatk_bundle/1000g_pon.hg38.vcf.gz
+    # reference independent locations:
+    # path to snpEff jar file
+    export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
+    # path to snpEff data dir
+    export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+    # path to varscan jar file
+    export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
+    # point to recent version of gatk
+    export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+    # funcotator data resources
+    export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
+    export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
+    # path to annovar database
+    export annovar_db=${resources_dir}/humandb
 else
     # test organism
     if [[ ${1} == "human" ]]; then
@@ -66,6 +80,20 @@ else
                 # path to WES intervals for running MuTect2
                 export bed30intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.30-bed-files/
             fi
+            # reference independent locations:
+            # path to snpEff jar file
+            export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
+            # path to snpEff data dir
+            export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+            # path to varscan jar file
+            export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
+            # point to recent version of gatk
+            export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+            # funcotator data resources
+            export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
+            export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
+            # path to annovar database
+            export annovar_db=${resources_dir}/humandb
         elif [[ ${2} == "hs37d5" ]]; then
             # path to human reference genome assembly hs37d5
             export reference=${genomes}/${2}/gatk_bundle/Homo_sapiens_assembly38.fasta
@@ -120,6 +148,20 @@ else
                   # path to WES intervals for running MuTect2
                   export bed30intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.30-bed-files/
               fi
+              # reference independent locations:
+              # path to snpEff jar file
+              export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
+              # path to snpEff data dir
+              export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+              # path to varscan jar file
+              export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
+              # point to recent version of gatk
+              export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+              # funcotator data resources
+              export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
+              export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
+              # path to annovar database
+              export annovar_db=${resources_dir}/humandb
         # more refs
         else
             echo "Unknown or reference no databased: ${2}"
@@ -154,6 +196,20 @@ else
                 # path to WES intervals for running MuTect2
                 export bed30intervals=${genomes}/${2}/ucsc/wgs_callable_nonN-LC_regions.30-bed-files/
             fi
+            # reference independent locations:
+            # path to snpEff jar file
+            export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
+            # path to snpEff data dir
+            export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+            # path to varscan jar file
+            export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
+            # point to recent version of gatk
+            export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+            # funcotator data resources
+            #export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
+            #export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
+            # path to annovar database
+            #export annovar_db=${resources_dir}/mousedb
         else
             echo "Unknown or reference no databased: ${2}"
             echo "See options using the -h flag."
@@ -166,20 +222,6 @@ else
     fi
 fi
 
-# reference independent locations:
-# path to snpEff jar file
-export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
-# path to snpEff data dir
-export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
-# path to varscan jar file
-export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
-# point to recent version of gatk
-export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
-# funcotator data resources
-export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
-export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
-# path to annovar database
-export annovar_db=${resources_dir}/humandb
 
 
 # functions
