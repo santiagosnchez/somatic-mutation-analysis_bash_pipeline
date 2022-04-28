@@ -38,10 +38,13 @@ fi
 
 # load reference path and other reference files
 # for details check script
-source ${pipeline_dir}/export_paths_to_reference_files.sh ${organism} ${genome} ${mode}
+source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 if [[ "${normal}" == "PON" ]]; then
     echo "06: No CalculateContamination. Tumor-only mode." | tee -a main.log
+    check_finish=0
+elif [[ "${gnomad_resource}" == "none" ]]; then
+    echo "06: Need AF file (i.e., gnomad for CalculateContamination)... Skipping." | tee -a main.log
     check_finish=0
 else
   if [[ ! -e contamination/${tumor}__${normal}.calculatecontamination.table ]]; then
