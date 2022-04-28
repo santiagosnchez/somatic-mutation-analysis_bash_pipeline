@@ -58,7 +58,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
  -L ${bed30intervals}/${bed}
-  elif [[ ${gnomad_resource} == 'none' ]]; then
+elif [[ ${gnomad_resource} == 'null' ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
  -tumor ${tumor} \

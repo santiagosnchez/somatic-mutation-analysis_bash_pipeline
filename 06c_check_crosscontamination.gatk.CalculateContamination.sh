@@ -43,7 +43,7 @@ source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} $
 if [[ "${normal}" == "PON" ]]; then
     echo "06: No CalculateContamination. Tumor-only mode." | tee -a main.log
     check_finish=0
-elif [[ "${gnomad_resource}" == "none" ]]; then
+elif [[ "${gnomad_resource}" == "null" ]]; then
     echo "06: Need AF file (i.e., gnomad for CalculateContamination)... Skipping." | tee -a main.log
     check_finish=0
 else

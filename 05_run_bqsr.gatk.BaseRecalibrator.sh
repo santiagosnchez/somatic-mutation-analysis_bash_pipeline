@@ -144,19 +144,19 @@ ${pipeline_dir}/06d_calc_f1r2.read_orientation.sh
         echo "05: Read orientation found for ${sample}." | tee -a main.log
     fi
     # Skip Varscan if WGS
-    if [[ ${mode} != "WGS" ]]; then
+    if [[ ${mode} != "wgs" ]]; then
         if [[ ! -e varscan/pileups/${sample}.pileup ]]; then
             # submit varscan
             echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
             ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
-    sample=${sample},\
-    bed={},\
-    index={#},\
-    mode=${mode},\
-    pipeline_dir=${pipeline_dir},\
-    organism=${organism},\
-    genome=${genome} \
-    ${pipeline_dir}/06a_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
+sample=${sample},\
+bed={},\
+index={#},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06a_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
         else
             skip_pileup=1
             echo "05: Skipping pileup for ${sample}." | tee -a main.log
