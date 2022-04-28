@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=10,vmem=30g,mem=30g,walltime=12:00:00
+#PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=12:00:00
 #PBS -e ${sample}.VarScan.pileup.${index}.log
 #PBS -j eo
 # scheduler settings
