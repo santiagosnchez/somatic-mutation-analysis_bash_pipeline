@@ -61,7 +61,9 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
 elif [[ ${gnomad_resource} == 'null' ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
+ -I ${dir}/${normal}.bqsr.bam \
  -tumor ${tumor} \
+ -normal ${normal} \
  -R ${reference} \
  -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.${index}.vcf \
  -pon ${gatk_pon} \
@@ -127,12 +129,17 @@ if [[ "$check_finish" == 0 ]]; then
             # generate list of files with their own -I flag
             vcffiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf | sort -V | sed 's/^/-I /')
             $gatk_path/gatk GatherVcfs $vcffiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf
+            # delete if finished
+            if [[ "$?" == 0 ]]; then
+                rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf
+                rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf.idx
+            fi
             # gather stats files, needed for Filtering
             statsfiles=$(ls mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.*.vcf.stats | sort -V | sed 's/^/-stats /')
             $gatk_path/gatk MergeMutectStats $statsfiles -O mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf.stats
-            # log to main
+            # delete if finished
             if [[ "$?" == 0 ]]; then
-                rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf*
+                rm mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.[1-9]*.vcf.stats
             fi
             # log to main
             echo "06: ${tumor}__${normal} Mutect2 variant calling completed for interval ${index}." | tee -a main.log
@@ -147,21 +154,23 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/07_read_orientation.gatk.LearnReadOrientationModel.sh
             # do CalculateContamination for non tumor-only runs
-            if [[ "${normal}" != "PON" ]]; then
+            if [[ "${normal}" != "PON" && ${gnomad_resource} != "null" ]]; then
                 # gather GPS tables merged
                 gpsfiles_tumor=$(ls contamination/${tumor}.getpileupsummaries.*.table | sort -V | sed 's/^/-I /')
                 $gatk_path/gatk GatherPileupSummaries ${gpsfiles_tumor} -O contamination/${tumor}.getpileupsummaries.table --sequence-dictionary ${reference_dict}
+                if [[ "$?" == 0 ]]; then
+                    rm contamination/${tumor}.getpileupsummaries.[1-9]*.table
+                fi
                 gpsfiles_normal=$(ls contamination/${normal}.getpileupsummaries.*.table | sort -V | sed 's/^/-I /')
                 $gatk_path/gatk GatherPileupSummaries ${gpsfiles_normal} -O contamination/${normal}.getpileupsummaries.table --sequence-dictionary ${reference_dict}
                 if [[ "$?" == 0 ]]; then
-                    rm contamination/${tumor}.getpileupsummaries.[1-9]*.table
                     rm contamination/${normal}.getpileupsummaries.[1-9]*.table
                 fi
                 # log to main
                 echo "06: GetPileupSummaries completed ${tumor} and ${normal}." | tee -a main.log
                 echo "06: Moving to CalculateContamination for ${tumor}__${normal}." | tee -a main.log
             else
-                echo "06: Normal is PON for ${tumor}." | tee -a main.log
+                echo "06: Normal is PON or no gnomad resource (null) for ${tumor}." | tee -a main.log
             fi
             qsub -v \
 normal=${normal},\
