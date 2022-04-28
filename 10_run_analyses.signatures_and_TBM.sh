@@ -218,7 +218,7 @@ check_finish=$?
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
-    if [[ ${normal} == "PON" || (-e all_logfiles/${tumor}__${normal}.analyses.Germline.log && ${tissue} == "Somatic") || (-e all_logfiles/${tumor}__${normal}.analyses.Somatic.log && ${tissue} == "Germline") ]]; then
+    if [[ ${mode} == "wgs" || ${normal} == "PON" || (-e all_logfiles/${tumor}__${normal}.analyses.Germline.log && ${tissue} == "Somatic") || (-e all_logfiles/${tumor}__${normal}.analyses.Somatic.log && ${tissue} == "Germline") ]]; then
         # final logs and tidy up dir, ie. gargabe collection
         # run final COSMIC signature analysis
         echo "${tumor},${normal}" >> finished.csv
@@ -318,7 +318,7 @@ if [[ "$check_finish" == 0 ]]; then
     # Rscript ${pipeline_dir}/cosmic_signature_analysis.R ${mode} ${tumor}__${normal}.
 
     # last move logfile to dir
-    if [[ -e ${tumor}__${normal}.analyses.log ]]; then
-        mv ${tumor}__${normal}.analyses.log all_logfiles
+    if [[ -e ${tumor}__${normal}.analyses.${tissue}.log ]]; then
+        mv ${tumor}__${normal}.analyses.${tissue}.log all_logfiles
     fi
 fi
