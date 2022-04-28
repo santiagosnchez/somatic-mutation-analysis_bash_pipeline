@@ -102,7 +102,22 @@ if [[ ! -e varscan/${tumor}__${normal}.varscan.all.Somatic.hc.${mode}.vcf.gz ]];
         fi
     fi
 else
-  ls &> /dev/null
+  file varscan/${tumor}__${normal}.varscan.all.Germline.hc.wes.vcf.gz | grep empty
+  if [[ "$?" == 0 ]]; then
+      ls &> /dev/null
+  else
+      rm varscan/${tumor}__${normal}.varscan.all.Germline.hc.wes.vcf.gz
+      # submit calling step
+      qsub -v \
+tumor=${tumor},\
+normal=${normal},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06b_call_SNVs_and_indels.varscan.sh
+      exit 1
+  fi
 fi
 
 # check if finished

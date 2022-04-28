@@ -150,8 +150,12 @@ check_finish=$?
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     # log to main
-    echo "08: FilterMutectCalls completed for ${tumor}__${normal}. Submitting VCF annotation Annovar" | tee -a main.log
-    qsub -v \
+    echo "08: FilterMutectCalls completed for ${tumor}__${normal}" | tee -a main.log
+    if [[ -z ${annovar_db} ]]; then
+        echo "08: Skipping Annovar for ${tumor}__${normal}" | tee -a main.log
+    else
+        echo "08: Submitting Annovar for ${tumor}__${normal}" | tee -a main.log
+        qsub -v \
 tumor=${tumor},\
 normal=${normal},\
 tissue="Somatic",\
@@ -160,6 +164,7 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/09a_variant_annotation.annovar.sh
+    fi
     # log to main
     echo "08: FilterMutectCalls completed for ${tumor}__${normal}. Submitting VCF annotation SnpEff and Funcotator" | tee -a main.log
     # next round of jobs are submitted manually or not
