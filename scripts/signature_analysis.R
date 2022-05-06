@@ -25,11 +25,17 @@ reference = args[5]
 # ref genome
 if (organism == "human"){
   ref_genome = paste0("BSgenome.Hsapiens.UCSC.", reference)
-  sig_loc = paste0("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/",reference,"/cosmic_db_v3.2_signature_matrix.txt")
-  signatures = read.table(sig_loc, sep="\t", head=T, row.names=1)
 } else if (organism == "mouse"){
   ref_genome = paste0("BSgenome.Mmusculus.UCSC.", reference)
 }
+
+# get COSMIC signature database
+sig_loc = paste0("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/",reference,"/cosmic_db_v3.2_signature_matrix.txt")
+signatures3 = read.table(sig_loc, sep="\t", head=T, row.names=1)
+# get etiologies
+etio_loc = paste0("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/",reference,"/cosmic_db_v3.2_signatures_and_etiologies.txt")
+etio3tab = read.table(etio_loc, sep="\t")
+
 
 # load genome ref lib
 library(ref_genome, character.only=T)
@@ -54,20 +60,14 @@ message(paste("Adding a small pseudocount proportion:", pseudo_count_prop))
 mut_mat = mut_mat + pseudo_count_prop
 
 # extract de novo signatures
-estimate = nmf(mut_mat, rank = 2:5, method = "brunet",
-                nrun = 10, seed = 123456, .opt = "v-p")
+#estimate = nmf(mut_mat, rank = 2:5, method = "brunet",
+#                nrun = 10, seed = 123456, .opt = "v-p")
 
-# get COSMIC signature database
-# from MutationalPatterns
-# signatures = get_known_signatures(muttype="snv", source="COSMIC_v3.2", genome="GRCh38")
-# from COSMIC website
-signatures =
-#signatures = read.table("cosmic_db_v3.2_signature_matrix.txt", sep="\t", head=T, row.names=1)
+# reorder signatures matrix
 signatures = as.matrix(signatures)
 signatures = signatures[rownames(mut_mat),]
-# get etiologies
-#etio3tab = read.table("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/cosmic_db_v3.2_signatures_and_etiologies.txt", sep="\t")
-etio3tab = read.table("cosmic_db_v3.2_signatures_and_etiologies.txt", sep="\t")
+
+# minor edits to the table
 etio3 = etio3tab[,2]
 names(etio3) = etio3tab[,1]
 etio3[ grep("Poli", etio3) ] = sub("Poli","Poly",etio3[ grep("Poli", etio3) ])

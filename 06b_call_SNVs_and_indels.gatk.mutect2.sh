@@ -57,6 +57,8 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -pon ${gatk_pon} \
  --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
+ --genotype-germline-sites true \
+ --genotype-pon-sites true \
  -L ${bed30intervals}/${bed}
 elif [[ ${gnomad_resource} == 'null' ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
@@ -69,6 +71,8 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -pon ${gatk_pon} \
  --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
+ --genotype-germline-sites true \
+ --genotype-pon-sites true \
  -L ${bed30intervals}/${bed}
   else
 # submit GetPileupSummaries for normal and tumor
@@ -103,6 +107,8 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -pon ${gatk_pon} \
  --max-mnp-distance 0 \
  --f1r2-tar-gz mutect2/f1r2/${tumor}__${normal}.${index}.f1r2.tar.gz \
+ --genotype-germline-sites true \
+ --genotype-pon-sites true \
  -L ${bed30intervals}/${bed}
  #  -bamout mutect2/${tumor}__${normal}.${index}.bam \
  #  --create-output-bam-index \
