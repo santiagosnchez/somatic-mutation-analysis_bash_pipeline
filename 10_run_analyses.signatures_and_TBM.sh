@@ -98,7 +98,7 @@ source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} $
 # POLE \
 # POLE2 > analyses/${tumor}__${normal}.somatic_POL_mutations.genes.csv
 
-echo "10: Fetching all variant annoations." | tee -a main.log
+echo "10: Fetching all variant annotations." | tee -a main.log
 
 # get all annotations into csv
 # funcotator Somatic
