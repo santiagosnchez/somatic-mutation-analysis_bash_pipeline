@@ -104,67 +104,36 @@ echo "10: Fetching all variant annotations." | tee -a main.log
 # funcotator Somatic
 if [[ ${tissue} == "Somatic" ]]; then
     if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz ]]; then
-        if [[ ! -e analyses/all_annotations_funcotator_somatic.csv ]]; then
-            ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
-            vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
-            ${tumor} ${normal} Somatic \
-            > analyses/all_annotations_funcotator_somatic.csv
-        else
-            ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
-            vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
-            ${tumor} ${normal} Somatic | \
-            tail -n +3 \
-            >> analyses/all_annotations_funcotator_somatic.csv
-        fi
+        ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
+        vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
+        ${tumor} ${normal} Somatic \
+        > analyses/${tumor}__${normal}.annotations_funcotator_somatic.csv
     fi
     if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz ]]; then
         # get all annotations into csv
         # snpeff Somatic
-        if [[ ! -e analyses/all_annotations_snpeff_somatic.csv ]]; then
-            ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
-            vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
-            ${tumor} ${normal} Somatic \
-            > analyses/all_annotations_snpeff_somatic.csv
-        else
-            ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
-            vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
-            ${tumor} ${normal} Somatic | \
-            tail -n +2 \
-            >> analyses/all_annotations_snpeff_somatic.csv
-        fi
+        ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
+        vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
+        ${tumor} ${normal} Somatic \
+        > analyses/${tumor}__${normal}.annotations_snpeff_somatic.csv
     fi
 fi
 
 # check if tumor-only mode or germline
 if [[ "${normal}" != "PON" && ${tissue} == "Germline" ]]; then
     if [[ -e vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz ]]; then
-        if [[ ! -e analyses/all_annotations_funcotator_germline.csv ]]; then
-            ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
-            vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
-            ${tumor} ${normal} Germline \
-            > analyses/all_annotations_funcotator_germline.csv
-        else
-            ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
-            vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
-            ${tumor} ${normal} Germline | \
-            tail -n +3 \
-            >> analyses/all_annotations_funcotator_germline.csv
-        fi
+        ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
+        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+        ${tumor} ${normal} Germline \
+        > analyses/${tumor}__${normal}.annotations_funcotator_germline.csv
     fi
     if [[ -e vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz ]]; then
-        if [[ ! -e analyses/all_annotations_snpeff_germline.csv ]]; then
-            ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
-            vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
-            ${tumor} ${normal} Germline \
-            > analyses/all_annotations_snpeff_germline.csv
-        else
-            ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
-            vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
-            ${tumor} ${normal} Germline | \
-            tail -n +2 \
-            >> analyses/all_annotations_snpeff_germline.csv
-        fi
+        ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
+        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+        ${tumor} ${normal} Germline \
+        > analyses/${tumor}__${normal}.annotations_snpeff_germline.csv
     fi
+    echo "10: done extracting variants from vcf file in ${tumor}__${normal}"
 fi
 
 if [[ ${tissue} == "Somatic" ]]; then
@@ -319,6 +288,7 @@ if [[ "$check_finish" == 0 ]]; then
 
     # last move logfile to dir
     if [[ -e ${tumor}__${normal}.analyses.${tissue}.log ]]; then
+        echo "10: Done for ${tumor}__${normal} in ${tissue}" | tee -a main.log
         mv ${tumor}__${normal}.analyses.${tissue}.log all_logfiles
     fi
 fi

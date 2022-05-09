@@ -77,7 +77,7 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
   else
 # submit GetPileupSummaries for normal and tumor
     # tumor first
-    if [[ ! -e contamination/${tumor}.getpileupsummaries.table ]]; then
+    if [[ ! (-e contamination/${tumor}.getpileupsummaries.table || -e contamination/${tumor}.getpileupsummaries.${index}.table) ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
  -I ${dir}/${tumor}.bqsr.bam \
  -V ${gnomad_resource} \
@@ -86,9 +86,9 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummar
       echo "06: Done with GPS for ${tumor} interval ${index}" |  tee -a main.log
     fi
     # then normal
-    if [[ ! -e contamination/${normal}.getpileupsummaries.table ]]; then
+    if [[ ! (-e contamination/${normal}.getpileupsummaries.table || -e contamination/${normal}.getpileupsummaries.${index}.table) ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" GetPileupSummaries \
- -I ${dir}/${tumor}.bqsr.bam \
+ -I ${dir}/${normal}.bqsr.bam \
  -V ${gnomad_resource} \
  -L $bed30intervals/${bed} \
  -O contamination/${normal}.getpileupsummaries.${index}.table
