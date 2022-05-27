@@ -43,8 +43,8 @@ Optional arguments:
                                   Default: false
 
 --reference, -r         STR       Provide a the version of the reference to use.
-                                  Default: hg38
-                                  Options: hg38, hs37d5, b37, (need to add those from other organisms)
+                                  Default: hg38 (human), mm10 (mouse)
+                                  Options: hg38, mm10, b37 (need to add those from other organisms)
 
 --skip-alignment, -s    BOOL      Flag to skip the alignment steps. Go directly to
                                   variant calling.
@@ -70,7 +70,7 @@ Example commands:
 # run whole exome data on human genome hg38
 01_submit_jobs -m wes
 
-# run whole exome data on mouse genome
+# run whole exome data on mouse genome (default to mm10)
 01_submit_jobs -m wes -o mouse
 
 # run a whole genome sequencing analysis on human data
@@ -118,6 +118,10 @@ read_and_export_arguments(){
                 export mode=${args[$(( i + 1 ))]}
             elif [[ "${args[$i]}" == "-o" || "${args[$i]}" == "--organism" ]]; then
                 export organism=${args[$(( i + 1 ))]}
+                # export defaults
+                if [[ "${organism}" == "mouse" ]]; then
+                    export genome="mm10"
+                fi
             elif [[ "${args[$i]}" == "-f" || "${args[$i]}" == "--file_list" ]]; then
                 export file_list=${args[$(( i + 1 ))]}
             elif [[ "${args[$i]}" == "-r" || "${args[$i]}" == "--reference" ]]; then
