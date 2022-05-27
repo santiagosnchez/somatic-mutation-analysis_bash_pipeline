@@ -7,6 +7,7 @@ export PYTHONPATH="/hpf/largeprojects/tabori/shared/software/lib/python3.7:/hpf/
 
 # base dirs
 resources_dir=/hpf/largeprojects/tabori/shared/resources
+software_dir=/hpf/largeprojects/tabori/shared/software
 genomes=${resources_dir}/reference_genomes
 
 # set hg38 as default
@@ -35,11 +36,11 @@ if [[ -z $1 ]]; then
     # path to snpEff jar file
     export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
     # path to snpEff data dir
-    export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+    export snpeff_datadir=${resources_dir}/snpEff_data/4.11/data
     # path to varscan jar file
     export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
     # point to recent version of gatk
-    export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+    export gatk_path=${software_dir}/gatk/gatk-4.2.3.0
     # funcotator data resources
     export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
     export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
@@ -152,11 +153,11 @@ else
               # path to snpEff jar file
               export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
               # path to snpEff data dir
-              export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+              export snpeff_datadir=${resources_dir}/snpEff_data/4.11/data
               # path to varscan jar file
               export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
               # point to recent version of gatk
-              export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+              export gatk_path=${software_dir}/gatk/gatk-4.2.3.0
               # funcotator data resources
               export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
               export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
@@ -200,11 +201,11 @@ else
             # path to snpEff jar file
             export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
             # path to snpEff data dir
-            export snpeff_datadir=/hpf/largeprojects/tabori/shared/resources/snpEff_data/4.11/data
+            export snpeff_datadir=${resources_dir}/snpEff_data/4.11/data
             # path to varscan jar file
             export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
             # point to recent version of gatk
-            export gatk_path=/hpf/largeprojects/tabori/shared/software/gatk/gatk-4.2.3.0
+            export gatk_path=${software_dir}/gatk/gatk-4.2.3.0
             # funcotator data resources
             #export funcotator_databases_s=${resources_dir}/funcotator_dataSources.v1.7.20200521s
             #export funcotator_databases_g=${resources_dir}/funcotator_dataSources.v1.7.20200521g
@@ -290,16 +291,29 @@ file_lookup(){
 export -f file_lookup
 
 # calculate how long it took to run
+# 1st arg: date
+# 2nd arg: h|d  (in fraction of days or hours)
 how_long(){
-  start_date=$(head -1 $1)
+  if [[ -f ${1} ]]; then
+    start_date=$(head -1 $1)
+  else
+    start_date="$1"
+  fi
   end_date=$(date)
   # calculate total running time
   sds=$(date -d "$start_date" +%s)
   eds=$(date -d "$end_date" +%s)
-  total_time_in_days=$( echo "scale=5; ($eds - $sds) / 86400" | bc)
-  # add 0 if less than 1
-  if [[ $(echo "${total_time_in_days} > 1" | bc) == 0 ]]; then
-    total_time_in_days="0${total_time_in_days}"
+  # in days
+  if [[ "${2}" == "d" ]]; then
+    # divided by seconds in a day
+    total_time=$( echo "scale=5; ($eds - $sds) / 86400" | bc )
+  elif [[ "${2}" == "h" ]]; then
+    # divided by seconds in an hour
+    total_time=$( echo "scale=5; ($eds - $sds) / 3600" | bc )
   fi
-  echo $total_time_in_days
+  # add 0 if less than 1
+  if [[ $(echo "${total_time} > 1" | bc) == 0 ]]; then
+    total_time="0${total_time}"
+  fi
+  echo $total_time
 }

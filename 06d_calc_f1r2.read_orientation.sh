@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load python/3.7.7
 
@@ -59,6 +62,9 @@ fi
 if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "06: calculated read orientation counts for ${sample}." | tee -a main.log
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "06: Step ${sample}.ReadOrientation.log took ${runtime} hours" | tee -a main.log
     # move logfile
     mv ${sample}.ReadOrientation.log all_logfiles
 fi

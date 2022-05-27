@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load java/1.8
 module load snpEff/4.11
@@ -164,7 +167,9 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/10_run_analyses.signatures_and_TBM.sh
-
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "09: ${tumor}__${normal}.annotation-snpeff-funcotator.${tissue}.log took ${runtime} hours" | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.annotation-snpeff-funcotator.${tissue}.log all_logfiles
 fi

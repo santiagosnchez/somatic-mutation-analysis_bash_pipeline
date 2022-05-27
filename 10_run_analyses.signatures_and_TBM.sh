@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load java/1.8
 #module load gatk/4.0.1.2
@@ -47,6 +50,7 @@ source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} $
 
 # list of MMR genes:
 # MLH1 MSH2 MSH6 PMS2 POLD1 POLE IDH1 TP53 NF1
+# grep -w "MLH1\|MSH2\|MSH6\|PMS2\|POLD1\|POLE\|IDH1\|TP53\|NF1"
 
 # pull germline and somatic missense (nonsynonymous) mutations
 # look for MMR genes

@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load bcftools/1.11
 module load tabix
@@ -102,6 +105,9 @@ check_finish=$?
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
     echo "09: Annovar finished for ${tumor}__${normal}." | tee -a main.log
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "09: Step ${tumor}__${normal}.annovar.${tissue}.log took ${runtime} hours" | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.annovar.${tissue}.log all_logfiles
 fi

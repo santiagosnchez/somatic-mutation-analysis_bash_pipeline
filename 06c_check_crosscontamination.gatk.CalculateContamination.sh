@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load java/1.8
 #module load gatk/4.2.2.0
@@ -67,6 +70,9 @@ check_finish=$?
 if [[ "$check_finish" == 0 ]]; then
     # log to main
     echo "06: ${tumor}__${normal} CalculateContamination completed." | tee -a main.log
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "06: Step ${tumor}__${normal}.CalculateContamination.log took ${runtime} hours" | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.CalculateContamination.log all_logfiles
 fi

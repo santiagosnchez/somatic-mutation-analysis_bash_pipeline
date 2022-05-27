@@ -1,8 +1,11 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=5:00:00
-#PBS -e ${tumor}__${normal}.read-orientation.log
+#PBS -e ${tumor}__${normal}.gatk-learn-read-orientation.log
 #PBS -j eo
 # scheduler settings
+
+# set date to calculate running time
+start=$(date)
 
 # load modules
 module load java/1.8
@@ -57,9 +60,12 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "07: Step ${tumor}__${normal}.gatk-learn-read-orientation.log took ${runtime} hours" | tee -a main.log
     # move logfiles if found
-    if [[ -e ${tumor}__${normal}.read-orientation.log ]]; then
-        mv ${tumor}__${normal}.read-orientation.log all_logfiles
+    if [[ -e ${tumor}__${normal}.gatk-learn-read-orientation.log ]]; then
+        mv ${tumor}__${normal}.gatk-learn-read-orientation.log all_logfiles
         rm mutect2/f1r2/${tumor}__${normal}.[1-9]*.f1r2.tar.gz
     fi
 fi

@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load java/1.8
 #module load gatk/4.2.2.0
@@ -14,6 +17,9 @@ cd $PBS_O_WORKDIR
 
 # print jobid to 1st line
 echo $PBS_JOBID
+
+# log start
+echo $start
 
 # create dir for contamination
 if [[ ! -e contamination ]]; then

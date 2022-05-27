@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load parallel/20210322
 module load java/1.8
@@ -146,6 +149,9 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/09b_variant_annotation.snpEff-funcotator.sh
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "06: Step ${tumor}__${normal}.VarScan.log took ${runtime} hours" | tee -a main.log
     # move logfile
     mv ${tumor}__${normal}.VarScan.log all_logfiles
 fi

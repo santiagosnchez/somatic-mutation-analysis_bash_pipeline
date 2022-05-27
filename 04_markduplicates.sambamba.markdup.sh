@@ -4,27 +4,8 @@
 #PBS -j eo
 # scheduler settings
 
-############### INFO #################
-#
-# Integrated Bash Pipeline for
-# Somatic Mutation Discovery
-#
-# Author: Santiago Sanchez-Ramirez
-# Year: 2021
-# Email: santiago.snchez@gmail.com
-#
-# More info on README.md
-#
-# Notes:
-# (1) Uses sambamba markdup approach rather than
-#     Picards MarkDuplicates or samtools markdup
-#
-#####################################
-
-#############
-# script 4c #
-#############
-
+# set date to calculate running time
+start=$(date)
 
 # load modules
 module load sambamba/0.7.0
@@ -116,6 +97,9 @@ aln_only=${aln_only} \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh
      # log to main
      echo "04: duplicate reads have been marked for ${sample} and preceeding files have been deleted." | tee -a main.log
+     # calc runtime
+     runtime=$( how_long "${start}" h )
+     echo "04: Step ${sample}.sambamba.markdup.log took ${runtime} hours" | tee -a main.log
      # move log files to dir
      mv ${sample}.sambamba.markdup.log all_logfiles
 fi

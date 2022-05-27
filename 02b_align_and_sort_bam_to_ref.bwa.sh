@@ -3,25 +3,8 @@
 #PBS -j eo
 # scheduler settings
 
-############### INFO #################
-#
-# Integrated Bash Pipeline for
-# Somatic Mutation Discovery
-#
-# Author: Santiago Sanchez-Ramirez
-# Year: 2021
-# Email: santiago.snchez@gmail.com
-#
-# More info on README.md
-#
-# Notes:
-# (1) Uses nextgenmap and samtools
-#
-#####################################
-
-############
-# script 1 #
-############
+# set date to calculate running time
+start=$(date)
 
 # load modules
 module load sambamba/0.7.0
@@ -157,8 +140,11 @@ genome=${genome},\
 aln_only=${aln_only} \
 ${pipeline_dir}/03_merge_bams.sambamba.sh
     fi
-    # move logfile
-    mv ${sample}.${index}.bwa.log all_logfiles
     # log to main
     echo "02: ${sample}.${index}.bam has been aligned." | tee -a main.log
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "02: Step ${sample}.${index}.bwa.log took ${runtime} hours" | tee -a main.log
+    # move logfile
+    mv ${sample}.${index}.bwa.log all_logfiles
 fi

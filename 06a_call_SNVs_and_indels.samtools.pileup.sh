@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load parallel/20210322
 #module load sambamba/0.7.0
@@ -14,6 +17,9 @@ cd $PBS_O_WORKDIR
 
 # print jobid to 1st line
 echo $PBS_JOBID
+
+# print start date
+echo $start
 
 # create output dirs
 if [[ ! -e varscan ]]; then
@@ -80,6 +86,10 @@ if [[ "$check_finish" == 0 ]]; then
                                 # log
                                 echo "06: all pileup finished for tumor ${tumor} and normal ${normal}." | tee -a main.log
                                 echo "06: submitting VarScan calls." | tee -a main.log
+                                # calc runtime
+                                runtime=$( how_long "${start}" h )
+                                echo "02: Step ${sample}.BQSR.log took ${runtime} hours" | tee -a main.log
+                                # log to main
                                 # submit calling step
                                 qsub -v \
 tumor=${tumor},\

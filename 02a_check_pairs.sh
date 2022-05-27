@@ -3,6 +3,8 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
 
 # load modules
 module load sambamba/0.7.0
@@ -124,7 +126,11 @@ fi
 
 # final check
 if [[ "$?" == 0 ]]; then
+    # final log
+    echo "02: Done checking pairs for ${sample}.${index}" | tee -a main.log
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "02: Step ${sample}.${index}.checkpairs.log took ${runtime} hours" | tee -a main.log
     # move log
     mv ${sample}.${index}.checkpairs.log all_logfiles
-    echo "02: Done checking pairs for ${sample}.${index}" | tee -a main.log
 fi

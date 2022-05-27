@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load java/1.8
 #module load gatk/4.2.2.0
@@ -40,12 +43,13 @@ if [[ ! -e all_logfiles ]]; then
     mkdir all_logfiles
 fi
 
-# debug
-echo "alignment-only mode: ${aln_only}"
+
 # if aln_only variable is not set, do full analysis.
 if [[ -z $aln_only ]]; then
     aln_only=0
 fi
+# debug
+echo "alignment-only mode: ${aln_only}"
 
 # load reference path and other reference files
 # for details check script
@@ -196,7 +200,7 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_call_SNVs_and_indels.varscan.sh
-                          echo "05: skipping to VarScan calls for ${sample}."
+                          echo "05: skipping to VarScan calls for ${sample}." | tee -a main.log
                         fi
                         if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
                             # submit Mutect2 scattered runs
@@ -285,11 +289,28 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/wait_for_file.sh
+                        # move log file to all_logfiles
+                        mv ${tumor}.baserecalibrator.txt all_logfiles
+                        # log
+                        echo "05: Moved ${tumor}.baserecalibrator.txt to all_logfiles" | tee -a main.log
+                        mv ${tumor}.BQSR.log all_logfiles/${tumor}.BQSR.1.log
+                        echo "05: ${tumor}.BQSR.log is now all_logfiles/${tumor}.BQSR.1.log" | tee -a main.log
                         exit 0
                     fi
                     # if no errors move logfile
                     if [[ "$?" == 0 ]]; then
-                        mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
+                        # calc runtime
+                        if [[ -e all_logfiles/${tumor}.BQSR.1.log ]]; then
+                            start=$(head -1 all_logfiles/${tumor}.BQSR.1.log)
+                        fi
+                        runtime=$( how_long "${start}" h )
+                        echo "05: BQSR step for ${sample} took ${runtime} hours" | tee -a main.log
+                        if [[ -e all_logfiles/${tumor}.BQSR.1.log ]]; then
+                            mv ${tumor}.BQSR.log all_logfiles/${tumor}.BQSR.2.log
+                        else
+                            # log to main
+                            mv ${tumor}.BQSR.log ${tumor}.baserecalibrator.txt all_logfiles
+                        fi
                     fi
                 done
             else
@@ -310,6 +331,10 @@ ${pipeline_dir}/wait_for_file.sh
             rm preprocessed_bam/${sample}.markdup.ba*
         fi
         echo "05: alignment-only mode finished for ${sample}." | tee -a main.log
+        # calc runtime
+        runtime=$( how_long "${start}" h )
+        echo "02: Step ${sample}.BQSR.log took ${runtime} hours" | tee -a main.log
+        # log to main
         mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
     fi
 fi

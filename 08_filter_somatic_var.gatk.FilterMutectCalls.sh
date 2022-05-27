@@ -4,6 +4,9 @@
 #PBS -j eo
 # scheduler settings
 
+# set date to calculate running time
+start=$(date)
+
 # load modules
 module load java/1.8
 #module load gatk/4.2.2.0
@@ -178,6 +181,9 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/09b_variant_annotation.snpEff-funcotator.sh
+    # calc runtime
+    runtime=$( how_long "${start}" h )
+    echo "08: Step ${tumor}__${normal}.FilterMutectCalls.log took ${runtime} hours" | tee -a main.log
     # move log
     mv ${tumor}__${normal}.FilterMutectCalls.log all_logfiles
 fi
