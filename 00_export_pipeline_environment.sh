@@ -180,7 +180,7 @@ else
             # path to gnomad resource
             export gnomad_resource=null
             # path to gatk's panel of normals vcf
-            export gatk_pon=null
+            export gatk_pon=${genomes}/${2}/ucsc/pon.sorted.mm10.vcf.gz
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
