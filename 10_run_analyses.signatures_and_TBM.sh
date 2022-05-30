@@ -180,7 +180,7 @@ if [[ ${tissue} == "Somatic" ]]; then
     echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
 
     # run variant analysis
-    Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs.R ${mode} ${tumor}__${normal}
+    Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism}
 fi
 
 # add to archive
