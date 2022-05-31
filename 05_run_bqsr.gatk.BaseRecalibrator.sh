@@ -280,6 +280,13 @@ ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
                     else
                         # wait for the BQSR script to finish
                         echo "05: ${sample} (tumor) waiting for ${normal} (normal) BQSR to finish." | tee -a main.log
+                        # move log file to all_logfiles
+                        mv ${tumor}.baserecalibrator.txt all_logfiles
+                        # log
+                        echo "05: Moved ${tumor}.baserecalibrator.txt to all_logfiles" | tee -a main.log
+                        mv ${tumor}.BQSR.log all_logfiles/${tumor}.BQSR.1.log
+                        echo "05: ${tumor}.BQSR.log is now all_logfiles/${tumor}.BQSR.1.log" | tee -a main.log
+                        # submit wait job
                         qsub -v \
 file="all_logfiles/${normal}.BQSR.log",\
 sample=${tumor},\
@@ -289,12 +296,6 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/wait_for_file.sh
-                        # move log file to all_logfiles
-                        mv ${tumor}.baserecalibrator.txt all_logfiles
-                        # log
-                        echo "05: Moved ${tumor}.baserecalibrator.txt to all_logfiles" | tee -a main.log
-                        mv ${tumor}.BQSR.log all_logfiles/${tumor}.BQSR.1.log
-                        echo "05: ${tumor}.BQSR.log is now all_logfiles/${tumor}.BQSR.1.log" | tee -a main.log
                         exit 0
                     fi
                     # if no errors move logfile

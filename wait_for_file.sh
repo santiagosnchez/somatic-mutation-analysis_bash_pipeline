@@ -36,6 +36,7 @@ source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} $
 # print variables
 echo "looking for: "$file
 echo "running: "$script
+echo "pipeline: "${pipeline_dir}
 
 # set a timeout for the the file lookup function
 # timeout is set for 5.5 hours (in seconds)
