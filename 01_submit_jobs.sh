@@ -55,7 +55,7 @@ Optional arguments:
 
 --pipeline, -p          STR       Specify a different source location for pipeline scripts.
                                   Useful for testing new or old versions.
-                                  Default: /hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery
+                                  Default: $(dirname ${0})
 
 --dry-run, -d           BOOL      Indicates if starting variables should be printed to screen only.
                                   Without submitting any jobs.
