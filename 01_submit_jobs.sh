@@ -105,7 +105,7 @@ read_and_export_arguments(){
     export append=0
     export genome="hg38"
     export pipeline_dir=${args[0]}
-    unset args[0]
+    #unset args[0]
     export skip_aln=0
     export aln_only=0
     export dry_run=0
