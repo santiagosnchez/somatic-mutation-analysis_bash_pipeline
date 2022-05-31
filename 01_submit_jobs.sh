@@ -101,7 +101,8 @@ read_and_export_arguments(){
     export file_list="file_list.csv"
     export append=0
     export genome="hg38"
-    export pipeline_dir="/hpf/largeprojects/tabori/shared/software/somatic-mutation-discovery"
+    export pipeline_dir=$(dirname ${args[0]})
+    unset args[0]
     export skip_aln=0
     export aln_only=0
     export dry_run=0
@@ -154,7 +155,7 @@ module load parallel/20210322
 module load samtools/1.10
 
 # read all arguments
-read_and_export_arguments $* || exit 1
+read_and_export_arguments ${0} $* || exit 1
 
 # check if user wants a fresh start
 if [[ ${fresh_start} == 1 ]]; then

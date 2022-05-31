@@ -88,7 +88,7 @@ if [[ "$check_finish" == 0 ]]; then
                                 echo "06: submitting VarScan calls." | tee -a main.log
                                 # calc runtime
                                 runtime=$( how_long "${start}" h )
-                                echo "02: Step ${sample}.BQSR.log took ${runtime} hours" | tee -a main.log
+                                echo "06: Step ${sample}.VarScan.pileup.${index}.log took ${runtime} hours" | tee -a main.log
                                 # log to main
                                 # submit calling step
                                 qsub -v \
