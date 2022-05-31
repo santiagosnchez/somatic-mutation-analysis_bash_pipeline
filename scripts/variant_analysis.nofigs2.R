@@ -198,16 +198,16 @@ if (file.exists("analyses/old_output.tmbs.tsv")){
 }
 # signatures v3.2
 if (file.exists("analyses/old_output.v3.sigs.tsv")){
-  tmp_sigs = rep(0, length(linear_decomp_mt_sig_sbs_96[,1]))
-  names(tmp_sigs) = names(etio3)
-  tmp_sigs[ rownames(linear_decomp_mt_sig_sbs_96) ] = linear_decomp_mt_sig_sbs_96[,1]
+  tmp_sigs = rep(0, length(linear_decomp_cosmic[,"contribution_proportion"]))
+  names(tmp_sigs) = rownames(linear_decomp_cosmic[,"etiology"])
+  tmp_sigs[ rownames(linear_decomp_cosmic[,"etiology"]) ] = linear_decomp_cosmic[,"contribution_proportion"]
   cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
 } else {
-  cat("Signature", names(etio3), "\n", sep="\t", file="analyses/old_output.v3.sigs.tsv")
-  cat("Etiology", etio3, "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
-  tmp_sigs = rep(0, length(linear_decomp_mt_sig_sbs_96[,1]))
-  names(tmp_sigs) = names(etio3)
-  tmp_sigs[ rownames(linear_decomp_mt_sig_sbs_96) ] = linear_decomp_mt_sig_sbs_96[,1]
+  cat("Signature", rownames(linear_decomp_cosmic[,"etiology"]), "\n", sep="\t", file="analyses/old_output.v3.sigs.tsv")
+  cat("Etiology", linear_decomp_cosmic[,"etiology"], "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+  tmp_sigs = rep(0, length(linear_decomp_cosmic[,"contribution_proportion"]))
+  names(tmp_sigs) = rownames(linear_decomp_cosmic[,"etiology"])
+  tmp_sigs[ rownames(linear_decomp_cosmic[,"etiology"]) ] = linear_decomp_cosmic[,"contribution_proportion"]
   cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
 }
 # signatures v2
