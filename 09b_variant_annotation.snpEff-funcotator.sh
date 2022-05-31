@@ -75,17 +75,33 @@ if [[ "${tissue}" == "Somatic" ]]; then
     index-vcf ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf
 
     if [[ -e ${snpeff_datadir}/${genome} ]]; then
-        # run snpEff on mutect2 vcf
-        java -jar $snpeff_jar \
-         -dataDir $snpeff_datadir \
-         ${genome} \
-         -v \
-         -canon \
-         -cancer \
-         -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
-         -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
-         ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz > \
-         vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
+        # check if sample has matched normal
+        if [[ "${normal}" != "PON" ]]; then
+            # run snpEff on mutect2 vcf
+            java -jar $snpeff_jar \
+             -dataDir $snpeff_datadir \
+             ${genome} \
+             -v \
+             -canon \
+             -cancer \
+             -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
+             -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
+             ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz > \
+             vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
+        else
+            # annotate unmatched on PON
+            # run snpEff on mutect2 vcf
+            java -jar $snpeff_jar \
+             -dataDir $snpeff_datadir \
+             ${genome} \
+             -v \
+             -canon \
+             -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
+             -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
+             ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz > \
+             vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
+
+        fi
          # index vcf
          index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
     else
