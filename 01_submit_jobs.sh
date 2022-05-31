@@ -14,6 +14,9 @@ rand(){
 }
 export -f rand
 
+# find pipeline directory
+default_pipe_dir=$(dirname $(readlink -f "${0}"))
+
 help_message="
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -55,7 +58,7 @@ Optional arguments:
 
 --pipeline, -p          STR       Specify a different source location for pipeline scripts.
                                   Useful for testing new or old versions.
-                                  Default: $(dirname ${0})
+                                  Default: ${default_pipe_dir}
 
 --dry-run, -d           BOOL      Indicates if starting variables should be printed to screen only.
                                   Without submitting any jobs.
@@ -101,7 +104,7 @@ read_and_export_arguments(){
     export file_list="file_list.csv"
     export append=0
     export genome="hg38"
-    export pipeline_dir=$(dirname ${args[0]})
+    export pipeline_dir=${args[0]}
     unset args[0]
     export skip_aln=0
     export aln_only=0
@@ -155,7 +158,7 @@ module load parallel/20210322
 module load samtools/1.10
 
 # read all arguments
-read_and_export_arguments ${0} $* || exit 1
+read_and_export_arguments $default_pipe_dir $* || exit 1
 
 # check if user wants a fresh start
 if [[ ${fresh_start} == 1 ]]; then
