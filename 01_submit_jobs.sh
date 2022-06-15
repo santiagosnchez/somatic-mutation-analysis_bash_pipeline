@@ -206,7 +206,7 @@ elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
             date | tee main.log
         fi
         if [[ ${make_pon} == 1 ]]; then
-            echo "\n01: Creating a PoN" | tee -a main.log
+            echo -e "\n01: Creating a PoN" | tee -a main.log
         fi
         echo -e "\n01: Running as mode: ${mode}" | tee -a main.log
     else
