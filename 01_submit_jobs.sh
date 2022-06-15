@@ -66,32 +66,38 @@ Optional arguments:
 --fresh-start, -e       BOOL      Clears the working directory completely except for csv/text files.
                                   <<TAKE CAUTION>> using this argument.
 
+--create-pon, -c        BOOL      Will make BAMs or take BAMs as input to create a PoN with GATK.
+                                  Default: false
+
 --help, -h              BOOL      Print this help message.
 
 Example commands:
 
 # run whole exome data on human genome hg38
-01_submit_jobs -m wes
+run_pipeline -m wes
 
 # run whole exome data on mouse genome (default to mm10)
-01_submit_jobs -m wes -o mouse
+run_pipeline -m wes -o mouse
 
 # run a whole genome sequencing analysis on human data
-01_submit_jobs -m wgs
+run_pipeline -m wgs
 
 # add/append more samples to already started WES analysis
-01_submit_jobs -m wes -f file_list.more_samples.csv -a
+run_pipeline -m wes -f file_list.more_samples.csv -a
 
 # run WES in \"alignment-only\" mode
-01_submit_jobs -m wes --alignment-only
+run_pipeline -m wes --alignment-only
 
 # run WES in \"variant-calling-only\" mode, i.e, --skip-alignment
 # for a new analysis (i.e., bams are specified in the file_list.csv file)
-01_submit_jobs -m wes --skip-alignment
+run_pipeline -m wes --skip-alignment
 
 # run WES in \"variant-calling-only\" mode, i.e, --skip-alignment
 # from a previous run (i.e, bams are in either \"bam\" or \"BQSR\" directories)
-01_submit_jobs -m wes -a --skip-alignment
+run_pipeline -m wes -a --skip-alignment
+
+# Build BAM alignments and create a panel of normals (PoN).
+run_pipeline --create-pon
 
 "
 export help_message
@@ -110,6 +116,7 @@ read_and_export_arguments(){
     export aln_only=0
     export dry_run=0
     export fresh_start=0
+    export make_pon=0
     # required
     export mode=""
     # loop through arguments if there are any
@@ -142,6 +149,8 @@ read_and_export_arguments(){
                 export dry_run=1
             elif [[ "${args[$i]}" == "-e" || "${args[$i]}" == "--fresh-start" ]]; then
                 export fresh_start=1
+            elif [[ "${args[$i]}" == "-c" || "${args[$i]}" == "--create-pon" ]]; then
+                export make_pon=1
             elif [[ "${args[$i]}" == "-"* ]]; then
                 echo "$help_message"
                 die "Error: argument ${args[$i]} was not recognized." && return 1
@@ -187,10 +196,19 @@ fi
 
 # test required mode
 if [[ ${#mode} == "" ]]; then
-    echo -e "$help_message"
-    echo "Error: -m/--mode is required. Select wes or wgs."
-    exit 1
+    if [[ ${make_pon} == 0 ]]; then
+        echo -e "$help_message"
+        echo "Error: -m/--mode is required. Select wes or wgs."
+        exit 1
+    else
+        echo "01: Creating a PoN (overrides mode)" | tee -a main.log
+    fi
 elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
+    if [[ ${make_pon} == 1 ]]; then
+        echo -e "$help_message"
+        echo "Error: -m/--mode is incompatible with -c/--create-pon"
+        exit 1
+    fi
     if [[ "$dry_run" == 0 ]]; then
         if [[ "$append" == 0 ]]; then
             # add date and mode to main.log
@@ -227,11 +245,13 @@ elif [[ "${skip_aln}" == 1 ]]; then
     fi
 fi
 
-# check tumors_and_normals.csv
-current=`pwd -P`
-if [[ ! -e tumors_and_normals.csv ]]; then
-    echo "tumors_and_normals.csv file not found in working directory: $current"
-    exit 1
+if [[ ${make_pon} == 0 ]]; then
+    # check tumors_and_normals.csv
+    current=`pwd -P`
+    if [[ ! -e tumors_and_normals.csv ]]; then
+        echo "tumors_and_normals.csv file not found in working directory: $current"
+        exit 1
+    fi
 fi
 
 # load reference path and other reference files
@@ -395,7 +415,7 @@ else
             fi
         fi
         ' | tee -a main.log
-
+        
         njobs=$(ls $dir/*.bam | wc -l)
         # then submit
         echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
