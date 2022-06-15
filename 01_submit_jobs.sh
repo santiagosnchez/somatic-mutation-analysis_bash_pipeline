@@ -195,7 +195,7 @@ if [[ -e main.log && ${append} == 0 ]]; then
 fi
 
 # test required mode
-if [[ ${#mode} == "" ]]; then
+if [[ ${mode} == "" ]]; then
     if [[ ${make_pon} == 0 ]]; then
         echo -e "$help_message"
         echo "Error: -m/--mode is required. Select wes or wgs."
@@ -415,7 +415,7 @@ else
             fi
         fi
         ' | tee -a main.log
-        
+
         njobs=$(ls $dir/*.bam | wc -l)
         # then submit
         echo -e "\n01: Submitting ${njobs} jobs now ..." | tee -a main.log
