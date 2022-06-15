@@ -160,7 +160,7 @@ my $end = time();
 my $total_hours = ($end - $start)/60/60;
 
 # log to screen
-print "Paried: $total_paired\n";
+print "Paired: $total_paired\n";
 print "Single: $total_sing\n";
 print "Files written to:
 .tmp/$sample.$index.1.fastq.gz
