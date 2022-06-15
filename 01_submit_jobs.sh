@@ -196,28 +196,25 @@ fi
 
 # test required mode
 if [[ ${mode} == "" ]]; then
-    if [[ ${make_pon} == 0 ]]; then
-        echo -e "$help_message"
-        echo "Error: -m/--mode is required. Select wes or wgs."
-        exit 1
-    else
-        echo "01: Creating a PoN (overrides mode)" | tee -a main.log
-    fi
+    echo -e "$help_message"
+    echo "Error: -m/--mode is required. Select wes or wgs."
+    exit 1
 elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
-    if [[ ${make_pon} == 1 ]]; then
-        echo -e "$help_message"
-        echo "Error: -m/--mode is incompatible with -c/--create-pon"
-        exit 1
-    fi
     if [[ "$dry_run" == 0 ]]; then
         if [[ "$append" == 0 ]]; then
             # add date and mode to main.log
             date | tee main.log
         fi
+        if [[ ${make_pon} == 1 ]]; then
+            echo "\n01: Creating a PoN" | tee -a main.log
+        fi
         echo -e "\n01: Running as mode: ${mode}" | tee -a main.log
     else
         # print date and mode
         date
+        if [[ ${make_pon} == 1 ]]; then
+            echo "\n01: Creating a PoN"
+        fi
         echo -e "\n01: Running as mode: ${mode}"
     fi
 else
@@ -245,9 +242,10 @@ elif [[ "${skip_aln}" == 1 ]]; then
     fi
 fi
 
+# get current directory
+current=`pwd -P`
 if [[ ${make_pon} == 0 ]]; then
     # check tumors_and_normals.csv
-    current=`pwd -P`
     if [[ ! -e tumors_and_normals.csv ]]; then
         echo "tumors_and_normals.csv file not found in working directory: $current"
         exit 1

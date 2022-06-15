@@ -80,6 +80,18 @@ if [[ "$check_finish" == 0 ]]; then
     # calc runtime
     runtime=$( how_long "${start}" h )
     echo "07_pon: Step gatk.CreateSomaticPanelOfNormals.log took ${runtime} hours" | tee -a main.log
+    # echo delete dirs and clean-up
+    if [[ -e aligned_bam ]]; then
+      rm -rf aligned_bam
+    elif [[ -e preprocessed_bam ]]; then
+      rm -rf preprocessed_bam
+    elif [[ -e BQSR ]]; then
+      mv BQSR bam
+    fi
+    rm -rf .tmp
+    # change permissions
+    find all_logfiles -type f -name "*.log" -exec chmod 644 {} \;
     # move log
     mv gatk.CreateSomaticPanelOfNormals.log all_logfiles
+
 fi

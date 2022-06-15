@@ -191,14 +191,25 @@ if [[ "$check_finish" == 0 ]]; then
             # check if make_pon exists
             if [[ ${make_pon} == 1 ]]; then
                 echo "06: VCF for PoN created successfuly for ${normal}." | tee -a main.log
-                # submit next job
-                qsub -v \
+                # get samples
+                samples=$(cat file_list.csv | cut -d, -f1 | sort -u)
+                total_samples=${#samples}
+                # count VCF files
+                total_vcfs=$(ls mutect2/*.mutect2.pon.merged.vcf.gz | wc -l)
+                if [[ ${total_samples} == ${total_vcfs} ]]; then
+                    # submit last PoN job
+                    qsub -v \
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/07_pon.gatk.CreateSomaticPanelOfNormals.sh
-                # last log
-                echo "06: Submitting final step for PoN." | tee -a main.log
+                    # last log
+                    echo "06: All VCFs completed."
+                    echo "06: Submitting final step for PoN." | tee -a main.log
+                else
+                    remaining=$(echo "${total_samples}-${total_vcfs}" | bc)
+                    echo "06: $remaining VCF(s) remaining."
+                fi
             else
                 echo "06: Moving to read-orientation for ${tumor}__${normal}." | tee -a main.log
                 # submit read orientation analysis
