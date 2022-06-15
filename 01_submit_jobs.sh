@@ -96,8 +96,8 @@ run_pipeline -m wes --skip-alignment
 # from a previous run (i.e, bams are in either \"bam\" or \"BQSR\" directories)
 run_pipeline -m wes -a --skip-alignment
 
-# Build BAM alignments and create a panel of normals (PoN).
-run_pipeline --create-pon
+# Build BAM alignments and create a panel of normals (PoN); WES human data.
+run_pipeline -m wes --create-pon
 
 "
 export help_message
