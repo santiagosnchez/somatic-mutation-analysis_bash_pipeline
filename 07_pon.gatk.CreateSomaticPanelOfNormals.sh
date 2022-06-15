@@ -66,7 +66,7 @@ $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" GenomicsDBImport \
 
 # run gatk's CreateSomaticPanelOfNormals
 $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" CreateSomaticPanelOfNormals \
- -R reference.fasta \
+ -R $reference \
  -V gendb://PoN/pon_db \
  -O PoN/pon.${total_samples}_samples.${date_for_pon}.vcf.gz
 
