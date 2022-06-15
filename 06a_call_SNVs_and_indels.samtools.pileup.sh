@@ -86,9 +86,13 @@ if [[ "$check_finish" == 0 ]]; then
                                 # log
                                 echo "06: all pileup finished for tumor ${tumor} and normal ${normal}." | tee -a main.log
                                 echo "06: submitting VarScan calls." | tee -a main.log
+                                # estimate runtime
+                                # first scatter
+                                first_scatter_date=$(ls ${sample}.VarScan.pileup.${index}.log all_logfiles/${sample}.VarScan.pileup.[0-9]*.log | \
+                                  parallel 'head -2 {} | tail -1' | parallel date --date={} +%s | sort -n | parallel date --date=@{} | head -1)
+                                runtime=$( how_long "${first_scatter_date}" h )
                                 # calc runtime
-                                runtime=$( how_long "${start}" h )
-                                echo "06: Step ${sample}.VarScan.pileup.${index}.log took ${runtime} hours" | tee -a main.log
+                                echo "06: VarScan pileup took ${runtime} hours for ${sample}" | tee -a main.log
                                 # log to main
                                 # submit calling step
                                 qsub -v \

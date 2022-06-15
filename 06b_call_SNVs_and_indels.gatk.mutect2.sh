@@ -192,6 +192,14 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06c_check_crosscontamination.gatk.CalculateContamination.sh | tee -a main.log
+            # estimate runtime
+            # first scatter
+            first_scatter_date=$(ls ${tumor}__${normal}.mutect2.${index}.log all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | \
+              parallel 'head -2 {} | tail -1' | parallel date --date={} +%s | sort -n | parallel date --date=@{} | head -1)
+            # calc runtime
+            runtime=$( how_long "${first_scatter_date}" h )
+            # log
+            echo "06: ${tumor}__${normal} Mutect2 took ${runtime} hours" | tee -a main.log
             # concat logfiles
             cat $(ls ${tumor}__${normal}.mutect2.${index}.log all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log | sort -V) > all_logfiles/${tumor}__${normal}.mutect2.log
             rm $(ls all_logfiles/${tumor}__${normal}.mutect2.[0-9]*.log )

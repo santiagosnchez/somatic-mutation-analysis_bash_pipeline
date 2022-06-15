@@ -317,3 +317,4 @@ how_long(){
   fi
   echo $total_time
 }
+export -f how_long
