@@ -39,8 +39,11 @@ fi
 # for details check script
 source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
+# fetch file_list file
+file_list=$(head -20 main.log | grep "^file list: " | sed 's/^file list: //')
+
 # fetch sample names
-samples=$(cat file_list.csv | cut -d, -f1 | sort -u)
+samples=$(cat ${file_list} | cut -d, -f1 | sort -u)
 vcffiles=""
 # check if there are VCFs for all samples
 for sample in ${samples}; do
@@ -92,6 +95,8 @@ if [[ "$check_finish" == 0 ]]; then
       mv BQSR bam
     fi
     rm -rf .tmp
+    # rename PoN db
+    mv PoN/pon_db PoN/pon_db.${total_samples}_samples.${date_for_pon}
     # change permissions
     find all_logfiles -type f -name "*.log" -exec chmod 644 {} \;
     # move log
