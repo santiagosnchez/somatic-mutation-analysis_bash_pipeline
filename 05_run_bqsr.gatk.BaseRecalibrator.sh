@@ -191,6 +191,11 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
             echo "05: Mutect2 has started successfully for ${normal} for making PoN." | tee -a main.log
+            # move logs and calc time
+            runtime=$( how_long "${start}" h )
+            # log to main
+            echo "05: BQSR step for ${sample} took ${runtime} hours" | tee -a main.log
+            mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
         else
             # check if file exists and continue
             if [[ -e tumors_and_normals.csv ]]; then
