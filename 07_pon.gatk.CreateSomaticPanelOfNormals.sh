@@ -84,9 +84,11 @@ if [[ "$check_finish" == 0 ]]; then
     # echo delete dirs and clean-up
     if [[ -e aligned_bam ]]; then
       rm -rf aligned_bam
-    elif [[ -e preprocessed_bam ]]; then
+    fi
+    if [[ -e preprocessed_bam ]]; then
       rm -rf preprocessed_bam
-    elif [[ -e BQSR ]]; then
+    fi
+    if [[ -e BQSR ]]; then
       mv BQSR bam
     fi
     rm -rf .tmp
