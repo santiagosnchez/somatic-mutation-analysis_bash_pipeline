@@ -60,9 +60,9 @@ date_for_pon=$(date -I)
 # run gatk's GenomicsDBImport
 $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" GenomicsDBImport \
  -R $reference \
- -L $intervals \
  --genomicsdb-workspace-path PoN/pon_db \
  $vcffiles
+# -L $intervals \
 
 # run gatk's CreateSomaticPanelOfNormals
 $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" CreateSomaticPanelOfNormals \
@@ -93,5 +93,4 @@ if [[ "$check_finish" == 0 ]]; then
     find all_logfiles -type f -name "*.log" -exec chmod 644 {} \;
     # move log
     mv gatk.CreateSomaticPanelOfNormals.log all_logfiles
-
 fi
