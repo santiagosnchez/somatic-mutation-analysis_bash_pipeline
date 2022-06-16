@@ -199,6 +199,7 @@ if [[ "$check_finish" == 0 ]]; then
                 if [[ ${total_samples} == ${total_vcfs} ]]; then
                     # submit last PoN job
                     qsub -v \
+mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
