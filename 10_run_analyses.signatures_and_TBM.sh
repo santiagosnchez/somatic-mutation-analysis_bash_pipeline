@@ -149,13 +149,19 @@ if [[ ${tissue} == "Somatic" ]]; then
         echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
     fi
 
-    if [[ "${normal}" != "PON" ]]; then
-        coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
-    else
-        coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam | awk '$3 >= 4' | wc -l)
-    fi
     # expected coverage
     expected=$(cat $intervals_bed | awk '{ count = count + ($3 - ($2 + 1)) } END { print count }')
+    # find observed coverage
+    if [[ ! -e ${dir}/${tumor}.bqsr.bam ]]; then
+        # if no bam, just use expected
+        coverage=${expected}
+    else
+        if [[ "${normal}" != "PON" ]]; then
+            coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam ${dir}/${normal}.bqsr.bam | awk '$3 >= 4 && $4 >= 4' | wc -l)
+        else
+            coverage=$(samtools depth -b $intervals_bed -q20 -Q20 -d1000 ${dir}/${tumor}.bqsr.bam | awk '$3 >= 4' | wc -l)
+        fi
+    fi
 
     # estimate tumor mutation burden (TMB)
     # use prev coverage estimate
