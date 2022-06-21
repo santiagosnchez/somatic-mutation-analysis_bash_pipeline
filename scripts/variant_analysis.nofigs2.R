@@ -4,6 +4,7 @@
 
 library(sigminer)
 library(maftools)
+library(BSgenome.Hsapiens.UCSC.hg19)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(BSgenome.Mmusculus.UCSC.mm10)
 library(ggplot2)
@@ -12,10 +13,10 @@ library(dplyr)
 library(tidyr)
 library(RColorBrewer)
 library(cowplot)
-library(viridis)
-library(pals)
-library(ggtext)
-library(biomaRt)
+#library(viridis)
+#library(pals)
+#library(ggtext)
+#library(biomaRt)
 
 
 # get args
@@ -82,7 +83,7 @@ mt_tally <- sig_tally(
 mt_sig_bayes_sbs_96 <- sig_unify_extract(
   mt_tally$all_matrices$SBS_96,
   range = 2:10,
-  nrun = 10,
+  nrun = 20,
   cores = 8,
   approach = "bayes_nmf"
 )

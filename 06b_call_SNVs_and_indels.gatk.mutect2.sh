@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=10:00:00
+#PBS -l nodes=1:ppn=1,vmem=30g,mem=30g,walltime=15:00:00
 #PBS -e ${tumor}__${normal}.mutect2.${index}.log
 #PBS -j eo
 # scheduler settings

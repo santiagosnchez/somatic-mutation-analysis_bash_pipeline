@@ -4,6 +4,7 @@
 
 library(MutationalPatterns)
 library(NMF)
+library(ccfindR)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
