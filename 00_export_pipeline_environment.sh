@@ -68,11 +68,11 @@ else
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
-                export intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.interval_list
+                export intervals=${genomes}/${2}/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.interval_list
                 # path to WES tergets in bed format
-                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.bed
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.bed
                 # path to WES intervals for running MuTect2
-                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.30-bed-files/
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn/
             else
                 # path to WES target intervals
                 export intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.interval_list
