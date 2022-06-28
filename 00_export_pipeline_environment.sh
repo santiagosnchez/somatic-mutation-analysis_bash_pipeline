@@ -187,11 +187,11 @@ else
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
-                export intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Covered.sorted_noMT.LiftOverToMm10.interval_list
+                export intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.interval_list
                 # path to WES tergets in bed format
-                export intervals_bed=${genomes}/${2}/AgilentSureSelectV1/S0276129_Covered.sorted_noMT.LiftOverToMm10.bed
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.bed
                 # path to WES intervals for running MuTect2
-                export bed30intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Covered.sorted_noMT.LiftOverToMm10.30-bed-files/
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.30-bed-files/
             else
                 # path to WES target intervals
                 export intervals=${genomes}/${2}/ucsc/wgs_callable_nonN-LC_regions.interval_list
