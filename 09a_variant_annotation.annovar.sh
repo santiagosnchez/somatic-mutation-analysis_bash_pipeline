@@ -11,6 +11,7 @@ start=$(date)
 module load bcftools/1.11
 module load tabix
 module load parallel/20210322
+module load R/4.1.2
 
 # set working dir
 cd $PBS_O_WORKDIR
@@ -38,14 +39,14 @@ fi
 source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 # check that mutect2annovar.pl script is available
-mutect2annovar.pl --help &> /dev/null
+${software_dir}/bin/mutect2annovar.pl --help &> /dev/null
 if [[ "$?" != 1 ]]; then # exits at 1 instead of 0 when calling --help
     echo "09: mutect2annovar.pl was not found in path or perl module not found." | tee -a main.log
     exit 1
 fi
 
 # check that mutect2annovar.pl script is available
-table_annovar.pl --help &> /dev/null
+${software_dir}/bin/table_annovar.pl --help &> /dev/null
 if [[ "$?" != 1 ]]; then # exits at 1 instead of 0 when calling --help
     echo "09: table_annovar.pl was not found in path." | tee -a main.log
     exit 1
@@ -61,9 +62,17 @@ if [[ "${tissue}" == "Somatic" ]]; then
     # what caller
     caller="mutect2"
     # make annovar table
-    mutect2annovar.pl \
+    ${software_dir}/bin/mutect2annovar.pl \
       --vcf ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz \
       --output annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}.mutect2annovar_tbl.txt \
+      --filter false \
+      --header false \
+      --tumour ${tumor} \
+      --normal ${normal}
+    # run on no-ob
+    ${software_dir}/bin/mutect2annovar.pl \
+      --vcf ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz \
+      --output annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.mutect2annovar_tbl.txt \
       --filter false \
       --header false \
       --tumour ${tumor} \
@@ -76,7 +85,7 @@ if [[ "${tissue}" == "Somatic" ]]; then
         ln -s ${intervals_bed} $annovar_db/${bedfile}
     fi
     # run annovar script
-    table_annovar.pl \
+    ${software_dir}/bin/table_annovar.pl \
       annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}.mutect2annovar_tbl.txt \
       $annovar_db \
       --protocol refGene,ensGene,avsnp150,1000g2015aug_all,esp6500siv2_all,cosmic70,clinvar_20220320,exac03,bed \
@@ -86,7 +95,33 @@ if [[ "${tissue}" == "Somatic" ]]; then
       --otherinfo \
       --bedfile ${bedfile} \
       --outfile annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}
-
+    # on no-obpriors
+    ${software_dir}/bin/table_annovar.pl \
+      annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.mutect2annovar_tbl.txt \
+      $annovar_db \
+      --protocol refGene,ensGene,avsnp150,1000g2015aug_all,esp6500siv2_all,cosmic70,clinvar_20220320,exac03,bed \
+      --operation g,g,f,f,f,f,f,f,r \
+      --buildver ${genome} \
+      --remove \
+      --otherinfo \
+      --bedfile ${bedfile} \
+      --outfile annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}
+    # if finished generate a MAF file based on Annovar
+    if [[ $? == 0 ]]; then
+      # run maftools in R
+      annovar_input1="annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}.${genome}_multianno.txt"
+      annovar_input2="annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.${genome}_multianno.txt"
+      # make R script
+      R_cmd1=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
+library(maftools)
+annovarToMaf('${annovar_input1}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input/.txt/}')"
+      R_cmd2=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
+library(maftools)
+annovarToMaf('${annovar_input1}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input/.txt/}')"
+      # run R
+      echo "${R_cmd1}" | Rscript /dev/stdin
+      echo "${R_cmd2}" | Rscript /dev/stdin
+    fi
 elif [[ "${tissue}" == "Germline" ]]; then
     # exit, not for germline
     echo "09: annovar not set up for germline."

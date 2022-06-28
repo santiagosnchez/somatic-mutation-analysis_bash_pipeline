@@ -25,6 +25,7 @@ args = base::commandArgs(trailingOnly = TRUE)
 data_type = args[1]
 sample_name = args[2]
 organism = args[3]
+no_ob = args[4]
 
 # define db_type for sigminer
 if (organism == "human"){
@@ -55,7 +56,13 @@ current_dir=getwd()
 ##################
 
 # vector of filtered vcf files
-somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected.",data_type,".vcf.gz")
+if (is.na(no_ob)){
+  somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected.",data_type,".vcf.gz")
+  outdir="analyses"
+} else {
+  somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected_no-obpriors.",data_type,".vcf.gz")
+  outdir="analyses/no-obpriors"
+}
 
 # make/read vcf as maf
 maf.som <- read_vcf(somaticvcfpath)
@@ -187,7 +194,7 @@ tmb_data = read.csv("analyses/coverage_and_tmb.csv")
 tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
 
 # write to file
-write.csv(linear_decomp_cosmic, file=paste0("analyses/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
+write.csv(linear_decomp_cosmic, file=paste0(outdir, "/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
 
 # print old output
 # tmbs

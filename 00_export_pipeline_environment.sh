@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # add a bin directory and additional default locations
-export PATH="/hpf/largeprojects/tabori/shared/bin:${PATH}"
+export PATH="/hpf/largeprojects/tabori/shared/software/bin:${PATH}"
 export PERL5LIB="/hpf/largeprojects/tabori/shared/software/perl5/lib/perl5:${PERL5LIB}"
 export PYTHONPATH="/hpf/largeprojects/tabori/shared/software/lib/python3.7:/hpf/largeprojects/tabori/shared/software/lib/python3.7/site-packages:/hpf/largeprojects/tabori/shared/software/lib/python3.7/dyn-lib:${PYTHONPATH}"
 
@@ -17,9 +17,9 @@ if [[ -z $1 ]]; then
     # path to reference dict
     export reference_dict=${genomes}/hg38/gatk_bundle/Homo_sapiens_assembly38.dict
     # path to WES target intervals
-    export intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.hg38.interval_list
+    export intervals=${genomes}/hg38/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.interval_list
     # path to WES tergets in bed format
-    export intervals_bed=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.hg38.bed
+    export intervals_bed=${genomes}/hg38/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.bed
     # path to vcf file with known SNPs from the 1000 genomes project
     export knownsites_snps=${genomes}/hg38/gatk_bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz
     # same but biallelic only
@@ -27,7 +27,7 @@ if [[ -z $1 ]]; then
     # path to vcf file with known indels from the 1000 genomes project
     export knownsites_indels=${genomes}/hg38/gatk_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
     # path to WES intervals for running MuTect2
-    export bed30intervals=${genomes}/hg38/AgilentSureSelectV5/S04380110_Covered.hg38.30-bed-files/
+    export bed30intervals=${genomes}/hg38/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.30-bed-files/
     # path to gnomad resource
     export gnomad_resource=${genomes}/hg38/gatk_bundle/af-only-gnomad.hg38.vcf.gz
     # path to gatk's panel of normals vcf
@@ -37,6 +37,9 @@ if [[ -z $1 ]]; then
     export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
     # path to snpEff data dir
     export snpeff_datadir=${resources_dir}/snpEff_data/4.11/data
+    # path to vep data dir
+    export vep_datadir=/hpf/tools/centos6/vep/cache102
+    export vep_species="homo_sapiens"
     # path to varscan jar file
     export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
     # point to recent version of gatk
@@ -68,11 +71,11 @@ else
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
-                export intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.interval_list
+                export intervals=${genomes}/${2}/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.interval_list
                 # path to WES tergets in bed format
-                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.bed
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.bed
                 # path to WES intervals for running MuTect2
-                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/S04380110_Covered.hg38.30-bed-files/
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV5/SureSelect_All_Exon_50mb_with_annotation_hg38_liftover_BED.removeChrUn.30-bed-files/
             else
                 # path to WES target intervals
                 export intervals=${genomes}/${2}/gatk_bundle/wgs_calling_regions.hg38.interval_list

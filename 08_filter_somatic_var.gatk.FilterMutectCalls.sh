@@ -65,6 +65,9 @@ index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
 bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 
+bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
+
 # selection done later
 
 else
@@ -97,6 +100,9 @@ else
         # normalize vcf file, compress, and tabix
         bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
         index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
+
+        bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+        index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
 
         # selection done later
 
@@ -143,6 +149,9 @@ ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
             # normalize vcf file, compress, and tabix
             bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
             index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
+
+            bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+            index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
         fi
     fi
 fi
