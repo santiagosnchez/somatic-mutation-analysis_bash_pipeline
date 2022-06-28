@@ -62,16 +62,26 @@ if [[ "${tissue}" == "Somatic" ]]; then
      -o ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf \
      ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
 
+    bcftools annotate \
+     -h ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt \
+     -o ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf \
+     ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz
+
     # delete tmp header file
     if [[ "$?" == 0 ]]; then
         rm ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt
         # index tmp
         index-vcf ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf
+        index-vcf ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf
         # replace prev vcf
         mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz \
            ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
         mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz.tbi \
            ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz.tbi
+        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf.gz \
+           ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz
+        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf.gz.tbi \
+           ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz.tbi
     fi
 
     # run annotators on selected only
@@ -178,8 +188,6 @@ if [[ "${tissue}" == "Somatic" ]]; then
     #      --vcf \
     #      --stats_text
     # fi
-fi
-
 elif [[ "${tissue}" == "Germline" ]]; then
     # define caller
     #caller="varscan"

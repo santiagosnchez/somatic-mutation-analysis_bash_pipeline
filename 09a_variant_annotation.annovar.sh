@@ -114,10 +114,10 @@ if [[ "${tissue}" == "Somatic" ]]; then
       # make R script
       R_cmd1=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
 library(maftools)
-annovarToMaf('${annovar_input1}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input/.txt/}')"
+annovarToMaf('${annovar_input1}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input1/.txt/}')"
       R_cmd2=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
 library(maftools)
-annovarToMaf('${annovar_input1}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input/.txt/}')"
+annovarToMaf('${annovar_input2}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input2/.txt/}')"
       # run R
       echo "${R_cmd1}" | Rscript /dev/stdin
       echo "${R_cmd2}" | Rscript /dev/stdin
