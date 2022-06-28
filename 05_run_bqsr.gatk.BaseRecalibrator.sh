@@ -156,24 +156,24 @@ ${pipeline_dir}/06d_calc_f1r2.read_orientation.sh
             echo "05: Read orientation found for ${sample}." | tee -a main.log
         fi
         # Skip Varscan if WGS
-        if [[ ${mode} != "wgs" ]]; then
-            if [[ ! -e varscan/pileups/${sample}.pileup && ${aln_only} == 0 ]]; then
-                # submit varscan
-                echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
-                ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
-sample=${sample},\
-bed={},\
-index={#},\
-mode=${mode},\
-pipeline_dir=${pipeline_dir},\
-organism=${organism},\
-genome=${genome} \
-${pipeline_dir}/06a_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
-            else
-                skip_pileup=1
-                echo "05: Skipping pileup for ${sample}." | tee -a main.log
-            fi
-        fi
+#         if [[ ${mode} != "wgs" ]]; then
+#             if [[ ! -e varscan/pileups/${sample}.pileup && ${aln_only} == 0 ]]; then
+#                 # submit varscan
+#                 echo "05: submitting pileups for Varscan ${sample}." | tee -a main.log
+#                 ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
+# sample=${sample},\
+# bed={},\
+# index={#},\
+# mode=${mode},\
+# pipeline_dir=${pipeline_dir},\
+# organism=${organism},\
+# genome=${genome} \
+# ${pipeline_dir}/06a_call_SNVs_and_indels.samtools.pileup.sh" | tee -a main.log
+#             else
+#                 skip_pileup=1
+#                 echo "05: Skipping pileup for ${sample}." | tee -a main.log
+#             fi
+#         fi
     fi
     if [[ ${aln_only} == 0 ]]; then
         # Make PoN mode
@@ -219,17 +219,43 @@ ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
                             export normal
                             export tumor
                             # submit VarScan calls
-                            if [[ ${skip_pileup} == 1 && -e varscan/pileups/${normal}.pileup ]]; then
-                              # submit calling step
-                              qsub -v \
-tumor=${tumor},\
+#                             if [[ ${skip_pileup} == 1 && -e varscan/pileups/${normal}.pileup ]]; then
+#                               # submit calling step
+#                               qsub -v \
+# tumor=${tumor},\
+# normal=${normal},\
+# mode=${mode},\
+# pipeline_dir=${pipeline_dir},\
+# organism=${organism},\
+# genome=${genome} \
+# ${pipeline_dir}/06b_call_SNVs_and_indels.varscan.sh
+#                               echo "05: skipping to VarScan calls for ${sample}." | tee -a main.log
+#                             fi
+                            if [[ ! -e haplotypecaller/${tumor}__${normal}.haplotypecaller.unfiltered.${mode}.merged.vcf ]]; then
+                                # submit HaplotypeCaller scattered runs
+                                # save a dry run of commands first
+                                ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
 normal=${normal},\
+tumor=${tumor},\
+bed={},\
+index={#},\
 mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06b_call_SNVs_and_indels.varscan.sh
-                              echo "05: skipping to VarScan calls for ${sample}." | tee -a main.log
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.haplotypecaller.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
+                                # submit HaplotypeCaller jobs on 30 intervals
+                                ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
+normal=${normal},\
+tumor=${tumor},\
+bed={},\
+index={#},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome} \
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.haplotypecaller.sh" | tee -a main.log
+                                echo "05: HaplotypeCaller has started successfully for germline calls in ${tumor}__${normal}." | tee -a main.log
                             fi
                             if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
                                 # submit Mutect2 scattered runs
