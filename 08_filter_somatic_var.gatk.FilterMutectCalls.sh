@@ -65,7 +65,7 @@ index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
 bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 
-bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
 index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
 
 # selection done later

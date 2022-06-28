@@ -60,10 +60,10 @@ bcftools norm -m- -f ${reference} haplotypecaller/${tumor}__${normal}.haplotypec
  haplotypecaller/${tumor}__${normal}.haplotypecaller.filtered-norm.${mode}.vcf
 
 # keep variants that PASS in a different VCF
-bcftools view -f PASS haplotypecaller/${tumor}__${normal}.haplotypecaller.filtered.${mode}.vcf > haplotypecaller/${tumor}__${normal}.haplotypecaller.selected.${mode}.vcf
+bcftools view -f PASS haplotypecaller/${tumor}__${normal}.haplotypecaller.filtered-norm.${mode}.vcf > haplotypecaller/${tumor}__${normal}.haplotypecaller.selected.${mode}.vcf
 
   # index VCFs
-  index-vcf haplotypecaller/${tumor}__${normal}.haplotypecaller.filtered.${mode}.vcf
+  index-vcf haplotypecaller/${tumor}__${normal}.haplotypecaller.filtered-norm.${mode}.vcf
   index-vcf haplotypecaller/${tumor}__${normal}.haplotypecaller.selected.${mode}.vcf
 
   # check if finished
@@ -100,7 +100,7 @@ genome=${genome} \
 ${pipeline_dir}/09b_variant_annotation.snpEff-funcotator.sh
   # calc runtime
   runtime=$( how_long "${start}" h )
-  echo "06: Step ${tumor}__${normal}.VarScan.log took ${runtime} hours" | tee -a main.log
+  echo "06: Step ${tumor}__${normal}.bcftools.filter.log took ${runtime} hours" | tee -a main.log
   # move logfile
   mv ${tumor}__${normal}.bcftools.filter.log all_logfiles
 fi
