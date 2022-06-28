@@ -51,6 +51,7 @@ source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} $
 
 #else
 # run gatk's haplotypecaller
+if [[ ! -e haplotypecaller/${tumor}__${normal}.haplotypecaller.unfiltered.${mode}.merged.vcf ]]; then
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" HaplotypeCaller \
  -I ${dir}/${tumor}.bqsr.bam \
  -I ${dir}/${normal}.bqsr.bam \
@@ -60,7 +61,10 @@ $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" HaplotypeCaller
  -L ${bed30intervals}/${bed}
  #  -bamout mutect2/${tumor}__${normal}.${index}.bam \
  #  --create-output-bam-index \
-#fi
+else
+  # for $? = 0
+  ls &> /dev/null
+fi
 
 # check if finished
 check_finish=$?
@@ -94,9 +98,9 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-06c_call_SNVs_and_indels.bcftools.filter.sh
+${pipeline_dir}/06c_call_SNVs_and_indels.bcftools.filter.sh
             # first scatter
-            first_scatter_date=$(ls ${sample}.VarScan.pileup.${index}.log all_logfiles/${sample}.VarScan.pileup.[0-9]*.log | \
+            first_scatter_date=$(ls ${tumor}__${normal}.haplotypecaller.${index}.log ${tumor}__${normal}.haplotypecaller.[0-9]*.log | \
                    parallel 'head -2 {} | tail -1' | parallel date --date={} +%s | sort -n | parallel date --date=@{} | head -1)
             runtime=$( how_long "${first_scatter_date}" h )
             # log
