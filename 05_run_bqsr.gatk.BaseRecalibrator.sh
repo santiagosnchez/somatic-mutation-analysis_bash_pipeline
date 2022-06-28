@@ -243,7 +243,7 @@ mode=${mode},\
 pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
-${pipeline_dir}/06b_call_SNVs_and_indels.gatk.haplotypecaller.sh" > all_logfiles/${tumor}__${normal}.mutect2.0.log
+${pipeline_dir}/06b_call_SNVs_and_indels.gatk.haplotypecaller.sh" > all_logfiles/${tumor}__${normal}.haplotypecaller.0.log
                                 # submit HaplotypeCaller jobs on 30 intervals
                                 ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
 normal=${normal},\
