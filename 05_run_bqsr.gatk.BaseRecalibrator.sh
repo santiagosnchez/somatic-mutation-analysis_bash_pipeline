@@ -232,11 +232,11 @@ ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
 # ${pipeline_dir}/06b_call_SNVs_and_indels.varscan.sh
 #                               echo "05: skipping to VarScan calls for ${sample}." | tee -a main.log
 #                             fi
-                            if [[ ]]
-                            if [[ ! -e haplotypecaller/${tumor}__${normal}.haplotypecaller.unfiltered.${mode}.merged.vcf ]]; then
-                                # submit HaplotypeCaller scattered runs
-                                # save a dry run of commands first
-                                ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
+                            if [[ "${skip_grm}" == 0 && "${mode}" == "wes" ]]; then
+                                if [[ ! -e haplotypecaller/${tumor}__${normal}.haplotypecaller.unfiltered.${mode}.merged.vcf ]]; then
+                                    # submit HaplotypeCaller scattered runs
+                                    # save a dry run of commands first
+                                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp --dry-run "qsub -v \
 normal=${normal},\
 tumor=${tumor},\
 bed={},\
@@ -246,8 +246,8 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.haplotypecaller.sh" > all_logfiles/${tumor}__${normal}.haplotypecaller.0.log
-                                # submit HaplotypeCaller jobs on 30 intervals
-                                ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
+                                    # submit HaplotypeCaller jobs on 30 intervals
+                                    ls $bed30intervals | grep ".bed" | parallel --tmpdir ./.tmp "qsub -v \
 normal=${normal},\
 tumor=${tumor},\
 bed={},\
@@ -257,7 +257,8 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.haplotypecaller.sh" | tee -a main.log
-                                echo "05: HaplotypeCaller has started successfully for germline calls in ${tumor}__${normal}." | tee -a main.log
+                                    echo "05: HaplotypeCaller has started successfully for germline calls in ${tumor}__${normal}." | tee -a main.log
+                                fi
                             fi
                             if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
                                 # submit Mutect2 scattered runs
