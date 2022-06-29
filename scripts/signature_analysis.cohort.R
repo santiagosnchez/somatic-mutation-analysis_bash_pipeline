@@ -2,201 +2,242 @@
 
 .libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
 
-library(MutationalPatterns)
-library(NMF)
-library(ccfindR)
+library(sigminer)
+library(maftools)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(BSgenome.Mmusculus.UCSC.mm10)
 library(ggplot2)
+library(ggrepel)
 library(dplyr)
 library(tidyr)
+library(RColorBrewer)
 library(cowplot)
-library(pals)
+#library(viridis)
+#library(pals)
+#library(ggtext)
+#library(biomaRt)
 
-#################
-# read/set args #
-#################
 
 # get args
 args = base::commandArgs(trailingOnly = TRUE)
-mode = args[1]
-sample_name = args[2]
-vcfpath = args[3]
-organism = args[4]
-reference = args[5]
+# read args
+data_type = args[1]
+organism = args[2]
+vcf_dir = args[3]
+vcffile_pattern = args[4]
 
-# ref genome
+# define db_type for sigminer
 if (organism == "human"){
-  ref_genome = paste0("BSgenome.Hsapiens.UCSC.", reference)
+  if (data_type == "wes"){
+    db_type="human-exome"
+  } else {
+    db_type="human-genome"
+  }
+  sig_db = "latest_SBS_GRCh38"
+  ref_genome = "BSgenome.Hsapiens.UCSC.hg38"
+  cosmic_exdata = "COSMIC_v3.2_SBS_GRCh38.rds"
 } else if (organism == "mouse"){
-  ref_genome = paste0("BSgenome.Mmusculus.UCSC.", reference)
+  db_type=""
+  sig_db = "latest_SBS_mm10"
+  ref_genome = "BSgenome.Mmusculus.UCSC.mm10"
+  cosmic_exdata = "COSMIC_v3.2_SBS_mm10.rds"
 }
 
-# get COSMIC signature database
-sig_loc = paste0("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/",reference,"/cosmic_db_v3.2_signature_matrix.txt")
-signatures3 = read.table(sig_loc, sep="\t", head=T, row.names=1)
-# get etiologies
-etio_loc = paste0("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/",reference,"/cosmic_db_v3.2_signatures_and_etiologies.txt")
-etio3tab = read.table(etio_loc, sep="\t")
-
-
-# load genome ref lib
-library(ref_genome, character.only=T)
-
 # tumor - normal
-TUMOR = sub("__.*","",sample_name)
-NORMAL = sub(".*__","",sample_name)
+# TUMOR = sub("__.*","",sample_name)
+# NORMAL = sub(".*__","",sample_name)
+
+# get working dir
+current_dir=getwd()
 
 ##################
 # Get Signatures #
 ##################
 
-# read vcf as genomic ranges
-message("Reading VCF as GenomicRanges...")
-grl = read_vcfs_as_granges(vcfpath, sample_name, ref_genome)
+# vector of filtered vcf files
+vcffiles = list.files(vcf_dir, pattern=vcffile_pattern, full.names=T)
+# check if VCFs are compressed and indexed
+if (length(grep("vcf.gz$", vcffiles)) == 0){
+  stop("VCF files need to be gzipped and indexed.")
+}
+# file names
+vcffiles = vcffiles[ grep("vcf.gz$", vcffiles) ]
+# sample names
+samples = gsub("mutect2\\/|\\.mutect2.*","",vcffiles)
+
+# make/read vcf as maf
+maf.som <- read_vcf(vcffiles, samples=samples)
 
 # make tally of maf objects
-message("Extracting SBS96 trinucleotide contexts...")
-mut_mat = mut_matrix(vcf_list = grl, ref_genome = ref_genome)
-pseudo_count_prop = 0.0001
-message(paste("Adding a small pseudocount proportion:", pseudo_count_prop))
-mut_mat = mut_mat + pseudo_count_prop
+# compares each VCF to the hg38 reference and extracts
+# (1) a 6-way (SBS-6) matrix of single nucleotide changes
+# (2) a 96-way (SBS-96) matrix of trinucleotide changes (default/main matrix)
+# ...
+# (6) a 6144-way (SBS-6144) matrix of
+# useSyn is a flag to include synonymous changes
+# add_trans_bias includes categories under transciptional bias
+mt_tally <- sig_tally(
+  maf.som,
+  ref_genome = ref_genome,
+  useSyn = TRUE,
+  mode = "SBS",
+  add_trans_bias = TRUE,
+  cores = 8
+)
 
-# extract de novo signatures
-#estimate = nmf(mut_mat, rank = 2:5, method = "brunet",
-#                nrun = 10, seed = 123456, .opt = "v-p")
+# get mutation signatures using Bayesian approach coupled with NMF optimization
+# Do first just for the SBS-96 matrix
+## add more info here
+mt_sig_bayes_sbs_96 <- sig_unify_extract(
+  mt_tally$all_matrices$SBS_96,
+  range = 2:10,
+  nrun = 20,
+  cores = 8,
+  approach = "bayes_nmf"
+)
 
-# reorder signatures matrix
-signatures = as.matrix(signatures)
-signatures = signatures[rownames(mut_mat),]
-
-# minor edits to the table
-etio3 = etio3tab[,2]
-names(etio3) = etio3tab[,1]
-etio3[ grep("Poli", etio3) ] = sub("Poli","Poly",etio3[ grep("Poli", etio3) ])
-
-# signature refitting/fitting to COSMIC v3.2
-# fit_res = fit_to_signatures(mut_mat, signatures)
-
-# Decreasing this number will make the refitting less strict,
-# while increasing it will make the refitting more strict.
-# Trying out different values can sometimes be useful to achieve the best results.
-# delta = 0.004
-strict_refit = fit_to_signatures_strict(mut_mat, signatures, max_delta = 0.004)
-strict_refit$fit_res$contribution_prop = strict_refit$fit_res$contribution / colSums(strict_refit$fit_res$contribution)
-
-# prep table for plotting
-cosmic_decomp = as.data.frame(strict_refit$fit_res$contribution_prop) %>%
-                               rename(contribution_proportion=all_of(sample_name)) %>%
-                               mutate(sample=sample_name, tumor=TUMOR, normal=NORMAL) %>%
-                               mutate(contribution_raw=strict_refit$fit_res$contribution[,sample_name]) %>%
-                               mutate(cosmic_signature=rownames(.)) %>%
-                               mutate(etiology=etio3[cosmic_signature])
-
-
-##########
-## Plots #
-##########
-
-# raw/reconstructed signatures
-
-# set classic colors
-mutcols = c("#02bced","#010101","#c8332f","#cac8c9", "#a0ce62","#ecc6c5")
-# prep data frame
-sigs.df = data.frame(raw = mut_mat[,1] - pseudo_count_prop,
-                     extracted = strict_refit$fit_res$reconstructed[,1]) %>%
-                     mutate(normalized = extracted / sum(extracted)) %>%
-                     mutate(mutations = rownames(.))
-sigs.df$to = gsub("[ATCG]\\[|\\][ATCG]","",sigs.df$mutations)
-sigs.df$from = gsub("\\[[TC]>|\\]","",sigs.df$mutations)
-
-# barplot with proportionls of SBS96 mutational patterns
-p1 = ggplot(sigs.df, aes(x=from, y=normalized, fill=to)) +
-  geom_bar(stat="identity", width=0.8, show.legend=F) +
-  facet_wrap(~to, nrow=1, scale="free_x") +
-  scale_fill_manual(values=mutcols) +
-  scale_y_continuous(expand=c(0,0)) +
-  theme(
-    axis.text.x = element_text(angle=90, hjust=1, vjust=0.5, size=6),
-    axis.ticks.x = element_blank(),
-    axis.title.x = element_blank(),
-    panel.background=element_blank(),
-    panel.grid=element_blank(),
-    panel.grid.major.y=element_line(size=0.5, color="grey"),
-    axis.line.y=element_line()
+# match signatures using cosine similarity COSMIC v3
+if (db_type == ""){
+  matched_mt_sig_sbs_96 <- get_sig_similarity(
+    mt_sig_bayes_sbs_96,
+    sig_db=sig_db
   )
+} else {
+  matched_mt_sig_sbs_96 <- get_sig_similarity(
+    mt_sig_bayes_sbs_96,
+    sig_db=sig_db,
+    db_type=db_type
+  )
+}
 
-# set colors for cosmic 3.2
-cols_cosmic3 = rep("", length(etio3))
-names(cols_cosmic3) = etio3
-# unknown data
-cols_cosmic3[ grep("^Unknown$", etio3) ] = stepped3(20)[18]
-cols_cosmic3[ grep("Possible sequencing artefacts", etio3) ] = stepped3(20)[17]
-# MMR
-cols_cosmic3[ grep("DNA mismatch", etio3) ] = colorRampPalette(stepped3(12)[9:12][c(1,4)])(7)
-cols_cosmic3[ grep("Polymerase|POLD1 proofreading", etio3) ] = colorRampPalette(stepped3(8)[5:8][c(1,4)])(5)
-# clocklike
-cols_cosmic3[ grep("clock-like signature", etio3) ] = stepped3(4)[1:2]
-# UV
-cols_cosmic3[ grep("Ultraviolet", etio3) ] = stepped3(16)[13:16]
-# tobacco
-cols_cosmic3[ grep("Tobacco", etio3) ] = stepped(8)[5:7]
-# treatment
-cols_cosmic3[ grep("treatment", etio3) ] = colorRampPalette(stepped2(4)[c(1,4)])(7)
-# homologous recombination DNA damage repair
-cols_cosmic3[ grep("Defective homologous recombination DNA damage repair", etio3) ] = stepped2(12)[10]
-# APOBEC
-cols_cosmic3[ grep("APOBEC|cytidine deaminase", etio3) ] = stepped2(16)[13:16]
-# carcinogens
-cols_cosmic3[ grep("exposure", etio3)[5:length(grep("exposure", etio3))] ] = colorRampPalette(stepped2(20)[c(1,4)])(5)
-# DNA base excision repair
-cols_cosmic3[ grep("DNA base excision", etio3) ] = stepped2(8)[5:6]
-# reactive oxigen
-cols_cosmic3[ grep("reactive oxygen", etio3) ] = stepped(4)[2]
-# indirect UV
-cols_cosmic3[ grep("Indirect effect of ultraviolet", etio3) ] = stepped(16)[1]
-# rename
-cols_cosmic3.2 = cols_cosmic3
-names(cols_cosmic3.2) = names(etio3)
+# match signatures using cosine similarity legacy COSMIC v2
+if (organism == "human"){
+  matched_mt_sig_legacy_30 <- get_sig_similarity(
+    mt_sig_bayes_sbs_96,
+    sig_db="legacy",
+    db_type=db_type
+  )
+  # consolidate bNMF analyses
+  etio2 = matched_mt_sig_legacy_30$aetiology_db[[1]]
+  names(etio2) = colnames(matched_mt_sig_legacy_30$similarity)[order(as.numeric(sub("COSMIC_","",colnames(matched_mt_sig_legacy_30$similarity))))]
+}
 
-# prep captionf or figure
-# break long signature names/etiologies
-caption = etio3
-caption[nchar(etio3) > 60] = sub("bacteria ","bacteria\n   ",sub("and ","and\n   ",sub("of ","of\n   ",etio3[nchar(etio3) > 60])))
-caption = sub("^","*", caption)
-prep_caption_ld=paste(paste(caption[(cosmic_decomp %>% filter(contribution_proportion > 0))$cosmic_signature], " (",(cosmic_decomp %>%
-  filter(contribution_proportion > 0))$cosmic_signature, ")", sep=""), collapse="\n")
+# cosmic 2
+# bnmf_cosmic2  = as.data.frame(matched_mt_sig_legacy_30$similarity) %>%
+#   mutate(raw_signature=rownames(matched_mt_sig_legacy_30$similarity)) %>%
+#   pivot_longer(cols=-raw_signature, names_to="cosmic_signature", values_to="cosine_similarity") %>%
+#   mutate(sample=sub("\\..*","",args[2])) %>%
+#   mutate(cosmic_db="v2") %>%
+#   mutate(tumor=TUMOR) %>%
+#   mutate(normal=NORMAL) %>%
+#   mutate(method="bNMF") %>%
+#   mutate(etiology=etio2[cosmic_signature]) %>%
+#   dplyr::select(tumor,normal,raw_signature,cosmic_signature,cosmic_db,cosine_similarity,etiology,method)
 
-p2 = ggplot(cosmic_decomp %>%
-                  filter(contribution_proportion > 0) %>%
-                  mutate(cosmic_signature=as.character(cosmic_signature)),
-    aes(x="", y=round(contribution_proportion * 100,1), fill=cosmic_signature)) +
-  geom_bar(stat="identity", show.legend=T, width=1) +
-  coord_polar("y", start=0) +
-  geom_text(aes(label=paste0(round(contribution_proportion * 100,0),"%")), position=position_stack(vjust=0.5), color="white") +
-  #scale_y_continuous(expand=c(0,0), breaks=seq(0,100,10), limits=c(0,30)) +
-  # scale_y_discrete(limits=(cosmic_decomp %>%
-  #                   filter(contribution_proportion > 0) %>%
-  #                   mutate(cosmic_signature=as.character(cosmic_signature)) %>%
-  #                   arrange(contribution_proportion))$cosmic_signature) +
-  # labs(title="COSMIC Signature Analysis\n(SBS-96 v3.2, hg38)",
-  #      caption=prep_caption_ld, x="contribution to mutational signature (%)") +
-  scale_fill_manual(values=cols_cosmic3.2[(cosmic_decomp %>% filter(contribution_proportion > 0))$cosmic_signature]) +
-  background_grid(major="xy", color.major="grey85") +
-  theme_void()
-  # theme(
-  #   panel.background=element_blank(),
-  #   axis.title.y=element_blank(),
-  #   axis.text.x=element_text(size=10),
-  #   axis.text.y=element_text(angle=45, vjust=0.5),
-  #   axis.ticks.y=element_blank(),
-  #   axis.line.x=element_line(),
-  #   legend.title=element_blank(),
-  #   plot.title=element_text(face="bold", size=10),
-  #   plot.caption=element_text(hjust=0),
-  #   plot.margin=unit(c(0.5,0.5,0.5,0.5), "cm")
-  # )
+# cosmic 3
+# etiologies db
+# etio3 = matched_mt_sig_sbs_96$aetiology_db[[1]]
+# names(etio3) = colnames(matched_mt_sig_sbs_96$similarity)[order(as.numeric(gsub("[A-Za-z]","",colnames(matched_mt_sig_sbs_96$similarity))))]
+# etio3["SBS9"] = sub("Poli","Poly",etio3["SBS9"])
 
-# plot grid
-plot_grid(p1, p2, nrow=1, rel_widths=c(6,3))
+# etio3tab = read.table("/hpf/largeprojects/tabori/shared/resources/cosmic_v3.2/cosmic_db_v3.2_signatures_and_etiologies.txt", sep="\t")
+# etio3 = etio3tab[,2]
+# names(etio3) = etio3tab[,1]
+# etio3[ grep("Poli", etio3) ] = sub("Poli","Poly",etio3[ grep("Poli", etio3) ])
+cosmic_data = readRDS(system.file("extdata", cosmic_exdata, package = "sigminer"))
 
-# save image
-ggsave(file="MD1553_signatures.png", bg="white")
+# set threshold for matched signatures
+#sig_threshold = 0.01
+
+# fit linear decomposition on latest COSMIC db v3.2
+if (db_type == ""){
+  linear_decomp_mt_sig_sbs_96 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
+                                            sig=mt_sig_bayes_sbs_96$Signature,
+                                            sig_index = "ALL",
+                                            method="NNLS",
+                                            type="relative",
+                                            auto_reduce=TRUE,
+                                            sig_db=sig_db)
+} else {
+  linear_decomp_mt_sig_sbs_96 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
+                                              sig=mt_sig_bayes_sbs_96$Signature,
+                                              sig_index = "ALL",
+                                              db_type=db_type,
+                                              method="NNLS",
+                                              type="relative",
+                                              sig_db=sig_db)
+}
+
+if (organism == "human"){
+  linear_decomp_mt_sig_legacy_30 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
+                                            sig=mt_sig_bayes_sbs_96$Signature,
+                                            sig_index = "ALL",
+                                            db_type=db_type,
+                                            method="NNLS",
+                                            type="relative",
+                                            sig_db = "legacy")
+}
+
+linear_decomp_cosmic = as.data.frame(linear_decomp_mt_sig_sbs_96) %>%
+mutate(cosmic_db="v3.2") %>%
+mutate(cosmic_signature = rownames(linear_decomp_mt_sig_sbs_96)) %>%
+mutate(etiology=cosmic_data$aetiology[rownames(linear_decomp_mt_sig_sbs_96),])
+colnames(linear_decomp_cosmic)[1] = "contribution_proportion"
+linear_decomp_cosmic = linear_decomp_cosmic %>%
+  mutate(tumor=TUMOR) %>%
+  mutate(normal=NORMAL) %>%
+  mutate(method="NNLS")
+
+#write.csv(linear_decomp_cosmic, file="analyses/lrDecomp_cosmic.csv")
+
+# read TMB and coverage data
+tmb_data = read.csv("analyses/coverage_and_tmb.csv")
+tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
+
+# write to file
+write.csv(linear_decomp_cosmic, file=paste0("analyses/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
+
+# print old output
+# tmbs
+if (file.exists("analyses/old_output.tmbs.tsv")){
+  cat(sample_name, tmb$snvs, tmb$tmb_snvs, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
+} else {
+  cat("sample", "total_SNV", "TMB", "\n", sep="\t", file="analyses/old_output.tmbs.tsv")
+  cat(sample_name, tmb$snvs, tmb$tmb_snvs, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
+}
+# signatures v3.2
+if (file.exists("analyses/old_output.v3.sigs.tsv")){
+  tmp_sigs = rep(0, length(linear_decomp_cosmic[,"contribution_proportion"]))
+  names(tmp_sigs) = rownames(linear_decomp_cosmic[,"etiology"])
+  tmp_sigs[ rownames(linear_decomp_cosmic[,"etiology"]) ] = linear_decomp_cosmic[,"contribution_proportion"]
+  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+} else {
+  cat("Signature", rownames(linear_decomp_cosmic[,"etiology"]), "\n", sep="\t", file="analyses/old_output.v3.sigs.tsv")
+  cat("Etiology", linear_decomp_cosmic[,"etiology"], "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+  tmp_sigs = rep(0, length(linear_decomp_cosmic[,"contribution_proportion"]))
+  names(tmp_sigs) = rownames(linear_decomp_cosmic[,"etiology"])
+  tmp_sigs[ rownames(linear_decomp_cosmic[,"etiology"]) ] = linear_decomp_cosmic[,"contribution_proportion"]
+  cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+}
+# signatures v2
+if (organism == "human"){
+  if (file.exists("analyses/old_output.v2.sigs.tsv")){
+    tmp_sigs = rep(0, length(etio2))
+    names(tmp_sigs) = names(etio2)
+    tmp_sigs[ rownames(linear_decomp_mt_sig_legacy_30) ] = linear_decomp_mt_sig_legacy_30[,1]
+    cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v2.sigs.tsv")
+  } else {
+    cat("Signature", gsub("COSMIC_","Signature\\.", names(etio2)), "\n", sep="\t", file="analyses/old_output.v2.sigs.tsv")
+    cat("Etiology", etio2, "\n", sep="\t", append=T, file="analyses/old_output.v2.sigs.tsv")
+    tmp_sigs = rep(0, 30)
+    names(tmp_sigs) = names(etio2)
+    tmp_sigs[ rownames(linear_decomp_mt_sig_legacy_30) ] = linear_decomp_mt_sig_legacy_30[,1]
+    cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v2.sigs.tsv")
+  }
+}
+
+print(paste("Done for", sample_name))
+
+# save R objects to disk
+# save.image(file="analyses/mutational_signatures_as_R_object.Rdata")
