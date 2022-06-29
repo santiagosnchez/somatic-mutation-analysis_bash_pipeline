@@ -62,35 +62,42 @@ if [[ "${tissue}" == "Somatic" ]]; then
      -o ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf \
      ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
 
-    bcftools annotate \
-     -h ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt \
-     -o ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf \
-     ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz
+    if [[ ${mode} != "wgs" ]]; then
+        bcftools annotate \
+         -h ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt \
+         -o ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf \
+         ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz
+    fi
 
     # delete tmp header file
     if [[ "$?" == 0 ]]; then
         rm ./.tmp/${tumor}__${normal}.tmp.vcf.header.txt
         # index tmp
         index-vcf ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf
-        index-vcf ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf
         # replace prev vcf
         mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz \
            ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz
         mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head.${mode}.vcf.gz.tbi \
            ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz.tbi
-        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf.gz \
-           ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz
-        mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf.gz.tbi \
-           ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz.tbi
+
+        if [[ ${mode} != "wgs" ]]; then
+            index-vcf ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf
+            mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf.gz \
+               ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz
+            mv ./.tmp/${tumor}__${normal}.${caller}.normalized_head_no-ob.${mode}.vcf.gz.tbi \
+               ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz.tbi
+        fi
     fi
 
     # run annotators on selected only
     bcftools view -f PASS ${caller}/${tumor}__${normal}.${caller}.filtered-norm.${mode}.vcf.gz > ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf
     index-vcf ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf
 
-    # run annotators on selected only, on no-obpriors
-    bcftools view -f PASS ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz > ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf
-    index-vcf ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf
+    if [[ ${mode} != "wgs" ]]; then
+        # run annotators on selected only, on no-obpriors
+        bcftools view -f PASS ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz > ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf
+        index-vcf ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf
+    fi
 
     if [[ -e ${snpeff_datadir}/${genome} ]]; then
         # check if sample has matched normal
@@ -107,16 +114,18 @@ if [[ "${tissue}" == "Somatic" ]]; then
              ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz > \
              vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
              # on no_ob
-             java -jar $snpeff_jar \
-              -dataDir $snpeff_datadir \
-              ${genome} \
-              -v \
-              -canon \
-              -cancer \
-              -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
-              -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
-              ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz > \
-              vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf
+             if [[ ${mode} != "wgs" ]]; then
+                 java -jar $snpeff_jar \
+                  -dataDir $snpeff_datadir \
+                  ${genome} \
+                  -v \
+                  -canon \
+                  -cancer \
+                  -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
+                  -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
+                  ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz > \
+                  vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf
+            fi
         else
             # annotate unmatched on PON
             # run snpEff on mutect2 vcf
@@ -130,25 +139,33 @@ if [[ "${tissue}" == "Somatic" ]]; then
              ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz > \
              vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
             # on no-ob
-            java -jar $snpeff_jar \
-             -dataDir $snpeff_datadir \
-             ${genome} \
-             -v \
-             -canon \
-             -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
-             -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
-             ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz > \
-             vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf
+            if [[ ${mode} != "wgs" ]]; then
+                java -jar $snpeff_jar \
+                 -dataDir $snpeff_datadir \
+                 ${genome} \
+                 -v \
+                 -canon \
+                 -stats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.html \
+                 -csvStats vcf/snpEff/${tumor}__${normal}.${tissue}.snpEff_summary.csv \
+                 ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz > \
+                 vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf
+            fi
 
         fi
          # index vcf
          index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf
-         index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf
+
+         if [[ ${mode} != "wgs" ]]; then
+            index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf
+         fi
     else
          ln -s ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf.gz
          ln -s ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz.tbi vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff.${mode}.vcf.gz.tbi
-         ln -s ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf.gz
-         ln -s ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz.tbi vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf.gz.tbi
+
+         if [[ ${mode} != "wgs" ]]; then
+             ln -s ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf.gz
+             ln -s ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz.tbi vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-snpeff_no-obpriors.${mode}.vcf.gz.tbi
+         fi
     fi
      if [[ ! -z ${funcotator_databases_s} ]]; then
          # run gatk's funcotator on somatic mutations
@@ -163,16 +180,18 @@ if [[ "${tissue}" == "Somatic" ]]; then
           # index vcf
           index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator.${mode}.vcf
           # run gatk's funcotator on somatic mutations
-          $gatk_path/gatk Funcotator \
-           --variant ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz \
-           --reference $reference \
-           --ref-version ${genome} \
-           --data-sources-path $funcotator_databases_s \
-           --transcript-selection-mode CANONICAL \
-           --output vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator_no-obpriors.${mode}.vcf \
-           --output-file-format VCF
-           # index vcf
-           index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator_no-obpriors.${mode}.vcf
+          if [[ ${mode} != "wgs" ]]; then
+              $gatk_path/gatk Funcotator \
+               --variant ${caller}/${tumor}__${normal}.${caller}.selected_no-obpriors.${mode}.vcf.gz \
+               --reference $reference \
+               --ref-version ${genome} \
+               --data-sources-path $funcotator_databases_s \
+               --transcript-selection-mode CANONICAL \
+               --output vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator_no-obpriors.${mode}.vcf \
+               --output-file-format VCF
+               # index vcf
+               index-vcf vcf/${tumor}__${normal}.${caller}.all.${tissue}.annotated-funcotator_no-obpriors.${mode}.vcf
+          fi
     fi
     # if [[ ! -z ${vep_datadir} ]]; then
     ##   zcat ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz | \

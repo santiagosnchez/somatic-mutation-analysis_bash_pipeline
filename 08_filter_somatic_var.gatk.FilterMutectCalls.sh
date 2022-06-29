@@ -82,11 +82,12 @@ else
          --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
          -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
          # skipping read orientation filtering due to high numbers of false negatives
-         $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
-          -R $reference \
-          -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
-          -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
-
+         if [[ ${mode} != "wgs" ]]; then
+             $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
+              -R $reference \
+              -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
+              -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+        fi
         # select passed variants
         # $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" SelectVariants \
         #  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
@@ -95,15 +96,18 @@ else
 
         # compress and index
         index-vcf mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
-        index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+        if [[ ${mode} != "wgs" ]]; then
+          index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+        fi
 
         # normalize vcf file, compress, and tabix
         bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
         index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 
-        bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
-        index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
-
+        if [[ ${mode} != "wgs" ]]; then
+            bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
+            index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
+        fi
         # selection done later
 
     else
@@ -131,11 +135,12 @@ ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
              --ob-priors mutect2/f1r2/${tumor}__${normal}.read-orientation-model.tar.gz \
              -O mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
              # skipping read orientation filtering due to high numbers of false negatives
-             $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
-              -R $reference \
-              -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
-              -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
-
+             if [[ ${mode} != "wgs" ]]; then
+                 $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" FilterMutectCalls \
+                  -R $reference \
+                  -V mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf \
+                  -O mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+            fi
             # select passed variants
             # $gatk_path/gatk --java-options "-Djava.io.tmpdir=./.tmp" SelectVariants \
             #  -V mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf \
@@ -144,14 +149,17 @@ ${pipeline_dir}/08_filter_somatic_var.gatk.FilterMutectCalls.sh
 
             # compress and index
             index-vcf mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf
-            index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
-
+            if [[ ${mode} != "wgs" ]]; then
+                index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf
+            fi
             # normalize vcf file, compress, and tabix
             bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
             index-vcf mutect2/${tumor}__${normal}.mutect2.filtered-norm.${mode}.vcf
 
-            bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
-            index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
+            if [[ ${mode} != "wgs" ]]; then
+                bcftools norm -m- -f ${reference} mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors.${mode}.vcf.gz > mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
+                index-vcf mutect2/${tumor}__${normal}.mutect2.filtered_no-obpriors-norm.${mode}.vcf
+            fi
         fi
     fi
 fi

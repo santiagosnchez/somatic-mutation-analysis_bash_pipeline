@@ -70,13 +70,15 @@ if [[ "${tissue}" == "Somatic" ]]; then
       --tumour ${tumor} \
       --normal ${normal}
     # run on no-ob
-    ${software_dir}/bin/mutect2annovar.pl \
-      --vcf ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz \
-      --output annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.mutect2annovar_tbl.txt \
-      --filter false \
-      --header false \
-      --tumour ${tumor} \
-      --normal ${normal}
+    if [[ ${mode} != "wgs" ]]; then
+        ${software_dir}/bin/mutect2annovar.pl \
+          --vcf ${caller}/${tumor}__${normal}.${caller}.filtered_no-obpriors-norm.${mode}.vcf.gz \
+          --output annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.mutect2annovar_tbl.txt \
+          --filter false \
+          --header false \
+          --tumour ${tumor} \
+          --normal ${normal}
+    fi
     # run annovar
     # fetch the file name of the bedfile (for both WGS and WES)
     bedfile=$(echo ${intervals_bed} | rev | cut -d/ -f1 | rev)
@@ -96,31 +98,39 @@ if [[ "${tissue}" == "Somatic" ]]; then
       --bedfile ${bedfile} \
       --outfile annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}
     # on no-obpriors
-    ${software_dir}/bin/table_annovar.pl \
-      annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.mutect2annovar_tbl.txt \
-      $annovar_db \
-      --protocol refGene,ensGene,avsnp150,1000g2015aug_all,esp6500siv2_all,cosmic70,clinvar_20220320,exac03,bed \
-      --operation g,g,f,f,f,f,f,f,r \
-      --buildver ${genome} \
-      --remove \
-      --otherinfo \
-      --bedfile ${bedfile} \
-      --outfile annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}
+    if [[ ${mode} != "wgs" ]]; then
+        ${software_dir}/bin/table_annovar.pl \
+          annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.mutect2annovar_tbl.txt \
+          $annovar_db \
+          --protocol refGene,ensGene,avsnp150,1000g2015aug_all,esp6500siv2_all,cosmic70,clinvar_20220320,exac03,bed \
+          --operation g,g,f,f,f,f,f,f,r \
+          --buildver ${genome} \
+          --remove \
+          --otherinfo \
+          --bedfile ${bedfile} \
+          --outfile annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}
+    fi
     # if finished generate a MAF file based on Annovar
     if [[ $? == 0 ]]; then
       # run maftools in R
       annovar_input1="annovar/${tumor}__${normal}.${caller}.${tissue}.filtered-norm.${mode}.${genome}_multianno.txt"
-      annovar_input2="annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.${genome}_multianno.txt"
       # make R script
       R_cmd1=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
 library(maftools)
 annovarToMaf('${annovar_input1}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input1/.txt/}')"
-      R_cmd2=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
-library(maftools)
-annovarToMaf('${annovar_input2}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input2/.txt/}')"
       # run R
       echo "${R_cmd1}" | Rscript /dev/stdin
-      echo "${R_cmd2}" | Rscript /dev/stdin
+
+      # filter ob-priors block
+      if [[ ${mode} != "wgs" ]]; then
+          annovar_input2="annovar/${tumor}__${normal}.${caller}.${tissue}.filtered_no-obpriors-norm.${mode}.${genome}_multianno.txt"
+          # make R script
+          R_cmd2=".libPaths('/hpf/largeprojects/tabori/shared/software/R_libs/4.1.2/')
+library(maftools)
+annovarToMaf('${annovar_input2}', refBuild='${genome}', tsbCol='Otherinfo2', ens2hugo=TRUE, basename='${annovar_input2/.txt/}')"
+          # run R
+          echo "${R_cmd2}" | Rscript /dev/stdin
+      fi
     fi
 elif [[ "${tissue}" == "Germline" ]]; then
     # exit, not for germline
