@@ -115,11 +115,12 @@ if sample:
     except:
         mean_log2ratio_all = "Inf"
         std_log2ratio_all = "Inf"
+        total_log2_ratio = "Inf"
     else:
         var_log2ratio_all = sum([ (mean_log2ratio_all - x)**2 for x in log2ratio_all ])/len(log2ratio_all)
         std_log2ratio_all = math.sqrt(var_log2ratio_all)
+        total_log2_ratio = math.log2(sum_counts[0]/sum_counts[1])
 
-    total_log2_ratio = math.log2(sum_counts[0]/sum_counts[1])
     # header
     print("sample","total_F1R1","total_F2R1","total_log2_ratio","mean_log2_ratio_F1R2_over_F2R1_50plus","std_log2_ratio_F1R2_over_F2R1_50plus", sep="\t", file=out_sum)
     # print data
