@@ -148,7 +148,7 @@ if [[ ${tissue} == "Somatic" ]]; then
 
     # add header to analyses/coverage_and_tmb.csv
     if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
-        echo "tumor,normal,obs_coverage,exp_coverage,snvs,snvs_nob,indels,indels_nob,tmb_snvs,tmb_snvs_nob,tmb_indels,tmb_indels_nob" > analyses/coverage_and_tmb.csv
+        echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
     fi
 
     # expected coverage
@@ -169,18 +169,33 @@ if [[ ${tissue} == "Somatic" ]]; then
     # use prev coverage estimate
     # total snvs
     total_snvs=$(bcftools view -H --types snps mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz | wc -l)
-    total_snvs_nob=$(bcftools view -H --types snps mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
+
     # total indels
     total_indels=$(bcftools view -H --types indels mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf.gz | wc -l)
-    total_indels_nob=$(bcftools view -H --types indels mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
+
     # calc TMB
     TMB_snvs=$( echo "scale=2; ${total_snvs}/(${coverage}/1000000)" | bc | sed 's/^\./0\./')
     TMB_indels=$( echo "scale=2; ${total_indels}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
-    TMB_snvs_nob=$( echo "scale=2; ${total_snvs_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./')
-    TMB_indels_nob=$( echo "scale=2; ${total_indels_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
 
     # output
-    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_snvs_nob},${total_indels},${total_indels_nob},${TMB_snvs},${TMB_snvs_nob},${TMB_indels},${TMB_indels_nob}" >> analyses/coverage_and_tmb.csv
+    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
+
+    # get stats for no-ob file
+    if [[ ${mode} != "wgs" ]]; then
+
+        total_snvs_nob=$(bcftools view -H --types snps mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
+        total_indels_nob=$(bcftools view -H --types indels mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
+        TMB_snvs_nob=$( echo "scale=2; ${total_snvs_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./')
+        TMB_indels_nob=$( echo "scale=2; ${total_indels_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
+
+        # output
+        if [[ ! -e analyses/coverage_and_tmb_no-obpriors.csv ]]; then
+            echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb_no-obpriors.csv
+        else
+            echo "${tumor},${normal},${coverage},${expected},${total_snvs_nob},${total_indels_nob},${TMB_snvs_nob},${TMB_indels_nob}" >> analyses/coverage_and_tmb_no-obpriors.csv
+        fi
+    fi
+
     echo "10: Done calculating tumor mutation burden (TMB)." | tee -a main.log
 
     # look at differences in calls between varscan, mutect2 with ob-priors and without.
@@ -194,8 +209,10 @@ if [[ ${tissue} == "Somatic" ]]; then
     # run variant analysis
     Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism}
     # for no-ob
-    mkdir analyses/no-obpriors
-    Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism} "no-obpriors"
+    if [[ ${mode} != "wgs" ]]; then
+        mkdir analyses/no-obpriors
+        Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism} "no-obpriors"
+    fi
 fi
 
 # add to archive
