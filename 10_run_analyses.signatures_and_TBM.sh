@@ -179,7 +179,7 @@ if [[ ${tissue} == "Somatic" ]]; then
     TMB_indels_nob=$( echo "scale=2; ${total_indels_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
 
     # output
-    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_snvs_nob},${total_indels},${total_indels_nob},${TMB_snvs},${TMB_snvs_nob},${TMB_indels_nob}" >> analyses/coverage_and_tmb.csv
+    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_snvs_nob},${total_indels},${total_indels_nob},${TMB_snvs},${TMB_snvs_nob},${TMB_indels},${TMB_indels_nob}" >> analyses/coverage_and_tmb.csv
     echo "10: Done calculating tumor mutation burden (TMB)." | tee -a main.log
 
     # look at differences in calls between varscan, mutect2 with ob-priors and without.
