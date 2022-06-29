@@ -9,6 +9,8 @@ start=$(date)
 
 # load modules
 module load bcftools/1.11
+module load samtools/1.10
+module load tabix
 
 # set working dir
 cd $PBS_O_WORKDIR
