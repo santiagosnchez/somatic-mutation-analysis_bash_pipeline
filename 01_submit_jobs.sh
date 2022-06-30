@@ -56,6 +56,10 @@ Optional arguments:
 --alignment-only, -l    BOOL      Just do alignment up to BQSR. Skip variant calling and onwards.
                                   Default: false
 
+--skip-germline, -g     BOOL      Will skip calling germline variants with haplotypecaller. Only
+                                  for WES (no germline variants called for WGS).
+                                  Default: false
+
 --pipeline, -p          STR       Specify a different source location for pipeline scripts.
                                   Useful for testing new or old versions.
                                   Default: ${default_pipe_dir}
@@ -113,6 +117,7 @@ read_and_export_arguments(){
     export pipeline_dir=${args[0]}
     #unset args[0]
     export skip_aln=0
+    export skip_grm=0
     export aln_only=0
     export dry_run=0
     export fresh_start=0
@@ -143,6 +148,8 @@ read_and_export_arguments(){
                 export append=1
             elif [[ "${args[$i]}" == "-s" || "${args[$i]}" == "--skip-alignment" ]]; then
                 export skip_aln=1
+            elif [[ "${args[$i]}" == "-s" || "${args[$i]}" == "--skip-germline" ]]; then
+                export skip_grm=1
             elif [[ "${args[$i]}" == "-l" || "${args[$i]}" == "--alignment-only" ]]; then
                 export aln_only=1
             elif [[ "${args[$i]}" == "-d" || "${args[$i]}" == "--dry-run" ]]; then
@@ -208,12 +215,18 @@ elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
         if [[ ${make_pon} == 1 ]]; then
             echo -e "\n01: Creating a PoN" | tee -a main.log
         fi
+        if [[ ${skip_grm} == 1 ]]; then
+            echo -e "\n01: Skipping germline variant calling" | tee -a main.log
+        fi
         echo -e "\n01: Running as mode: ${mode}" | tee -a main.log
     else
         # print date and mode
         date
         if [[ ${make_pon} == 1 ]]; then
             echo "\n01: Creating a PoN"
+        fi
+        if [[ ${skip_grm} == 1 ]]; then
+            echo -e "\n01: Skipping germline variant calling"
         fi
         echo -e "\n01: Running as mode: ${mode}"
     fi

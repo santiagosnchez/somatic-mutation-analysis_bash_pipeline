@@ -23,9 +23,9 @@ library(cowplot)
 args = base::commandArgs(trailingOnly = TRUE)
 # read args
 data_type = args[1]
-sample_name = args[2]
-organism = args[3]
-no_ob = args[4]
+organism = args[2]
+vcf_dir = args[3]
+vcffile_pattern = args[4]
 
 # define db_type for sigminer
 if (organism == "human"){
@@ -45,8 +45,8 @@ if (organism == "human"){
 }
 
 # tumor - normal
-TUMOR = sub("__.*","",sample_name)
-NORMAL = sub(".*__","",sample_name)
+# TUMOR = sub("__.*","",sample_name)
+# NORMAL = sub(".*__","",sample_name)
 
 # get working dir
 current_dir=getwd()
@@ -56,16 +56,18 @@ current_dir=getwd()
 ##################
 
 # vector of filtered vcf files
-if (is.na(no_ob)){
-  somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected.",data_type,".vcf.gz")
-  outdir="analyses"
-} else {
-  somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected_no-obpriors.",data_type,".vcf.gz")
-  outdir="analyses/no-obpriors"
+vcffiles = list.files(vcf_dir, pattern=vcffile_pattern, full.names=T)
+# check if VCFs are compressed and indexed
+if (length(grep("vcf.gz$", vcffiles)) == 0){
+  stop("VCF files need to be gzipped and indexed.")
 }
+# file names
+vcffiles = vcffiles[ grep("vcf.gz$", vcffiles) ]
+# sample names
+samples = gsub("mutect2\\/|\\.mutect2.*","",vcffiles)
 
 # make/read vcf as maf
-maf.som <- read_vcf(somaticvcfpath)
+maf.som <- read_vcf(vcffiles, samples=samples)
 
 # make tally of maf objects
 # compares each VCF to the hg38 reference and extracts
@@ -194,7 +196,7 @@ tmb_data = read.csv("analyses/coverage_and_tmb.csv")
 tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
 
 # write to file
-write.csv(linear_decomp_cosmic, file=paste0(outdir, "/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
+write.csv(linear_decomp_cosmic, file=paste0("analyses/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
 
 # print old output
 # tmbs

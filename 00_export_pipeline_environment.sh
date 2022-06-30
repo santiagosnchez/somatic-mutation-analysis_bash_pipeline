@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # add a bin directory and additional default locations
-export PATH="/hpf/largeprojects/tabori/shared/bin:${PATH}"
+export PATH="/hpf/largeprojects/tabori/shared/software/bin:${PATH}"
 export PERL5LIB="/hpf/largeprojects/tabori/shared/software/perl5/lib/perl5:${PERL5LIB}"
 export PYTHONPATH="/hpf/largeprojects/tabori/shared/software/lib/python3.7:/hpf/largeprojects/tabori/shared/software/lib/python3.7/site-packages:/hpf/largeprojects/tabori/shared/software/lib/python3.7/dyn-lib:${PYTHONPATH}"
 
@@ -37,6 +37,9 @@ if [[ -z $1 ]]; then
     export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
     # path to snpEff data dir
     export snpeff_datadir=${resources_dir}/snpEff_data/4.11/data
+    # path to vep data dir
+    export vep_datadir=/hpf/tools/centos6/vep/cache102
+    export vep_species="homo_sapiens"
     # path to varscan jar file
     export varscan_jar=/hpf/tools/centos6/varscan/2.3.8/VarScan.v2.3.8.jar
     # point to recent version of gatk
@@ -184,11 +187,11 @@ else
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
-                export intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Covered.sorted_noMT.LiftOverToMm10.interval_list
+                export intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.interval_list
                 # path to WES tergets in bed format
-                export intervals_bed=${genomes}/${2}/AgilentSureSelectV1/S0276129_Covered.sorted_noMT.LiftOverToMm10.bed
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.bed
                 # path to WES intervals for running MuTect2
-                export bed30intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Covered.sorted_noMT.LiftOverToMm10.30-bed-files/
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.30-bed-files/
             else
                 # path to WES target intervals
                 export intervals=${genomes}/${2}/ucsc/wgs_callable_nonN-LC_regions.interval_list
