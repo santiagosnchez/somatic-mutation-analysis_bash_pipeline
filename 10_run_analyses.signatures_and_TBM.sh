@@ -223,6 +223,9 @@ check_finish=$?
 
 # check if command finished
 if [[ "$check_finish" == 0 ]]; then
+    # log finished sample
+    echo "10: Done for ${tumor}__${normal} in ${tissue}" | tee -a main.log
+    # check if finished for sample
     if [[ ${mode} == "wgs" || ${normal} == "PON" || (-e all_logfiles/${tumor}__${normal}.analyses.Germline.log && ${tissue} == "Somatic") || (-e all_logfiles/${tumor}__${normal}.analyses.Somatic.log && ${tissue} == "Germline") ]]; then
         # final logs and tidy up dir, ie. gargabe collection
         # run final COSMIC signature analysis
@@ -317,7 +320,7 @@ if [[ "$check_finish" == 0 ]]; then
                 echo "10: changing permissions" | tee -a main.log
                 find . -type d -user `whoami` -exec chmod 775 {} \;
                 find . -type f -user `whoami` -exec chmod 664 {} \;
-                echo "@@@@ All done. See you next time! @@@@"
+                echo "@@@@ All done. See you next time! @@@@" | tee -a main.log
             fi
         fi
     fi
@@ -326,7 +329,6 @@ if [[ "$check_finish" == 0 ]]; then
 
     # last move logfile to dir
     if [[ -e ${tumor}__${normal}.analyses.${tissue}.log ]]; then
-        echo "10: Done for ${tumor}__${normal} in ${tissue}" | tee -a main.log
         mv ${tumor}__${normal}.analyses.${tissue}.log all_logfiles
     fi
 fi
