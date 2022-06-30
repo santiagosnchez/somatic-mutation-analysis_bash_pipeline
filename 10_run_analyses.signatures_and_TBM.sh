@@ -228,8 +228,9 @@ if [[ "$check_finish" == 0 ]]; then
         # run final COSMIC signature analysis
         echo "${tumor},${normal}" >> finished.csv
         # get time it took
-        total_time_in_days=$( how_long main.log )
-        echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_days} days" | tee -a main.log
+        total_time_in_hours=$( how_long main.log h )
+        total_time_in_days=$( how_long main.log d )
+        echo "pipeline finished for ${tumor}__${normal} in ${total_time_in_hours} hrs or ${total_time_in_days} days." | tee -a main.log
         # check if all samples finished
         finished=$( cat finished.csv | sort -u | wc -l )
         started=$( cat tumors_and_normals.csv | grep -v "^#" | sort -u | wc -l )
@@ -305,9 +306,10 @@ if [[ "$check_finish" == 0 ]]; then
                 # log final
                 date | tee -a main.log
                 # get date pipeline started
-                total_time_in_days=$( how_long main.log )
+                total_time_in_hours=$( how_long main.log h )
+                total_time_in_days=$( how_long main.log d )
                 # final log
-                echo -e "\n10: pipeline took ${total_time_in_days} days for batch to complete" | tee -a main.log
+                echo -e "\n10: pipeline took ${total_time_in_days} days or ${total_time_in_hours} hrs for batch to complete" | tee -a main.log
                 # change/adjust permisions
                 # this configuration allows the main user and the users in the tabori group to
                 # read/write/excecute
