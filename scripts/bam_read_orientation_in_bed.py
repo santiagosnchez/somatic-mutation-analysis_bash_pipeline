@@ -95,7 +95,10 @@ for interval in bed:
     # count
     for read in bam.fetch(ch, int(st), int(en)):
         counter = count_reads(read, counter)
-    log2ratio = math.log2((counter['f1r2']+1)/(counter['f2r1']+1))
+    try:
+        log2ratio = math.log2((counter['f1r2']+1)/(counter['f2r1']+1))
+    except:
+        log2ratio = "Inf"
     if sample:
         # only targets with at least 50 reads
         if sum([counter['f1r2'], counter['f2r1']]) >= 50:
@@ -107,10 +110,17 @@ for interval in bed:
 
 if sample:
     # get stats
-    mean_log2ratio_all = sum(log2ratio_all)/len(log2ratio_all)
-    var_log2ratio_all = sum([ (mean_log2ratio_all - x)**2 for x in log2ratio_all ])/len(log2ratio_all)
-    std_log2ratio_all = math.sqrt(var_log2ratio_all)
-    total_log2_ratio = math.log2(sum_counts[0]/sum_counts[1])
+    try:
+        mean_log2ratio_all = sum(log2ratio_all)/len(log2ratio_all)
+    except:
+        mean_log2ratio_all = "Inf"
+        std_log2ratio_all = "Inf"
+        total_log2_ratio = "Inf"
+    else:
+        var_log2ratio_all = sum([ (mean_log2ratio_all - x)**2 for x in log2ratio_all ])/len(log2ratio_all)
+        std_log2ratio_all = math.sqrt(var_log2ratio_all)
+        total_log2_ratio = math.log2(sum_counts[0]/sum_counts[1])
+
     # header
     print("sample","total_F1R1","total_F2R1","total_log2_ratio","mean_log2_ratio_F1R2_over_F2R1_50plus","std_log2_ratio_F1R2_over_F2R1_50plus", sep="\t", file=out_sum)
     # print data
