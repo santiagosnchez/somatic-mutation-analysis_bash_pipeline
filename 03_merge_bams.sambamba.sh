@@ -50,7 +50,7 @@ pipeline_dir=${pipeline_dir},\
 organism=${organism},\
 genome=${genome},\
 aln_only=${aln_only} \
-${pipeline_dir}/02b_align_bam_to_ref.bwa.sh
+${pipeline_dir}/02b_align_and_sort_bam_to_ref.bwa.sh
        all_check=1
     fi
 done
