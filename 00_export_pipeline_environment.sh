@@ -32,6 +32,7 @@ if [[ -z $1 ]]; then
     export gnomad_resource=${genomes}/hg38/gatk_bundle/af-only-gnomad.hg38.vcf.gz
     # path to gatk's panel of normals vcf
     export gatk_pon=${genomes}/hg38/gatk_bundle/1000g_pon.hg38.vcf.gz
+    export gatk_pon_location=${genomes}/${2}/gatk_bundle/PoNs
     # reference independent locations:
     # path to snpEff jar file
     export snpeff_jar=/hpf/tools/centos6/snpEff/4.11/snpEff.jar
@@ -68,6 +69,7 @@ else
             export gnomad_resource=${genomes}/${2}/gatk_bundle/af-only-gnomad.hg38.vcf.gz
             # path to gatk's panel of normals vcf
             export gatk_pon=${genomes}/${2}/gatk_bundle/1000g_pon.hg38.vcf.gz
+            export gatk_pon_location=${genomes}/${2}/gatk_bundle/PoNs
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
@@ -184,6 +186,7 @@ else
             export gnomad_resource=null
             # path to gatk's panel of normals vcf
             export gatk_pon=${genomes}/${2}/ucsc/pon.5_samples.2022-06-16.vcf.gz
+            export gatk_pon_location=${genomes}/${2}/ucsc/PoNs
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals

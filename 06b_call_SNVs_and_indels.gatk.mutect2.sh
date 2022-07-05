@@ -67,6 +67,13 @@ else
   # run Mutect2 on tumor
   if [[ ! -e mutect2/${tumor}__${normal}.mutect2.unfiltered.${mode}.merged.vcf ]]; then
     if [[ "${normal}" == "PON" ]]; then
+      # if specified, use own PoN
+      grep -a "Using specified PoN" main.log &> /dev/null
+      if [[ $? == 0 ]]; then
+          # define specific PoN
+          this_pon=$(grep -a "Using specified PoN" main.log | sed 's/.*: //')
+          gatk_pon=${gatk_pon_location}/${this_pon}
+      fi
 $gatk_path/gatk --java-options "-Xmx20G -Djava.io.tmpdir=./.tmp" Mutect2 \
  -I ${dir}/${tumor}.bqsr.bam \
  -tumor ${tumor} \

@@ -40,7 +40,7 @@ fi
 source ${pipeline_dir}/00_export_pipeline_environment.sh ${organism} ${genome} ${mode}
 
 # fetch file_list file
-file_list=$(head -20 main.log | grep "^file list: " | sed 's/^file list: //')
+file_list=$(grep -a "^file list: " main.log | tail -1 | sed 's/^file list: //')
 
 # fetch sample names
 samples=$(cat ${file_list} | cut -d, -f1 | sort -u)
