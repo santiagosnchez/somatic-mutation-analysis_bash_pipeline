@@ -73,6 +73,11 @@ Optional arguments:
 --create-pon, -c        BOOL      Will make BAMs or take BAMs as input to create a PoN with GATK.
                                   Default: false
 
+--select-pon            STR       Name of the PoN VCF tu use (not the whole path!). By default, GATK will use
+                                  a predefined PoN (in script 00) if one is not specified.
+                                  Mostly used for mouse data.
+                                  Default: None
+
 --help, -h              BOOL      Print this help message.
 
 Example commands:
@@ -103,6 +108,9 @@ run_pipeline -m wes -a --skip-alignment
 # Build BAM alignments and create a panel of normals (PoN); WES human data.
 run_pipeline -m wes --create-pon
 
+# Specify a different PoN file. The PoN file needs to be in
+run_pipeline -m wes -o mouse --select-pon my_pons_for_exp1.vcf.gz
+
 "
 export help_message
 
@@ -122,6 +130,7 @@ read_and_export_arguments(){
     export dry_run=0
     export fresh_start=0
     export make_pon=0
+    export pon_file=0
     # required
     export mode=""
     # loop through arguments if there are any
@@ -158,6 +167,8 @@ read_and_export_arguments(){
                 export fresh_start=1
             elif [[ "${args[$i]}" == "-c" || "${args[$i]}" == "--create-pon" ]]; then
                 export make_pon=1
+            elif [[ "${args[$i]}" == "--select-pon" ]]; then
+                export pon_file=${args[$(( i + 1 ))]}
             elif [[ "${args[$i]}" == "-"* ]]; then
                 echo "$help_message"
                 die "Error: argument ${args[$i]} was not recognized." && return 1
@@ -218,6 +229,16 @@ elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
         if [[ ${skip_grm} == 1 ]]; then
             echo -e "\n01: Skipping germline variant calling" | tee -a main.log
         fi
+        if [[ ${pon_file} != 0 ]]; then
+            echo $pon_file | grep ".vcf.gz$" > /dev/null
+            if [[ $? != 0 ]]; then
+                echo -e "$help_message"
+                echo "Error: PoN file is not bgzip compressed VCF."
+                exit 1
+            else
+                echo -e "\n01: Using specified PoN: ${pon_file}" | tee -a main.log
+            fi
+        fi
         echo -e "\n01: Running as mode: ${mode}" | tee -a main.log
     else
         # print date and mode
@@ -227,6 +248,16 @@ elif [[ ${mode} == "wes" || ${mode} == "wgs" ]]; then
         fi
         if [[ ${skip_grm} == 1 ]]; then
             echo -e "\n01: Skipping germline variant calling"
+        fi
+        if [[ ${pon_file} != 0 ]]; then
+            echo $pon_file | grep ".vcf.gz$" > /dev/null
+            if [[ $? != 0 ]]; then
+                echo -e "$help_message"
+                echo "Error: PoN file is not bgzip compressed VCF."
+                exit 1
+            else
+                echo -e "\n01: Using specified PoN: ${pon_file}"
+            fi
         fi
         echo -e "\n01: Running as mode: ${mode}"
     fi

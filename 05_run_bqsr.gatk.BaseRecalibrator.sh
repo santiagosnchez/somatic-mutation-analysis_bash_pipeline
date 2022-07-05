@@ -136,8 +136,8 @@ if [[ "$check_finish" == 0 ]]; then
     echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
     # check if the mode is to create a PoN
     if [[ -e main.log ]]; then
-        make_pon=$(head -20 main.log | grep "Creating a PoN" &> /dev/null && echo 1 || echo 0)
-        skip_grm=$(head -20 main.log | grep "Skipping germline variant calling" &> /dev/null && echo 1 || echo 0)
+        make_pon=$(grep -a "Creating a PoN" main.log &> /dev/null && echo 1 || echo 0)
+        skip_grm=$(grep -a "Skipping germline variant calling" main.log &> /dev/null && echo 1 || echo 0)
     else
         echo "05: Cannot find main.log. Please rerun." | tee -a main.log
         exit 1
