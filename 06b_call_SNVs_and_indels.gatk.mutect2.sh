@@ -213,7 +213,7 @@ organism=${organism},\
 genome=${genome} \
 ${pipeline_dir}/07_pon.gatk.CreateSomaticPanelOfNormals.sh
                     # last log
-                    echo "06: All VCFs completed."
+                    echo "06: All VCFs completed." | tee -a main.log
                     echo "06: Submitting final step for PoN." | tee -a main.log
                 else
                     remaining=$(echo "${total_samples}-${total_vcfs}" | bc)
