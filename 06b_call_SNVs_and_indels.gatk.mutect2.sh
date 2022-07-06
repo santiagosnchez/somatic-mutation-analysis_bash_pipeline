@@ -199,10 +199,11 @@ if [[ "$check_finish" == 0 ]]; then
             if [[ ${make_pon} == 1 ]]; then
                 echo "06: VCF for PoN created successfuly for ${normal}." | tee -a main.log
                 # get samples
-                samples=$(cat file_list.csv | cut -d, -f1 | sort -u)
+                file_list=$(grep -a "^file list: " main.log | tail -1 | sed 's/^file list: //')
+                samples=$(cat ${file_list} | cut -d, -f1 | sort -u)
                 total_samples=$(echo "${samples}" | wc -l)
                 # count VCF files
-                total_vcfs=$(ls mutect2/*.mutect2.pon.merged.vcf.gz | wc -l)
+                total_vcfs=$(ls mutect2/*.mutect2.pon.merged.vcf.gz | grep "${samples/ /\|/}" | wc -l)
                 if [[ ${total_samples} == ${total_vcfs} ]]; then
                     # submit last PoN job
                     qsub -v \
