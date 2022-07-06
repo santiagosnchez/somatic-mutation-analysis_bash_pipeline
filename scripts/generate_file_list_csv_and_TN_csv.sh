@@ -15,6 +15,9 @@ generate_csv_from_filepath(){
              elsif ($a[scalar(@a)-1] =~ m/^(.+?)_(R[12])\.fastq\.gz/){
                  print $1 . "," . "L001" . "," . $_;
              }
+             elsif ($a[scalar(@a)-1] =~ m/^(.+?)\.bqsr\.bam/){
+                 print $1 . "," . "L001" . "," . $_;
+             }
              else {
                  print ",," . $_
              }'
