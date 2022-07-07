@@ -73,7 +73,19 @@ if [[ ${input1} == "y" ]]; then
             fi
             file $1 | grep "ASCII text"
             if [[ "$?" == 0 ]]; then
-               cat $1 | parallel --keep 'generate_csv_from_filepath {}' | sort -V | paste -d, - - | cut -d, -f1,3,6 > file_list.csv
+                for i in `cat $1`; do
+                  if [[ $i == *".bam" ]]; then
+                    bams="${bams} $(generate_csv_from_filepath $i)"
+                  elif [[ $i == *".fastq.gz" ]]; then
+                    fastqs="${fastqs} $(generate_csv_from_filepath $i)"
+                  fi
+                done
+                if [[ ! -z $fastqs ]]; then
+                    echo ${fastqs} | tr ' ' '\n' | sort -V | paste -d, - - | cut -d, -f1,3,6 >> file_list.csv
+                fi
+                if [[ ! -z $bams ]]; then
+                    echo ${bams} | tr ' ' '\n' | sort -V | cut -d, -f1,3 >> file_list.csv
+                fi
             fi
         fi
     fi
@@ -92,9 +104,11 @@ fi
 # attempt to predict the T/N csv file
 predict_TN file_list.csv > tumors_and_normals.csv
 # check file
-file tumors_and_normals.csv
+file tumors_and_normals.csv | grep "ASCII"
 if [[ "$?" == 0 ]]; then
     echo "tumors_and_normals.csv is ready"
+else
+    echo "tumors_and_normals.csv not found"
 fi
 
 # check if T/N csv file is ready to go
