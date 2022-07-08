@@ -122,6 +122,23 @@ if [[ ${tissue} == "Somatic" ]]; then
         ${tumor} ${normal} Somatic \
         > analyses/${tumor}__${normal}.annotations_snpeff_somatic.csv
     fi
+    # get stats for no-ob file annotated-snpeff_no-obpriors
+    if [[ ${mode} != "wgs" ]]; then
+        if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz ]]; then
+            ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
+            vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz \
+            ${tumor} ${normal} Somatic \
+            > analyses/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
+        fi
+        if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz ]]; then
+            # get all annotations into csv
+            # snpeff Somatic
+            ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
+            vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz \
+            ${tumor} ${normal} Somatic \
+            > analyses/${tumor}__${normal}.annotations_snpeff_somatic_no-obpriors.csv
+        fi
+    fi
     echo "10: done extracting somatic variants from vcf file for ${tumor}__${normal}" | tee -a main.log
 fi
 
