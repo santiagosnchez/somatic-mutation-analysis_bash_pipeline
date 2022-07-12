@@ -288,7 +288,7 @@ fi
 
 # get current directory
 current=`pwd -P`
-if [[ ${make_pon} == 0 || ${aln_only} == 0 ]]; then
+if [[ ${make_pon} == 0 && ${aln_only} == 0 ]]; then
     # check tumors_and_normals.csv
     if [[ ! -e tumors_and_normals.csv ]]; then
         echo "tumors_and_normals.csv file not found in working directory: $current"
