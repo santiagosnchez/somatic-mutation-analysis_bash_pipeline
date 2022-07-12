@@ -18,14 +18,62 @@ library(cowplot)
 #library(ggtext)
 #library(biomaRt)
 
+read_args = function(){
+  # options:
+  # ** required **
+  # -m/--mode wes | wgs
+  # -o/--organism human | mouse
+  #
+  # at least one of the following (at least 3 indexed VCF files)
+  # sample1.vcf.gz sample2.vcf.gz sample3.vcf.gz ... [ sampleX.vcf.gz ]
+  # -d/--dir vcf (a directory with input VCF files; can be named in any way)
 
-# get args
-args = base::commandArgs(trailingOnly = TRUE)
-# read args
-data_type = args[1]
-organism = args[2]
-vcf_dir = args[3]
-vcffile_pattern = args[4]
+  # help message
+  help_message="Examples:
+Rscript signature_analysis.cohort.R --mode wes --organism human -d vcf
+Rscript signature_analysis.cohort.R --mode wgs --organism human -d vcf
+Rscript signature_analysis.cohort.R --mode wes --organism mouse vcf/*mutect2.all.Somatic.annotated-snpeff.wes.vcf.gz
+"
+  #
+  args = base::commandArgs(trailingOnly = TRUE)
+  # for debugging
+  #args = c("--mode", "wes", "--organism", "human", "-d", "vcf")
+  # read args
+  for (i in 1:length(args)){
+    if (args[i] == "-m" | args[i] == "--mode"){
+      data_type = args[i+1]
+    }
+    if (args[i] == "-o" | args[i] == "--organism"){
+      organism = args[i+1]
+    }
+    if (args[i] == "-d" | args[i] == "--dir"){
+      vcf_dir = args[i+1]
+    }
+  }
+  # prep output arg list
+  res = list()
+  if (!(exists("data_type") & exists("organism"))){
+    stop(paste("Error: --mode or --organism options missing\n", help_message, sep="\n"))
+  }
+  if (length(args) < 6){
+    stop(paste("Error: not enough arguments\n", help_message, sep="\n"))
+  }
+  if (exists("vcf_dir") & length(args) > 6){
+    stop(paste("Error: either use --dir option or VCF file list; not both\n", help_message, sep="\n"))
+  } else {
+    if (exists("vcf_dir")){
+      res$vcf_dir = vcf_dir
+      res$files = NULL
+    } else {
+      res$vcf_dir = NULL
+      res$files = args[7:length(args)]
+    }
+  }
+  # add other args
+  res$data_type = data_type
+  res$organism = organism
+  return(res)
+}
 
 # define db_type for sigminer
 if (organism == "human"){

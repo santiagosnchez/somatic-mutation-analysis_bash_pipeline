@@ -467,10 +467,11 @@ else
           exit 1
         else
           for sample in $ready; do
-            TN=$(grep "^${sample},\|,${sample}$" tumors_and_normals.csv)
-            if [[ ${#TN} -gt 0 ]]; then
-              wt=$(get_walltime $(readlink -f $dir/${sample}.bqsr.bam))
-              qsub -l walltime=${wt}:00:00 -v \
+              if [[ $make_pon == 0 ]]; then
+                  TN=$(grep "^${sample},\|,${sample}$" tumors_and_normals.csv)
+                  if [[ ${#TN} -gt 0 ]]; then
+                    wt=$(get_walltime $(readlink -f $dir/${sample}.bqsr.bam))
+                    qsub -l walltime=${wt}:00:00 -v \
 sample=${sample},\
 wt=${wt},\
 mode=${mode},\
@@ -479,7 +480,21 @@ organism=${organism},\
 genome=${genome},\
 aln_only=0 \
 ${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
-            fi
+                  else
+                      echo "$sample not in tumors_and_normals.csv; Skipping..." | tee -a main.log
+                  fi
+              else
+                  wt=$(get_walltime $(readlink -f $dir/${sample}.bqsr.bam))
+                  qsub -l walltime=${wt}:00:00 -v \
+sample=${sample},\
+wt=${wt},\
+mode=${mode},\
+pipeline_dir=${pipeline_dir},\
+organism=${organism},\
+genome=${genome},\
+aln_only=0 \
+${pipeline_dir}/05_run_bqsr.gatk.BaseRecalibrator.sh | tee -a main.log
+              fi
           done
         fi
     else

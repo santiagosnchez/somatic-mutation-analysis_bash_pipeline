@@ -196,7 +196,10 @@ ${pipeline_dir}/06b_call_SNVs_and_indels.gatk.mutect2.sh" | tee -a main.log
             runtime=$( how_long "${start}" h )
             # log to main
             echo "05: BQSR step for ${sample} took ${runtime} hours" | tee -a main.log
-            mv ${sample}.BQSR.log ${sample}.baserecalibrator.txt all_logfiles
+            mv ${sample}.BQSR.log all_logfiles
+            if [[ -e ${sample}.baserecalibrator.txt ]]; then
+                mv ${sample}.baserecalibrator.txt all_logfiles
+            fi
         else
             # check if file exists and continue
             if [[ -e tumors_and_normals.csv ]]; then
