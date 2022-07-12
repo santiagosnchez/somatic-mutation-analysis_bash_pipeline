@@ -24,8 +24,10 @@ echo $PBS_JOBID
 echo $start
 
 # create dir for contamination
-if [[ ! -e contamination ]]; then
-    mkdir contamination
+if [[ -z $make_pon]]
+    if [[ ! -e contamination ]]; then
+        mkdir contamination
+    fi
 fi
 
 # create output dirs

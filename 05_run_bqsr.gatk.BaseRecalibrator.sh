@@ -48,8 +48,19 @@ fi
 if [[ -z $aln_only ]]; then
     aln_only=0
 fi
+# check if the mode is to create a PoN
+if [[ -e main.log ]]; then
+    make_pon=$(grep -a "Creating a PoN" main.log &> /dev/null && echo 1 || echo 0)
+    skip_grm=$(grep -a "Skipping germline variant calling" main.log &> /dev/null && echo 1 || echo 0)
+else
+    echo "05: Cannot find main.log. Please rerun." | tee -a main.log
+    exit 1
+fi
+
 # debug
-echo "alignment-only mode: ${aln_only}"
+echo "alignment-only mode: ${aln_only}" | tee -a main.log
+echo "pon mode: ${make_pon}" | tee -a main.log
+echo "skip germline: ${skip_grm}" | tee -a main.log
 
 # load reference path and other reference files
 # for details check script
@@ -134,14 +145,6 @@ if [[ "$check_finish" == 0 ]]; then
     # next round of jobs are submitted manually or not
     # log to main
     echo "05: BQSR has been completed for sample ${sample}." | tee -a main.log
-    # check if the mode is to create a PoN
-    if [[ -e main.log ]]; then
-        make_pon=$(grep -a "Creating a PoN" main.log &> /dev/null && echo 1 || echo 0)
-        skip_grm=$(grep -a "Skipping germline variant calling" main.log &> /dev/null && echo 1 || echo 0)
-    else
-        echo "05: Cannot find main.log. Please rerun." | tee -a main.log
-        exit 1
-    fi
     # echo submit read orientation counts
     if  [[ ${make_pon} == 0 ]]; then
         if [[ ! -e orientation/${sample}.read_orientation.summary.tsv ]]; then
