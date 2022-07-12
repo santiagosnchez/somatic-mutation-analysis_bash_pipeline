@@ -213,7 +213,7 @@ elif [[ "${tissue}" == "Germline" ]]; then
     caller="haplotypecaller"
 
     if [[ -e ${snpeff_datadir}/${genome} ]]; then
-        if [[ -e ${caller}/haplotypecaller/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz ]]; then
+        if [[ -e ${caller}/${tumor}__${normal}.${caller}.selected.${mode}.vcf.gz ]]; then
           # run snpEff on Varscan Germline calls
           java -jar $snpeff_jar \
            -dataDir $snpeff_datadir \
