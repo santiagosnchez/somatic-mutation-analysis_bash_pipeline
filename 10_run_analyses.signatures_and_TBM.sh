@@ -27,6 +27,22 @@ echo $PBS_JOBID
 if [[ ! -e analyses ]]; then
     mkdir analyses
 fi
+if [[ ! -e analyses/signatures ]]; then
+    mkdir analyses/signatures
+fi
+if [[ ! -e analyses/annotations ]]; then
+    mkdir analyses/annotations
+fi
+
+if [[ ! -e analyses/no-obpriors ]]; then
+    mkdir analyses/no-obpriors
+fi
+if [[ ! -e analyses/signatures ]]; then
+    mkdir analyses/no-obpriors/signatures
+fi
+if [[ ! -e analyses/annotations ]]; then
+    mkdir analyses/no-obpriors/annotations
+fi
 
 # create tmp dir
 if [[ ! -e .tmp ]]; then
@@ -112,7 +128,7 @@ if [[ ${tissue} == "Somatic" ]]; then
         bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
         vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Somatic \
-        > analyses/${tumor}__${normal}.annotations_funcotator_somatic.csv
+        > analyses/annotations/${tumor}__${normal}.annotations_funcotator_somatic.csv
     fi
     if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz ]]; then
         # get all annotations into csv
@@ -120,7 +136,7 @@ if [[ ${tissue} == "Somatic" ]]; then
         bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
         vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
         ${tumor} ${normal} Somatic \
-        > analyses/${tumor}__${normal}.annotations_snpeff_somatic.csv
+        > analyses/annotations/${tumor}__${normal}.annotations_snpeff_somatic.csv
     fi
     # get stats for no-ob file annotated-snpeff_no-obpriors
     if [[ ${mode} != "wgs" ]]; then
@@ -128,7 +144,7 @@ if [[ ${tissue} == "Somatic" ]]; then
             bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
-            > analyses/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
+            > analyses/annotations/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
         fi
         if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz ]]; then
             # get all annotations into csv
@@ -136,7 +152,7 @@ if [[ ${tissue} == "Somatic" ]]; then
             bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
-            > analyses/${tumor}__${normal}.annotations_snpeff_somatic_no-obpriors.csv
+            > analyses/annotations/${tumor}__${normal}.annotations_snpeff_somatic_no-obpriors.csv
         fi
     fi
     echo "10: done extracting somatic variants from vcf file for ${tumor}__${normal}" | tee -a main.log
@@ -148,24 +164,49 @@ if [[ "${normal}" != "PON" && ${tissue} == "Germline" ]]; then
         bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
         vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
-        > analyses/${tumor}__${normal}.annotations_funcotator_germline.csv
+        > analyses/annotations/${tumor}__${normal}.annotations_funcotator_germline.csv
     fi
     if [[ -e vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-snpeff.${mode}.vcf.gz ]]; then
         bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
         vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-snpeff.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
-        > analyses/${tumor}__${normal}.annotations_snpeff_germline.csv
+        > analyses/annotations/${tumor}__${normal}.annotations_snpeff_germline.csv
     fi
     echo "10: done extracting germline variants from vcf file for ${tumor}__${normal}" | tee -a main.log
 fi
 
 if [[ ${tissue} == "Somatic" ]]; then
     # log
+    echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
+
+    # run variant analysis
+    Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism} "signatures"
+    # for no-ob
+    if [[ ${mode} != "wgs" ]]; then
+        Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism} "no-obpriors/signatures"
+
+        sig_prop_nob=$(echo $(cat analyses/no-obpriors/signatures/${tumor}__${normal}.COSMIC_v3.2.signatures.csv | \
+        awk -v FS="," '$3 ~ /^(SBS1|SBS6|SBS10a|SBS10b|SBS10c|SBS10d|SBS14|SBS15|SBS20|SBS26|SBS44)$/' | \
+        cut -d, -f1) | tr ' ' ',')
+    fi
+
+    # get sigs into a single CSV line
+    # header first
+    sig_heads=$(echo $(cat analyses/signatures/${tumor}__${normal}.COSMIC_v3.2.signatures.csv | \
+    awk -v FS="," '$3 ~ /^(SBS1|SBS6|SBS10a|SBS10b|SBS10c|SBS10d|SBS14|SBS15|SBS20|SBS26|SBS44)$/' | \
+    cut -d, -f3) | tr ' ' ',')
+
+    # proportions
+    sig_prop=$(echo $(cat analyses/signatures/${tumor}__${normal}.COSMIC_v3.2.signatures.csv | \
+    awk -v FS="," '$3 ~ /^(SBS1|SBS6|SBS10a|SBS10b|SBS10c|SBS10d|SBS14|SBS15|SBS20|SBS26|SBS44)$/' | \
+    cut -d, -f1) | tr ' ' ',')
+
+    # log
     echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
 
     # add header to analyses/coverage_and_tmb.csv
-    if [[ ! -e analyses/coverage_and_tmb.csv ]]; then
-        echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb.csv
+    if [[ ! -e analyses/coverage_tmb_and_mmr_sigs.csv ]]; then
+        echo "Tumor,Normal,Observed_coverage,Expected_coverage,SNV,Indels,TMB_SNV,TMB_indels,"${sig_heads} > analyses/coverage_tmb_and_mmr_sigs.csv
     fi
 
     # expected coverage
@@ -195,12 +236,10 @@ if [[ ${tissue} == "Somatic" ]]; then
     TMB_indels=$( echo "scale=2; ${total_indels}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
 
     # output
-    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels}" >> analyses/coverage_and_tmb.csv
+    echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels},${sig_prop}" >> analyses/coverage_tmb_and_mmr_sigs.csv
 
     # get stats for no-ob file
     if [[ ${mode} != "wgs" ]]; then
-
-        mkdir analyses/no-obpriors
 
         total_snvs_nob=$(bcftools view -H --types snps mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
         total_indels_nob=$(bcftools view -H --types indels mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
@@ -209,9 +248,9 @@ if [[ ${tissue} == "Somatic" ]]; then
 
         # output
         if [[ ! -e analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv ]]; then
-            echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv
+            echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels,"${sig_heads} > analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv
         else
-            echo "${tumor},${normal},${coverage},${expected},${total_snvs_nob},${total_indels_nob},${TMB_snvs_nob},${TMB_indels_nob}" >> analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv
+            echo "${tumor},${normal},${coverage},${expected},${total_snvs_nob},${total_indels_nob},${TMB_snvs_nob},${TMB_indels_nob},${sig_prop_nob}" >> analyses/no-obpriors/coverage_tmb_and_mmr_sigs_no-obpriors.csv
         fi
     fi
 
@@ -222,15 +261,6 @@ if [[ ${tissue} == "Somatic" ]]; then
     # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected.${mode}.vcf | wc -l)
     # mutect2_all_filters_snvs=$(bcftools view -H -v snps -f PASS mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf | wc -l)
 
-    # log
-    echo "10: Running signature analysis (${tumor}__${normal})" | tee -a main.log
-
-    # run variant analysis
-    Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism}
-    # for no-ob
-    if [[ ${mode} != "wgs" ]]; then
-        Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism} "no-obpriors"
-    fi
 fi
 
 # add to archive
@@ -283,18 +313,20 @@ if [[ "$check_finish" == 0 ]]; then
               }' $1
               }
 
-              # get all MMR annotations into a CSV table
-              ls *.annotations_funcotator_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > all_mmr_annotations_funcotator_somatic.csv
-              ls *.annotations_snpeff_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > all_mmr_annotations_snpeff_somatic.csv
+            # get all MMR annotations into a CSV table
+            ls analyses/annotations/*.annotations_funcotator_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_somatic.csv
+            ls analyses/annotations/*.annotations_snpeff_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_somatic.csv
             if [[ "${normal}" != "PON" ]]; then
-                ls *.annotations_funcotator_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > all_mmr_annotations_funcotator_germline.csv
-                ls *.annotations_snpeff_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > all_mmr_annotations_snpeff_germline.csv
+                ls analyses/annotations/*.annotations_funcotator_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_germline.csv
+                ls analyses/annotations/*.annotations_snpeff_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_germline.csv
             fi
 
             # export to zip file
             today=$(date -I)
             zip -r export_results.${today}.zip annovar/*_multianno.maf \
-                                               analyses/all_mmr_annotations_snpeff_germline.csv \
+                                               analyses/all_mmr_annotations_funcotator_somatic.csv \
+                                               analyses/all_mmr_annotations_funcotator_germline.csv \
+                                               analyses/all_mmr_annotations_snpeff_somatic.csv \
                                                analyses/all_mmr_annotations_snpeff_germline.csv \
                                                analyses/old_output*
 
@@ -308,9 +340,9 @@ if [[ "$check_finish" == 0 ]]; then
                 rm -rf BQSR
             fi
             #
-            if [[ -e varscan/pileups ]]; then
-              rm -rf varscan/pileups
-            fi
+            # if [[ -e varscan/pileups ]]; then
+            #   rm -rf varscan/pileups
+            # fi
             # move stats to all_logfiles
             mv mutect2/*.filteringStats.tsv all_logfiles
             #mv mutect2/*.mutect2.unfiltered.wes.merged.vcf.stats all_logfiles
@@ -324,26 +356,23 @@ if [[ "$check_finish" == 0 ]]; then
                 rm -rf unmapped_bam
             fi
             # write final logs and change permissions
-            grep "pipeline took" main.log
-            if [[ "$?" != 0 ]]; then
-                # final log
-                echo "10: pipeline finished for batch." | tee -a main.log
-                # log final
-                date | tee -a main.log
-                # get date pipeline started
-                total_time_in_hours=$( how_long main.log h )
-                total_time_in_days=$( how_long main.log d )
-                # final log
-                echo -e "\n10: pipeline took ${total_time_in_days} days or ${total_time_in_hours} hrs for batch to complete" | tee -a main.log
-                # change/adjust permisions
-                # this configuration allows the main user and the users in the tabori group to
-                # read/write/excecute
-                # dirs first
-                echo "10: changing permissions" | tee -a main.log
-                find . -type d -user `whoami` -exec chmod 775 {} \;
-                find . -type f -user `whoami` -exec chmod 664 {} \;
-                echo "@@@@ All done. See you next time! @@@@" | tee -a main.log
-            fi
+            # final log
+            echo "10: pipeline finished for batch." | tee -a main.log
+            # log final
+            date | tee -a main.log
+            # get date pipeline started
+            total_time_in_hours=$( how_long main.log h )
+            total_time_in_days=$( how_long main.log d )
+            # final log
+            echo -e "\n10: pipeline took ${total_time_in_days} days or ${total_time_in_hours} hrs for batch to complete" | tee -a main.log
+            # change/adjust permisions
+            # this configuration allows the main user and the users in the tabori group to
+            # read/write/excecute
+            # dirs first
+            echo "10: changing permissions" | tee -a main.log
+            find . -type d -user `whoami` -exec chmod 775 {} \;
+            find . -type f -user `whoami` -exec chmod 664 {} \;
+            echo "@@@@ All done. See you next time! @@@@" | tee -a main.log
         fi
     fi
     # run mutational signature analysis
