@@ -218,12 +218,12 @@ write.csv(linear_decomp_cosmic2, file=paste0(outdir, "/", sample_name, ".COSMIC_
 # print old output
 # tmbs
 # "Tumor,Normal,Observed_coverage,Expected_coverage,SNV,Indels,TMB_SNV,TMB_indels,"${sig_heads}
-if (file.exists("analyses/old_output.tmbs.tsv")){
-  cat(sample_name, tmb$SNV, tmb$TMB_SNV, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
-} else {
-  cat("sample", "total_SNV", "TMB", "\n", sep="\t", file="analyses/old_output.tmbs.tsv")
-  cat(sample_name, tmb$SNV, tmb$TMB_SNV, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
-}
+# if (file.exists("analyses/old_output.tmbs.tsv")){
+#   cat(sample_name, tmb$SNV, tmb$TMB_SNV, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
+# } else {
+#   cat("sample", "total_SNV", "TMB", "\n", sep="\t", file="analyses/old_output.tmbs.tsv")
+#   cat(sample_name, tmb$SNV, tmb$TMB_SNV, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
+# }
 # signatures v3.2
 if (file.exists("analyses/old_output.v3.sigs.tsv")){
   tmp_sigs = rep(0, length(linear_decomp_cosmic3[,"contribution_proportion"]))

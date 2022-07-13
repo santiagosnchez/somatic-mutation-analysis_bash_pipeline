@@ -37,10 +37,10 @@ fi
 if [[ ! -e analyses/no-obpriors ]]; then
     mkdir analyses/no-obpriors
 fi
-if [[ ! -e analyses/signatures ]]; then
+if [[ ! -e analyses/no-obpriors/signatures ]]; then
     mkdir analyses/no-obpriors/signatures
 fi
-if [[ ! -e analyses/annotations ]]; then
+if [[ ! -e analyses/no-obpriors/annotations ]]; then
     mkdir analyses/no-obpriors/annotations
 fi
 
@@ -144,7 +144,7 @@ if [[ ${tissue} == "Somatic" ]]; then
             bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
-            > analyses/annotations/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
+            > analyses/no-obpriors/annotations/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
         fi
         if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz ]]; then
             # get all annotations into csv
@@ -152,7 +152,7 @@ if [[ ${tissue} == "Somatic" ]]; then
             bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
-            > analyses/annotations/${tumor}__${normal}.annotations_snpeff_somatic_no-obpriors.csv
+            > analyses/no-obpriors/annotations/${tumor}__${normal}.annotations_snpeff_somatic_no-obpriors.csv
         fi
     fi
     echo "10: done extracting somatic variants from vcf file for ${tumor}__${normal}" | tee -a main.log
@@ -204,9 +204,14 @@ if [[ ${tissue} == "Somatic" ]]; then
     # log
     echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
 
-    # add header to analyses/coverage_and_tmb.csv
+    # add header to analyses/coverage_tmb_and_mmr_sigs
     if [[ ! -e analyses/coverage_tmb_and_mmr_sigs.csv ]]; then
         echo "Tumor,Normal,Observed_coverage,Expected_coverage,SNV,Indels,TMB_SNV,TMB_indels,"${sig_heads} > analyses/coverage_tmb_and_mmr_sigs.csv
+    fi
+
+    # add header to analyses/old_output.tmbs.tsv
+    if [[ ! -e analyses/old_output.tmbs.tsv ]]; then
+        echo -e "sample\ttotal_SNV\tTMB" > analyses/old_output.tmbs.tsv
     fi
 
     # expected coverage
@@ -237,6 +242,7 @@ if [[ ${tissue} == "Somatic" ]]; then
 
     # output
     echo "${tumor},${normal},${coverage},${expected},${total_snvs},${total_indels},${TMB_snvs},${TMB_indels},${sig_prop}" >> analyses/coverage_tmb_and_mmr_sigs.csv
+    echo -e "${tumor}\t${normal}\t${total_snvs}\t${TMB_snvs}" >> analyses/old_output.tmbs.tsv
 
     # get stats for no-ob file
     if [[ ${mode} != "wgs" ]]; then
