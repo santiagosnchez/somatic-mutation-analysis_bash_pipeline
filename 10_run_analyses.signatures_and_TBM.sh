@@ -109,7 +109,7 @@ echo "10: Fetching all variant annotations." | tee -a main.log
 # funcotator Somatic
 if [[ ${tissue} == "Somatic" ]]; then
     if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz ]]; then
-        ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
+        bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
         vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Somatic \
         > analyses/${tumor}__${normal}.annotations_funcotator_somatic.csv
@@ -117,7 +117,7 @@ if [[ ${tissue} == "Somatic" ]]; then
     if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz ]]; then
         # get all annotations into csv
         # snpeff Somatic
-        ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
+        bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
         vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff.${mode}.vcf.gz \
         ${tumor} ${normal} Somatic \
         > analyses/${tumor}__${normal}.annotations_snpeff_somatic.csv
@@ -125,7 +125,7 @@ if [[ ${tissue} == "Somatic" ]]; then
     # get stats for no-ob file annotated-snpeff_no-obpriors
     if [[ ${mode} != "wgs" ]]; then
         if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz ]]; then
-            ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
+            bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
             > analyses/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
@@ -133,7 +133,7 @@ if [[ ${tissue} == "Somatic" ]]; then
         if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz ]]; then
             # get all annotations into csv
             # snpeff Somatic
-            ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
+            bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-snpeff_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
             > analyses/${tumor}__${normal}.annotations_snpeff_somatic_no-obpriors.csv
@@ -145,13 +145,13 @@ fi
 # check if tumor-only mode or germline
 if [[ "${normal}" != "PON" && ${tissue} == "Germline" ]]; then
     if [[ -e vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz ]]; then
-        ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
+        bash ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
         vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
         > analyses/${tumor}__${normal}.annotations_funcotator_germline.csv
     fi
     if [[ -e vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-snpeff.${mode}.vcf.gz ]]; then
-        ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
+        bash ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
         vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-snpeff.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
         > analyses/${tumor}__${normal}.annotations_snpeff_germline.csv
@@ -200,16 +200,18 @@ if [[ ${tissue} == "Somatic" ]]; then
     # get stats for no-ob file
     if [[ ${mode} != "wgs" ]]; then
 
+        mkdir analyses/no-obpriors
+
         total_snvs_nob=$(bcftools view -H --types snps mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
         total_indels_nob=$(bcftools view -H --types indels mutect2/${tumor}__${normal}.mutect2.selected_no-obpriors.${mode}.vcf.gz | wc -l)
         TMB_snvs_nob=$( echo "scale=2; ${total_snvs_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./')
         TMB_indels_nob=$( echo "scale=2; ${total_indels_nob}/(${coverage}/1000000)" | bc | sed 's/^\./0\./' )
 
         # output
-        if [[ ! -e analyses/coverage_and_tmb_no-obpriors.csv ]]; then
-            echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/coverage_and_tmb_no-obpriors.csv
+        if [[ ! -e analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv ]]; then
+            echo "tumor,normal,obs_coverage,exp_coverage,snvs,indels,tmb_snvs,tmb_indels" > analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv
         else
-            echo "${tumor},${normal},${coverage},${expected},${total_snvs_nob},${total_indels_nob},${TMB_snvs_nob},${TMB_indels_nob}" >> analyses/coverage_and_tmb_no-obpriors.csv
+            echo "${tumor},${normal},${coverage},${expected},${total_snvs_nob},${total_indels_nob},${TMB_snvs_nob},${TMB_indels_nob}" >> analyses/no-obpriors/coverage_and_tmb_no-obpriors.csv
         fi
     fi
 
@@ -227,7 +229,6 @@ if [[ ${tissue} == "Somatic" ]]; then
     Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism}
     # for no-ob
     if [[ ${mode} != "wgs" ]]; then
-        mkdir analyses/no-obpriors
         Rscript ${pipeline_dir}/scripts/variant_analysis.nofigs2.R ${mode} ${tumor}__${normal} ${organism} "no-obpriors"
     fi
 fi
@@ -282,16 +283,20 @@ if [[ "$check_finish" == 0 ]]; then
               }' $1
               }
 
-            # fetch_mmr_ann analyses/all_annotations_snpeff_somatic.csv > analyses/mmr_annotations_snpeff_somatic.csv
-            # fetch_mmr_ann analyses/all_annotations_funcotator_somatic.csv > analyses/mmr_annotations_funcotator_somatic.csv
-            # if [[ "${normal}" != "PON" ]]; then
-            #     fetch_mmr_ann analyses/all_annotations_snpeff_germline.csv > analyses/mmr_annotations_snpeff_germline.csv
-            #     fetch_mmr_ann analyses/all_annotations_funcotator_germline.csv > analyses/mmr_annotations_funcotator_germline.csv
-            # fi
+              # get all MMR annotations into a CSV table
+              ls *.annotations_funcotator_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > all_mmr_annotations_funcotator_somatic.csv
+              ls *.annotations_snpeff_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > all_mmr_annotations_snpeff_somatic.csv
+            if [[ "${normal}" != "PON" ]]; then
+                ls *.annotations_funcotator_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > all_mmr_annotations_funcotator_germline.csv
+                ls *.annotations_snpeff_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > all_mmr_annotations_snpeff_germline.csv
+            fi
 
             # export to zip file
             today=$(date -I)
-            zip -r export_results.${today}.zip annovar/*_multianno.maf analyses/old_output*
+            zip -r export_results.${today}.zip annovar/*_multianno.maf \
+                                               analyses/all_mmr_annotations_snpeff_germline.csv \
+                                               analyses/all_mmr_annotations_snpeff_germline.csv \
+                                               analyses/old_output*
 
             # add tmb_and_coverage to archive
             #zip -ru analyses.zip analyses/coverage_and_tmb.csv
