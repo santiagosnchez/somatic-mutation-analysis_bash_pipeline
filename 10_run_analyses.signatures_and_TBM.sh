@@ -144,15 +144,15 @@ fi
 
 # check if tumor-only mode or germline
 if [[ "${normal}" != "PON" && ${tissue} == "Germline" ]]; then
-    if [[ -e vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz ]]; then
+    if [[ -e vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz ]]; then
         ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
-        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-funcotator.${mode}.vcf.gz \
+        vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
         > analyses/${tumor}__${normal}.annotations_funcotator_germline.csv
     fi
-    if [[ -e vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz ]]; then
+    if [[ -e vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-snpeff.${mode}.vcf.gz ]]; then
         ${pipeline_dir}/scripts/snpeff-vcf2tbl.sh \
-        vcf/${tumor}__${normal}.varscan.all.Germline.annotated-snpeff.${mode}.vcf.gz \
+        vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-snpeff.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
         > analyses/${tumor}__${normal}.annotations_snpeff_germline.csv
     fi
@@ -273,7 +273,7 @@ if [[ "$check_finish" == 0 ]]; then
               awk -v FS="," -v SR=$skip_rows -v COL=${col} \
               '{
                 if (NR >= SR){
-                  if ($COL ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1)$/){
+                  if ($COL ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1|MCM8)$/){
                     print $0
                   }
                 } else {
