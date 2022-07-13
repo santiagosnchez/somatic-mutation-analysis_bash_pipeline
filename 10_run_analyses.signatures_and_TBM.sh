@@ -192,21 +192,23 @@ if [[ ${tissue} == "Somatic" ]]; then
 
     # get sigs into a single CSV line
     # header first
-    sig_heads=$(echo $(cat analyses/signatures/${tumor}__${normal}.COSMIC_v3.2.signatures.csv | \
-    awk -v FS="," '$3 ~ /^(SBS1|SBS6|SBS10a|SBS10b|SBS10c|SBS10d|SBS14|SBS15|SBS20|SBS26|SBS44)$/' | \
-    cut -d, -f3) | tr ' ' ',')
+    # sig_heads=$(echo $(cat analyses/signatures/${tumor}__${normal}.COSMIC_v3.2.signatures.csv | \
+    # awk -v FS="," '$3 ~ /^(SBS1|SBS6|SBS10a|SBS10b|SBS10c|SBS10d|SBS14|SBS15|SBS20|SBS26|SBS44)$/' | \
+    # cut -d, -f3) | tr ' ' ',')
 
     # proportions
     sig_prop=$(echo $(cat analyses/signatures/${tumor}__${normal}.COSMIC_v3.2.signatures.csv | \
     awk -v FS="," '$3 ~ /^(SBS1|SBS6|SBS10a|SBS10b|SBS10c|SBS10d|SBS14|SBS15|SBS20|SBS26|SBS44)$/' | \
     cut -d, -f1) | tr ' ' ',')
 
+    echo "10: done with COSMIC signatures (${tumor}__${normal})" | tee -a main.log
+
     # log
     echo "10: calculating observed coverage, SNVs and indels (${tumor}__${normal})" | tee -a main.log
 
     # add header to analyses/coverage_tmb_and_mmr_sigs
     if [[ ! -e analyses/coverage_tmb_and_mmr_sigs.csv ]]; then
-        echo "Tumor,Normal,Observed_coverage,Expected_coverage,SNV,Indels,TMB_SNV,TMB_indels,"${sig_heads} > analyses/coverage_tmb_and_mmr_sigs.csv
+        echo "Tumor,Normal,Observed_coverage,Expected_coverage,SNV,Indels,TMB_SNV,TMB_indels,SBS1,SBS6,SBS10a,SBS10b,SBS10c,SBS10d,SBS14,SBS15,SBS20,SBS26,SBS44" > analyses/coverage_tmb_and_mmr_sigs.csv
     fi
 
     # add header to analyses/old_output.tmbs.tsv
@@ -318,14 +320,13 @@ if [[ "$check_finish" == 0 ]]; then
                }
               }' $1
               }
+            export -f fetch_mmr_ann
 
             # get all MMR annotations into a CSV table
             ls analyses/annotations/*.annotations_funcotator_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_somatic.csv
             ls analyses/annotations/*.annotations_snpeff_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_somatic.csv
-            if [[ "${normal}" != "PON" ]]; then
-                ls analyses/annotations/*.annotations_funcotator_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_germline.csv
-                ls analyses/annotations/*.annotations_snpeff_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_germline.csv
-            fi
+            ls analyses/annotations/*.annotations_funcotator_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_germline.csv
+            ls analyses/annotations/*.annotations_snpeff_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_germline.csv
 
             # export to zip file
             today=$(date -I)
