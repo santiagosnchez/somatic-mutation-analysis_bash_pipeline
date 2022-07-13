@@ -109,7 +109,7 @@ echo "10: Fetching all variant annotations." | tee -a main.log
 # funcotator Somatic
 if [[ ${tissue} == "Somatic" ]]; then
     if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz ]]; then
-        ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
+        ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
         vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Somatic \
         > analyses/${tumor}__${normal}.annotations_funcotator_somatic.csv
@@ -125,7 +125,7 @@ if [[ ${tissue} == "Somatic" ]]; then
     # get stats for no-ob file annotated-snpeff_no-obpriors
     if [[ ${mode} != "wgs" ]]; then
         if [[ -e vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz ]]; then
-            ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
+            ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
             vcf/${tumor}__${normal}.mutect2.all.Somatic.annotated-funcotator_no-obpriors.${mode}.vcf.gz \
             ${tumor} ${normal} Somatic \
             > analyses/${tumor}__${normal}.annotations_funcotator_somatic_no-obpriors.csv
@@ -145,7 +145,7 @@ fi
 # check if tumor-only mode or germline
 if [[ "${normal}" != "PON" && ${tissue} == "Germline" ]]; then
     if [[ -e vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz ]]; then
-        ${pipeline_dir}/scripts/funcotator-vcf2maf.sh \
+        ${pipeline_dir}/scripts/funcotator-vcf2maf2.sh \
         vcf/${tumor}__${normal}.haplotypecaller.all.Germline.annotated-funcotator.${mode}.vcf.gz \
         ${tumor} ${normal} Germline \
         > analyses/${tumor}__${normal}.annotations_funcotator_germline.csv
