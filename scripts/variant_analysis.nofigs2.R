@@ -157,6 +157,12 @@ if (db_type == ""){
                                             type="relative",
                                             auto_reduce=TRUE,
                                             sig_db=sig_db)
+  linear_decomp_mt_sig_legacy_30 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
+                                            sig=mt_sig_bayes_sbs_96$Signature,
+                                            sig_index = "ALL",
+                                            method="NNLS",
+                                            type="relative",
+                                            sig_db = "legacy")
 } else {
   linear_decomp_mt_sig_sbs_96 <- sig_fit(catalogue_matrix=mt_tally$all_matrices$SBS_96 %>% t(),
                                               sig=mt_sig_bayes_sbs_96$Signature,
@@ -177,12 +183,23 @@ if (organism == "human"){
                                             sig_db = "legacy")
 }
 
-linear_decomp_cosmic = as.data.frame(linear_decomp_mt_sig_sbs_96) %>%
+# prep for output 3.2
+linear_decomp_cosmic3 = as.data.frame(linear_decomp_mt_sig_sbs_96) %>%
 mutate(cosmic_db="v3.2") %>%
 mutate(cosmic_signature = rownames(linear_decomp_mt_sig_sbs_96)) %>%
 mutate(etiology=cosmic_data$aetiology[rownames(linear_decomp_mt_sig_sbs_96),])
-colnames(linear_decomp_cosmic)[1] = "contribution_proportion"
-linear_decomp_cosmic = linear_decomp_cosmic %>%
+colnames(linear_decomp_cosmic3)[1] = "contribution_proportion"
+linear_decomp_cosmic3 = linear_decomp_cosmic3 %>%
+  mutate(tumor=TUMOR) %>%
+  mutate(normal=NORMAL) %>%
+  mutate(method="NNLS")
+
+linear_decomp_cosmic2 = as.data.frame(linear_decomp_mt_sig_legacy_30) %>%
+mutate(cosmic_db="v2.0") %>%
+mutate(cosmic_signature = rownames(linear_decomp_mt_sig_legacy_30)) %>%
+mutate(etiology=cosmic_data$aetiology[rownames(linear_decomp_mt_sig_legacy_30),])
+colnames(linear_decomp_cosmic2)[1] = "contribution_proportion"
+linear_decomp_cosmic2 = linear_decomp_cosmic2 %>%
   mutate(tumor=TUMOR) %>%
   mutate(normal=NORMAL) %>%
   mutate(method="NNLS")
@@ -190,32 +207,35 @@ linear_decomp_cosmic = linear_decomp_cosmic %>%
 #write.csv(linear_decomp_cosmic, file="analyses/lrDecomp_cosmic.csv")
 
 # read TMB and coverage data
-tmb_data = read.csv("analyses/coverage_and_tmb.csv")
-tmb = tmb_data %>% filter(tumor==TUMOR & normal==NORMAL)
+tmb_data = read.csv("analyses/coverage_tmb_and_mmr_sigs.csv")
+tmb = tmb_data %>% filter(Tumor==TUMOR & Normal==NORMAL)
 
 # write to file
-write.csv(linear_decomp_cosmic, file=paste0(outdir, "/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
+write.csv(linear_decomp_cosmic3, file=paste0(outdir, "/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
+write.csv(linear_decomp_cosmic2, file=paste0(outdir, "/", sample_name, ".COSMIC_v2.0.signatures.csv"), quote=F, row.names=F)
+
 
 # print old output
 # tmbs
+# "Tumor,Normal,Observed_coverage,Expected_coverage,SNV,Indels,TMB_SNV,TMB_indels,"${sig_heads}
 if (file.exists("analyses/old_output.tmbs.tsv")){
-  cat(sample_name, tmb$snvs, tmb$tmb_snvs, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
+  cat(sample_name, tmb$SNV, tmb$TMB_SNV, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
 } else {
   cat("sample", "total_SNV", "TMB", "\n", sep="\t", file="analyses/old_output.tmbs.tsv")
-  cat(sample_name, tmb$snvs, tmb$tmb_snvs, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
+  cat(sample_name, tmb$SNV, tmb$TMB_SNV, "\n", sep="\t", append=T, file="analyses/old_output.tmbs.tsv")
 }
 # signatures v3.2
 if (file.exists("analyses/old_output.v3.sigs.tsv")){
-  tmp_sigs = rep(0, length(linear_decomp_cosmic[,"contribution_proportion"]))
-  names(tmp_sigs) = rownames(linear_decomp_cosmic[,"etiology"])
-  tmp_sigs[ rownames(linear_decomp_cosmic[,"etiology"]) ] = linear_decomp_cosmic[,"contribution_proportion"]
+  tmp_sigs = rep(0, length(linear_decomp_cosmic3[,"contribution_proportion"]))
+  names(tmp_sigs) = rownames(linear_decomp_cosmic3[,"etiology"])
+  tmp_sigs[ rownames(linear_decomp_cosmic3[,"etiology"]) ] = linear_decomp_cosmic3[,"contribution_proportion"]
   cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
 } else {
-  cat("Signature", rownames(linear_decomp_cosmic[,"etiology"]), "\n", sep="\t", file="analyses/old_output.v3.sigs.tsv")
-  cat("Etiology", linear_decomp_cosmic[,"etiology"], "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
-  tmp_sigs = rep(0, length(linear_decomp_cosmic[,"contribution_proportion"]))
-  names(tmp_sigs) = rownames(linear_decomp_cosmic[,"etiology"])
-  tmp_sigs[ rownames(linear_decomp_cosmic[,"etiology"]) ] = linear_decomp_cosmic[,"contribution_proportion"]
+  cat("Signature", rownames(linear_decomp_cosmic3[,"etiology"]), "\n", sep="\t", file="analyses/old_output.v3.sigs.tsv")
+  cat("Etiology", linear_decomp_cosmic3[,"etiology"], "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
+  tmp_sigs = rep(0, length(linear_decomp_cosmic3[,"contribution_proportion"]))
+  names(tmp_sigs) = rownames(linear_decomp_cosmic3[,"etiology"])
+  tmp_sigs[ rownames(linear_decomp_cosmic3[,"etiology"]) ] = linear_decomp_cosmic3[,"contribution_proportion"]
   cat(sample_name, tmp_sigs,  "\n", sep="\t", append=T, file="analyses/old_output.v3.sigs.tsv")
 }
 # signatures v2

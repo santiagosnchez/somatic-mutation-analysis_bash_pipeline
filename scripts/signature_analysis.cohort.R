@@ -72,25 +72,32 @@ Rscript signature_analysis.cohort.R --mode wes --organism mouse vcf/*mutect2.all
   # add other args
   res$data_type = data_type
   res$organism = organism
+  # define db_type for sigminer
+  if (organism == "human"){
+    if (data_type == "wes"){
+      res$db_type="human-exome"
+    } else {
+      res$db_type="human-genome"
+    }
+    res$sig_db = "latest_SBS_GRCh38"
+    res$ref_genome = "BSgenome.Hsapiens.UCSC.hg38"
+    res$cosmic_exdata = "COSMIC_v3.2_SBS_GRCh38.rds"
+  } else if (organism == "mouse"){
+    res$db_type=""
+    res$sig_db = "latest_SBS_mm10"
+    res$ref_genome = "BSgenome.Mmusculus.UCSC.mm10"
+    res$cosmic_exdata = "COSMIC_v3.2_SBS_mm10.rds"
+  }
+  # check VCF files
+  if (!is.null(res$files)){
+    res$vcffiles = res$files[ grep("vcf.gz$", res$files) ]
+  } else {
+    files = paste(res$, dir("../vcf", pattern="vcf.gz$"), sep="/")
+    res$vcffiles = res$files[ grep("vcf.gz$", res$files) ]
+  }
   return(res)
 }
 
-# define db_type for sigminer
-if (organism == "human"){
-  if (data_type == "wes"){
-    db_type="human-exome"
-  } else {
-    db_type="human-genome"
-  }
-  sig_db = "latest_SBS_GRCh38"
-  ref_genome = "BSgenome.Hsapiens.UCSC.hg38"
-  cosmic_exdata = "COSMIC_v3.2_SBS_GRCh38.rds"
-} else if (organism == "mouse"){
-  db_type=""
-  sig_db = "latest_SBS_mm10"
-  ref_genome = "BSgenome.Mmusculus.UCSC.mm10"
-  cosmic_exdata = "COSMIC_v3.2_SBS_mm10.rds"
-}
 
 # tumor - normal
 # TUMOR = sub("__.*","",sample_name)
