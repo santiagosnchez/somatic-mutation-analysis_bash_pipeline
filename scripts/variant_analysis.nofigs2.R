@@ -206,14 +206,13 @@ linear_decomp_cosmic2 = linear_decomp_cosmic2 %>%
 
 #write.csv(linear_decomp_cosmic, file="analyses/lrDecomp_cosmic.csv")
 
-# read TMB and coverage data
-tmb_data = read.csv("analyses/coverage_tmb_and_mmr_sigs.csv")
-tmb = tmb_data %>% filter(Tumor==TUMOR & Normal==NORMAL)
-
 # write to file
 write.csv(linear_decomp_cosmic3, file=paste0(outdir, "/", sample_name, ".COSMIC_v3.2.signatures.csv"), quote=F, row.names=F)
 write.csv(linear_decomp_cosmic2, file=paste0(outdir, "/", sample_name, ".COSMIC_v2.0.signatures.csv"), quote=F, row.names=F)
 
+# read TMB and coverage data
+# tmb_data = read.csv("analyses/coverage_tmb_and_mmr_sigs.csv")
+# tmb = tmb_data %>% filter(Tumor==TUMOR & Normal==NORMAL)
 
 # print old output
 # tmbs
