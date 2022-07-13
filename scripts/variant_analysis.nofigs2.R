@@ -58,10 +58,10 @@ current_dir=getwd()
 # vector of filtered vcf files
 if (is.na(no_ob)){
   somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected.",data_type,".vcf.gz")
-  outdir="analyses"
+  outdir="analyses/signatures"
 } else {
   somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected_no-obpriors.",data_type,".vcf.gz")
-  outdir="analyses/no-obpriors"
+  outdir=paste0("analyses/", no_ob)
 }
 
 # make/read vcf as maf
