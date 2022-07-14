@@ -305,12 +305,14 @@ if [[ "$check_finish" == 0 ]]; then
             fetch_mmr_ann(){
               skip_rows=2
               col=10
+              genes_screened="MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1|MCM8"
               if [[ $(echo $1 | grep "funcotator" &> /dev/null && echo 1) == 1 ]]; then
                 skip_rows=3
                 col=4
               fi
-              awk -v FS="," -v SR=$skip_rows -v COL=${col} \
-              '{
+              awk -v FS="," -v SR=$skip_rows -v COL=${col} -v GENES=${genes_screened} \
+              'BEGIN { print "# genes screened: "GENES}
+              {
                 if (NR >= SR){
                   if ($COL ~ /^(MLH1|MSH2|MSH6|PMS2|POLD1|POLE|IDH1|TP53|NF1|MCM8)$/){
                     print $0
@@ -323,10 +325,10 @@ if [[ "$check_finish" == 0 ]]; then
             export -f fetch_mmr_ann
 
             # get all MMR annotations into a CSV table
-            ls analyses/annotations/*.annotations_funcotator_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_somatic.csv
-            ls analyses/annotations/*.annotations_snpeff_somatic.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_somatic.csv
-            ls analyses/annotations/*.annotations_funcotator_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_funcotator_germline.csv
-            ls analyses/annotations/*.annotations_snpeff_germline.csv | grep -v "\-1" | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +2; fi' > analyses/all_mmr_annotations_snpeff_germline.csv
+            ls analyses/annotations/*.annotations_funcotator_somatic.csv | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +4; fi' > analyses/all_mmr_annotations_funcotator_somatic.csv
+            ls analyses/annotations/*.annotations_snpeff_somatic.csv | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +4; fi' > analyses/all_mmr_annotations_snpeff_somatic.csv
+            ls analyses/annotations/*.annotations_funcotator_germline.csv | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +4; fi' > analyses/all_mmr_annotations_funcotator_germline.csv
+            ls analyses/annotations/*.annotations_snpeff_germline.csv | parallel 'if [[ {#} == 1 ]]; then fetch_mmr_ann {}; else fetch_mmr_ann {} | tail -n +3; fi' > analyses/all_mmr_annotations_snpeff_germline.csv
 
             # export to zip file
             today=$(date -I)
