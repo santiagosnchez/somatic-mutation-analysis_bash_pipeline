@@ -553,5 +553,3 @@ if [[ "$?" != 0 ]]; then
         rm -rf main.log ./.tmp
     fi
 fi
-
-echo "nothing"
