@@ -296,9 +296,9 @@ if [[ "$check_finish" == 0 ]]; then
         if [[ "$finished" -eq "$started" ]]; then
             # log and fetch MMR genes in annotations
             if [[ ${normal} == "PON" ]]; then
-                echo "10: Fetching somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+                echo "10: Fetching somatic variants of interest (MMR/PPD)" | tee -a main.log
             else
-                echo "10: Fetching germline and somatic variants of interest (${tumor}__${normal})" | tee -a main.log
+                echo "10: Fetching germline and somatic variants of interest (MMR/PPD)" | tee -a main.log
             fi
 
             # function to extrac rows that match MMR/tumor genes
