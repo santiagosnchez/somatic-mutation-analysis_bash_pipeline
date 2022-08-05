@@ -185,16 +185,16 @@ else
             # path to gnomad resource
             export gnomad_resource=null
             # path to gatk's panel of normals vcf
-            export gatk_pon=${genomes}/${2}/ucsc/pon.5_samples.2022-06-16.vcf.gz
+            export gatk_pon=${genomes}/${2}/ucsc/PoNs/pon.5_samples.2022-06-16.vcf.gz
             export gatk_pon_location=${genomes}/${2}/ucsc/PoNs
             # test mode
             if [[ ${3} == "wes" ]]; then
                 # path to WES target intervals
-                export intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.interval_list
+                export intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.edited.interval_list
                 # path to WES tergets in bed format
-                export intervals_bed=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.bed
+                export intervals_bed=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.edited.bed
                 # path to WES intervals for running MuTect2
-                export bed30intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.30-bed-files/
+                export bed30intervals=${genomes}/${2}/AgilentSureSelectV1/S0276129_Padded.sorted_noMT.LiftOverToMm10.edited.30-bed-files/
             else
                 # path to WES target intervals
                 export intervals=${genomes}/${2}/ucsc/wgs_callable_nonN-LC_regions.interval_list
