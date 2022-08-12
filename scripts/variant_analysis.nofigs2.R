@@ -25,7 +25,7 @@ args = base::commandArgs(trailingOnly = TRUE)
 data_type = args[1]
 sample_name = args[2]
 organism = args[3]
-no_ob = args[4]
+dest = args[4]
 
 # define db_type for sigminer
 if (organism == "human"){
@@ -56,12 +56,12 @@ current_dir=getwd()
 ##################
 
 # vector of filtered vcf files
-if (is.na(no_ob)){
+if (length(grep("no-obpriors", dest)) == 0)){
   somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected.",data_type,".vcf.gz")
   outdir="analyses/signatures"
 } else {
   somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected_no-obpriors.",data_type,".vcf.gz")
-  outdir=paste0("analyses/", no_ob)
+  outdir=paste0("analyses/", dest)
 }
 
 # make/read vcf as maf
