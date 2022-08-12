@@ -56,7 +56,7 @@ current_dir=getwd()
 ##################
 
 # vector of filtered vcf files
-if (length(grep("no-obpriors", dest)) == 0)){
+if (length(grep("no-obpriors", dest)) == 0){
   somaticvcfpath <- paste0("mutect2/", sample_name, ".mutect2.selected.",data_type,".vcf.gz")
   outdir="analyses/signatures"
 } else {
